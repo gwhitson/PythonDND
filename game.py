@@ -42,6 +42,7 @@ class DungeonMap():
                                     (i * square_size),
                                     screensize)
 
+# longest boi here, creates and defines all of the controls schema
     def init_control_panel(self):
         deal_heal_dmgbtn = tk.Button(self.controller, text="Deal/Heal Damage")
         deal_heal_dmgbtn.grid(row=0, column=0)
@@ -49,9 +50,11 @@ class DungeonMap():
         health_change_label = tk.LabelFrame(self.controller,
                                             text="change in health:")
         health_change_label.grid(row=1, column=0)
-        health_change_box = ttk.Spinbox(health_change_label,
-                                        from_=-40,
-                                        to=40)
+
+        health_change_amount = tk.IntVar()
+        health_change_box = tk.Entry(health_change_label,
+                                     textvariable=health_change_amount)
+        health_change_box.insert(0, "0")
         health_change_box.grid(row=0, column=0)
 
         dmg_opts_frame = tk.LabelFrame(self.controller,
@@ -60,20 +63,22 @@ class DungeonMap():
 
         damage_radius_label = tk.Label(dmg_opts_frame, text="Radius")
         damage_radius_label.grid(row=0, column=0)
-        damage_radius = ttk.Spinbox(dmg_opts_frame, from_=1, to=30, width=10)
+        damage_radius = tk.Entry(dmg_opts_frame, width=10)
+        damage_radius.insert(0, "0")
         damage_radius.grid(row=1, column=0)
 
         target_type_label = tk.Label(dmg_opts_frame, text="Target Type")
         target_type_label.grid(row=0, column=1)
 
-        targetting = tk.StringVar()
         target_type = ttk.Combobox(dmg_opts_frame,
-                                   width=10,
-                                   textvariable=targetting)
+                                   width=10)
         target_type['values'] = ("Players", "Enemies", "All in radius")
+        target_type.current(2)
         target_type.grid(row=1, column=1)
 
-
+        set_target_radius_btn = tk.Button(self.controller,
+                                          text="Set target radius")
+        set_target_radius_btn.grid(row=0,column=0)
 
 
 
