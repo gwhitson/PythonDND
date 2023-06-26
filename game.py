@@ -78,7 +78,10 @@ class DungeonMap():
 
         set_target_radius_btn = tk.Button(self.controller,
                                           text="Set target radius")
-        set_target_radius_btn.grid(row=3,column=0)
+        set_target_radius_btn.grid(row=3, column=0)
+
+    def determine_grid_position(self, pos: list[int, int]):
+        5
 
     def draw_circle_on_click(self, event):
         pixel_position = [event.x, event.y]
