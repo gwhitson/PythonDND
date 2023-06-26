@@ -4,6 +4,7 @@ import DMControls as dm
 # import json
 import tkinter as tk
 from tkinter import ttk
+import numpy
 
 screensize = 600
 cntrlrsize = 200
@@ -23,6 +24,10 @@ class DungeonMap():
         self.controller = tk.LabelFrame(self.window, text="controls",
                                         width=cntrlrsize, height=screensize)
         self.controller.pack(side=tk.RIGHT, fill=tk.BOTH)
+
+        self.targetting = tk.StringVar()
+        self.health_change_val = tk.IntVar()
+        self.target_radius = tk.IntVar()
 
     def mainloop(self):
         self.window.mainloop()
@@ -51,9 +56,8 @@ class DungeonMap():
                                             text="change in health:")
         health_change_label.grid(row=1, column=0)
 
-        health_change_amount = tk.IntVar()
         health_change_box = tk.Entry(health_change_label,
-                                     textvariable=health_change_amount)
+                                     textvariable=self.health_change_val)
         health_change_box.insert(0, "0")
         health_change_box.grid(row=0, column=0)
 
@@ -63,7 +67,8 @@ class DungeonMap():
 
         damage_radius_label = tk.Label(dmg_opts_frame, text="Radius")
         damage_radius_label.grid(row=0, column=0)
-        damage_radius = tk.Entry(dmg_opts_frame, width=10)
+        damage_radius = tk.Entry(dmg_opts_frame, width=10,
+                                 textvariable=self.target_radius)
         damage_radius.insert(0, "0")
         damage_radius.grid(row=1, column=0)
 
@@ -71,22 +76,27 @@ class DungeonMap():
         target_type_label.grid(row=0, column=1)
 
         target_type = ttk.Combobox(dmg_opts_frame,
-                                   width=10)
+                                   width=10,
+                                   textvariable=self.targetting)
         target_type['values'] = ("Players", "Enemies", "All in radius")
         target_type.current(2)
         target_type.grid(row=1, column=1)
 
         set_target_radius_btn = tk.Button(self.controller,
-                                          text="Set target radius")
+                                          text="Set target radius",
+                                          )
         set_target_radius_btn.grid(row=3, column=0)
 
     def determine_grid_position(self, pos: list[int, int]):
-        print(str(pos))
+        pos = numpy.array(pos)
+        return (numpy.array(pos // (screensize / self.control.map_size), dtype=int))
 
     def draw_circle_on_click(self, event):
         pixel_position = [event.x, event.y]
-        
-        self.determine_grid_position(pixel_position)
+
+        grid_pos = self.determine_grid_position(pixel_position)
+        print(str(grid_pos) + str(self.target_radius) + str(self.health_change_val))
+
 
 
 
