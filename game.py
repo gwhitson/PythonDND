@@ -17,7 +17,7 @@ class DungeonMap():
                                 width=(screensize),
                                 height=screensize)
         self.canvas.pack(side=tk.LEFT)
-        # self.window.bind('<Button-1>', self.click)
+        self.window.bind('<Button-1>', self.draw_circle_on_click)
 
         self.control = control
         self.controller = tk.LabelFrame(self.window, text="controls",
@@ -79,6 +79,12 @@ class DungeonMap():
         set_target_radius_btn = tk.Button(self.controller,
                                           text="Set target radius")
         set_target_radius_btn.grid(row=3,column=0)
+
+    def draw_circle_on_click(self, event, radius: int):
+        pixel_position = [event.x, event.y]
+        grid_position = pixel_position
+
+        print("pos test")
 
 
 
