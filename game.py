@@ -17,7 +17,7 @@ class DungeonMap():
                                 width=(screensize),
                                 height=screensize)
         self.canvas.pack(side=tk.LEFT)
-        self.window.bind('<Button-1>', self.draw_circle_on_click)
+        self.canvas.bind('<Button-1>', self.draw_circle_on_click)
 
         self.control = control
         self.controller = tk.LabelFrame(self.window, text="controls",
