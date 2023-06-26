@@ -78,7 +78,7 @@ class DungeonMap():
 
         set_target_radius_btn = tk.Button(self.controller,
                                           text="Set target radius")
-        set_target_radius_btn.grid(row=0,column=0)
+        set_target_radius_btn.grid(row=3,column=0)
 
 
 
