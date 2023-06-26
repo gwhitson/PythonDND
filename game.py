@@ -81,13 +81,12 @@ class DungeonMap():
         set_target_radius_btn.grid(row=3, column=0)
 
     def determine_grid_position(self, pos: list[int, int]):
-        5
+        print(str(pos))
 
     def draw_circle_on_click(self, event):
         pixel_position = [event.x, event.y]
-        grid_position = pixel_position
-
-        print("pos test" + str(pixel_position))
+        
+        self.determine_grid_position(pixel_position)
 
 
 
