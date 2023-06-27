@@ -1,4 +1,5 @@
 import DMControls as dm
+import math
 # import os
 # import sys
 # import json
@@ -103,6 +104,11 @@ class DungeonMap():
         pos = numpy.array(pos)
         return (numpy.array(pos // self.square_size, dtype=int))
 
+    def determine_pixel_position(self, pos: list[int, int]):
+        position = [(pos[0] * self.square_size) + (0.5 * self.square_size),
+                    (pos[1] * self.square_size) + (0.5 * self.square_size)]
+        return position
+
     def draw_circle_on_click(self, event):
         self.canvas.delete("target_circle")
 
@@ -121,25 +127,51 @@ class DungeonMap():
         y1 = y1 * self.square_size
         y2 = y2 * self.square_size
 
-        self.canvas.create_oval(x1,y1,x2,y2,width=3,tags="target_circle")
+        self.canvas.create_oval(x1, y1, x2, y2, width=3, tags="target_circle")
+
+        tempvar = (0.5 * self.square_size)
+        for i in self.control.entities:
+            if ((math.sqrt(i.location_x - grid_pos[0])) + (math.sqrt(i.location_y - grid_pos[1])) >= math.sqrt(self.target_radius.get())):
+                pos = self.determine_pixel_position([i.location_x, i.location_y])
+                print(str(i.location_x) + ':' + str(i.location_y))
+                self.canvas.create_oval(pos[0] - tempvar,
+                                        pos[1] - tempvar,
+                                        pos[0] + tempvar,
+                                        pos[1] + tempvar,
+                                        fill="red")
+                print(str(math.sqrt(i.location_x - grid_pos[0])) + ":" + str(math.sqrt(i.location_y - grid_pos[1])) + " -- " + str(math.sqrt(self.target_radius.get())))
+
+
+
+    def update_players(self):
+        tempvar = (0.5 * self.square_size)
+        for i in self.control.entities:
+            pos = self.determine_pixel_position([i.location_x, i.location_y])
+            print(str(i.location_x) + ':' + str(i.location_y))
+            self.canvas.create_oval(pos[0] - tempvar,
+                                    pos[1] - tempvar,
+                                    pos[0] + tempvar,
+                                    pos[1] + tempvar,
+                                    fill="blue")
 
 
 
 
 ##### test code
-player1 = dm.controllable_entity("player1", 5, 3, 3, "player")
-player2 = dm.controllable_entity("player2", 5, 3, 3, "player")
-player3 = dm.controllable_entity("player3", 5, 3, 3, "player")
-player4 = dm.controllable_entity("player4", 5, 3, 3, "player")
+player1 = dm.controllable_entity("player1", 5, 8, 8, "player")
+player2 = dm.controllable_entity("player2", 5, 3, 14, "player")
+player3 = dm.controllable_entity("player3", 5, 13, 3, "player")
+player4 = dm.controllable_entity("player4", 5, 23, 9, "player")
 player5 = dm.controllable_entity("player5", 5, 3, 3, "player")
 
 ents = [player1,player2,player3,player4,player5]
 
-game = dm.control_scheme(ents, 90)
+game = dm.control_scheme(ents, 30)
 
 
 test = DungeonMap(game)
 test.init_gamescreen()
 test.init_deal_heal()
+test.update_players()
 test.mainloop()
 
