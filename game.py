@@ -1,5 +1,4 @@
 import DMControls as dm
-import math
 # import os
 # import sys
 # import json
@@ -153,18 +152,27 @@ class DungeonMap():
 
 
     def update_players(self):
+        playercount = 1
         tempvar = (0.5 * self.square_size)
-        for i in range(len(self.control.entities)):
-            pos = self.determine_pixel_position([self.control.entities[i].location_x,
-                                                 self.control.entities[i].location_y])
-
-            self.canvas.create_oval(pos[0] - tempvar,
-                                    pos[1] - tempvar,
-                                    pos[0] + tempvar,
-                                    pos[1] + tempvar,
-                                    fill="blue",
-                                    tags="target_circle")
-            self.canvas.create_text(pos[0], pos[1], text=str(i + 1), fill="white")
+        for i in self.control.entities:         
+            pos = self.determine_pixel_position([i.location_x, i.location_y])
+            
+            if i.role == "player":
+                self.canvas.create_oval(pos[0] - tempvar,
+                                        pos[1] - tempvar,
+                                        pos[0] + tempvar,
+                                        pos[1] + tempvar,
+                                        fill="blue",
+                                        tags="target_circle")
+                self.canvas.create_text(pos[0], pos[1], text=str(playercount), fill="white")
+                playercount += 1
+            else:
+                self.canvas.create_oval(pos[0] - tempvar,
+                                        pos[1] - tempvar,
+                                        pos[0] + tempvar,
+                                        pos[1] + tempvar,
+                                        fill="green",
+                                        tags="target_circle")
 
 
 
@@ -176,6 +184,9 @@ player4 = dm.controllable_entity("player4", 5, 23, 9, "player")
 player5 = dm.controllable_entity("player5", 5, 3, 3, "player")
 
 ents = [player1,player2,player3,player4,player5]
+
+for i in range(5):
+    ents.append(dm.controllable_entity("goblin", (6 + (i * 2)), 9 + (i * 2), 5, "enemy"))
 
 game = dm.control_scheme(ents, 30)
 
