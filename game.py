@@ -90,10 +90,9 @@ class DungeonMap():
         target_type.current(2)
         target_type.grid(row=1, column=1)
 
-        set_target_radius_btn = tk.Button(self.controller,
-                                          text="Set target radius",
-                                          )
-        set_target_radius_btn.grid(row=3, column=0)
+#        set_target_radius_btn = tk.Button(self.controller,
+#                                          text="Set target radius")
+#        set_target_radius_btn.grid(row=3, column=0)
 
     def update_targetting_vars(self, target_radius, targetting, health_change_val):
         self.target_radius = target_radius
@@ -111,49 +110,61 @@ class DungeonMap():
 
     def draw_circle_on_click(self, event):
         self.canvas.delete("target_circle")
+        self.update_players()
+        
+        if self.target_radius.get() != 0:
+            pixel_position = [event.x, event.y]
 
-        pixel_position = [event.x, event.y]
+            grid_pos = self.determine_grid_position(pixel_position)
+#           print(str(grid_pos) + str(self.target_radius.get()) + str(self.health_change_val.get()) + self.targetting.get())
 
-        grid_pos = self.determine_grid_position(pixel_position)
-#       print(str(grid_pos) + str(self.target_radius.get()) + str(self.health_change_val.get()) + self.targetting.get())
+            x1 = (grid_pos[0] - self.target_radius.get()) + 0.5
+            x2 = (grid_pos[0] + self.target_radius.get()) + 0.5
+            y1 = (grid_pos[1] - self.target_radius.get()) + 0.5
+            y2 = (grid_pos[1] + self.target_radius.get()) + 0.5
 
-        x1 = (grid_pos[0] - self.target_radius.get()) + 0.5
-        x2 = (grid_pos[0] + self.target_radius.get()) + 0.5
-        y1 = (grid_pos[1] - self.target_radius.get()) + 0.5
-        y2 = (grid_pos[1] + self.target_radius.get()) + 0.5
+            x1 = x1 * self.square_size
+            x2 = x2 * self.square_size
+            y1 = y1 * self.square_size
+            y2 = y2 * self.square_size
 
-        x1 = x1 * self.square_size
-        x2 = x2 * self.square_size
-        y1 = y1 * self.square_size
-        y2 = y2 * self.square_size
+            self.canvas.create_oval(x1, y1, x2, y2, width=3, tags="target_circle")
 
-        self.canvas.create_oval(x1, y1, x2, y2, width=3, tags="target_circle")
-
-        tempvar = (0.5 * self.square_size)
-        for i in self.control.entities:
-            if ((math.sqrt(i.location_x - grid_pos[0])) + (math.sqrt(i.location_y - grid_pos[1])) >= math.sqrt(self.target_radius.get())):
+            tempvar = (0.5 * self.square_size)
+            for i in self.control.entities:
                 pos = self.determine_pixel_position([i.location_x, i.location_y])
-                print(str(i.location_x) + ':' + str(i.location_y))
-                self.canvas.create_oval(pos[0] - tempvar,
-                                        pos[1] - tempvar,
-                                        pos[0] + tempvar,
-                                        pos[1] + tempvar,
-                                        fill="red")
-                print(str(math.sqrt(i.location_x - grid_pos[0])) + ":" + str(math.sqrt(i.location_y - grid_pos[1])) + " -- " + str(math.sqrt(self.target_radius.get())))
+                if (((i.location_x - grid_pos[0]) ** 2) + ((i.location_y - grid_pos[1]) ** 2) <= (self.target_radius.get()) ** 2):
+                        #(math.sqrt(i.location_x - grid_pos[0])) + (math.sqrt(i.location_y - grid_pos[1])) >= math.sqrt(self.target_radius.get())):
+                    print(str(i.location_x) + ':' + str(i.location_y))
+                    self.canvas.create_oval(pos[0] - tempvar,
+                                            pos[1] - tempvar,
+                                            pos[0] + tempvar,
+                                            pos[1] + tempvar,
+                                            fill="red",
+                                            tags="target_circle")
+                    i.targetted = True
+                else:
+                    i.targetted = False
+
+                i.print()
+        else:
+            print("radius=0")
 
 
 
     def update_players(self):
         tempvar = (0.5 * self.square_size)
-        for i in self.control.entities:
-            pos = self.determine_pixel_position([i.location_x, i.location_y])
-            print(str(i.location_x) + ':' + str(i.location_y))
+        for i in range(len(self.control.entities)):
+            pos = self.determine_pixel_position([self.control.entities[i].location_x,
+                                                 self.control.entities[i].location_y])
+
             self.canvas.create_oval(pos[0] - tempvar,
                                     pos[1] - tempvar,
                                     pos[0] + tempvar,
                                     pos[1] + tempvar,
-                                    fill="blue")
-
+                                    fill="blue",
+                                    tags="target_circle")
+            self.canvas.create_text(pos[0], pos[1], text=str(i + 1), fill="white")
 
 
 

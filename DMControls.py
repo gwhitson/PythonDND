@@ -8,6 +8,7 @@ class controllable_entity:
         self.location_x = location_x
         self.location_y = location_y
         self.role = role
+        self.targetted = False
 
     def add_health(self, health_gain):
         self.HP = (self.HP + health_gain)
@@ -25,6 +26,7 @@ class controllable_entity:
         print("role: " + self.role)
         print("xloc: " + str(self.location_x))
         print("yloc: " + str(self.location_y))
+        print("targ: " + str(self.targetted))
 
 
 class control_scheme:
