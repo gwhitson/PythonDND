@@ -30,6 +30,7 @@ class DungeonMap():
         self.targetting = tk.StringVar()
         self.health_change_val = tk.IntVar()
         self.target_radius = tk.IntVar()
+        self.move_select = tk.IntVar()
 
     def mainloop(self):
         self.window.mainloop()
@@ -154,9 +155,9 @@ class DungeonMap():
     def update_players(self):
         playercount = 1
         tempvar = (0.5 * self.square_size)
-        for i in self.control.entities:         
+        for i in self.control.entities:
             pos = self.determine_pixel_position([i.location_x, i.location_y])
-            
+
             if i.role == "player":
                 self.canvas.create_oval(pos[0] - tempvar,
                                         pos[1] - tempvar,
@@ -173,34 +174,49 @@ class DungeonMap():
                                         pos[1] + tempvar,
                                         fill="green",
                                         tags="target_circle")
-# this function is untested, fuck windows
+
     def init_movement_panel(self):
-        movment_panel = tk.Frame(self.controller)
+        movement_panel = tk.LabelFrame(self.controller, text="Movement")
+        movement_panel.grid(row=3, column=0)
         # may need to add an ID property to controllable entity object to correctly 
         # differentiate between objects with the same name, trying index for now, it should work ...
-        move_select = tk.IntVar()
+        movement_val = tk.IntVar()
 
         ent_select_box = ttk.Combobox(movement_panel, width=20,
-                                      textvariable=move_select)
-        ent_select)box['values'] = self.control.entities
-        ent_select_box.grid(row=0, column=0, columnspan= 3)
+                                      textvariable=self.move_select)
+        ent_select_box['values'] = self.control.get_name_list()
+        movement_panel.bind('<Button-1>', self.draw_move_selector())
+        ent_select_box.grid(row=0, column=0)
 
         # make a crossbar with the N, S, E, W buttons and entry box for setting how much to move by
-        move_north_button = tk.Button(movement_panel, text="N")
-        move_north_button.grid(row=1, column=1)
+        move_comp_frame = tk.Frame(movement_panel)
+        move_comp_frame.grid(row=1, column=0)
+        move_north_button = tk.Button(move_comp_frame, text="N")
+        move_north_button.pack(side=tk.TOP)
 
-        move_south_button = tk.Button(movement_panel, text="s")
-        move_south_button.grid(row=3, column=1)
+        move_south_button = tk.Button(move_comp_frame, text="s")
+        move_south_button.pack(side=tk.BOTTOM)
 
-        move_east_button = tk.Button(movement_panel, text="E")
-        move_east_button.grid(row=2, column=3)
+        move_east_button = tk.Button(move_comp_frame, text="E")
+        move_east_button.pack(side=tk.RIGHT)
 
-        move_west_button = tk.Button(movement_panel, text="W")
-        move_west_button.grid(row=2, column=1)
-        
-        move_val_entry = tk.Entry(movement_panel, textvariable= movement_val)
-        move_val_entry.grid(row=2, column=1)
+        move_west_button = tk.Button(move_comp_frame, text="W")
+        move_west_button.pack(side=tk.LEFT)
 
+        move_val_entry = tk.Entry(move_comp_frame, textvariable= movement_val, width=4)
+        move_val_entry.pack()
+
+    def draw_move_selector(self):
+        self.canvas.delete("move_selector")
+        tempvar = 0.5 * self.square_size
+        pos = self.determine_pixel_position([self.control.entities[self.move_select.get()].location_x,
+                                             self.control.entities[self.move_select.get()].location_y])
+        self.canvas.create_oval(pos[0] - tempvar,
+                                pos[1] - tempvar,
+                                pos[0] + tempvar,
+                                pos[1] + tempvar,
+                                outline="orange",
+                                tags="move_selector")
 
 
 ##### test code
@@ -222,5 +238,6 @@ test = DungeonMap(game)
 test.init_gamescreen()
 test.init_deal_heal()
 test.update_players()
+test.init_movement_panel()
 test.mainloop()
 

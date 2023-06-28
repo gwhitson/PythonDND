@@ -20,6 +20,9 @@ class controllable_entity:
         self.location_x = (self.location_x - diff_x)
         self.location_y = (self.location_y - diff_y)
 
+    def get_name(self):
+        return self.name
+
     def print(self):
         print("name: " + self.name)
         print("HP:   " + str(self.HP))
@@ -39,6 +42,12 @@ class control_scheme:
 
     def remove_entity(self, entity_to_remove: controllable_entity()):
         self.entities -= entity_to_remove
+
+    def get_name_list(self) -> list:
+        lits = []
+        for i in self.entities:
+            lits.append(i.get_name())
+        return lits
 
     def print(self):
         print(self.map_size)
