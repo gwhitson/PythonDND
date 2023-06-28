@@ -173,6 +173,33 @@ class DungeonMap():
                                         pos[1] + tempvar,
                                         fill="green",
                                         tags="target_circle")
+# this function is untested, fuck windows
+    def init_movement_panel(self):
+        movment_panel = tk.Frame(self.controller)
+        # may need to add an ID property to controllable entity object to correctly 
+        # differentiate between objects with the same name, trying index for now, it should work ...
+        move_select = tk.IntVar()
+
+        ent_select_box = ttk.Combobox(movement_panel, width=20,
+                                      textvariable=move_select)
+        ent_select)box['values'] = self.control.entities
+        ent_select_box.grid(row=0, column=0, columnspan= 3)
+
+        # make a crossbar with the N, S, E, W buttons and entry box for setting how much to move by
+        move_north_button = tk.Button(movement_panel, text="N")
+        move_north_button.grid(row=1, column=1)
+
+        move_south_button = tk.Button(movement_panel, text="s")
+        move_south_button.grid(row=3, column=1)
+
+        move_east_button = tk.Button(movement_panel, text="E")
+        move_east_button.grid(row=2, column=3)
+
+        move_west_button = tk.Button(movement_panel, text="W")
+        move_west_button.grid(row=2, column=1)
+        
+        move_val_entry = tk.Entry(movement_panel, textvariable= movement_val)
+        move_val_entry.grid(row=2, column=1)
 
 
 
