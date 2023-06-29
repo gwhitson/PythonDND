@@ -30,6 +30,8 @@ class DungeonMap():
         self.targetting = tk.StringVar()
         self.health_change_val = tk.IntVar()
         self.target_radius = tk.IntVar()
+        self.move_amount = tk.IntVar()
+        self.move_amount.set(1)
         self.move_select = tk.StringVar()
         self.move_select.set("0:" + str(self.control.entities[0].get_name()))
 
@@ -62,7 +64,6 @@ class DungeonMap():
         deal_heal_frame.grid(row=0, column=0)
 
         deal_heal_frame.bind('<Button-1>', self.update_targetting_vars(target_radius, targetting, health_change_val), add="+")
-
 
         deal_heal_dmgbtn = tk.Button(deal_heal_frame, text="Deal/Heal Damage")
         deal_heal_dmgbtn.grid(row=0, column=0)
@@ -97,10 +98,6 @@ class DungeonMap():
         target_type.current(2)
         target_type.grid(row=1, column=1)
 
-#        set_target_radius_btn = tk.Button(self.controller,
-#                                          text="Set target radius")
-#        set_target_radius_btn.grid(row=3, column=0)
-
     def update_targetting_vars(self, target_radius, targetting, health_change_val):
         self.target_radius = target_radius
         self.targetting = targetting
@@ -126,7 +123,6 @@ class DungeonMap():
             pixel_position = [event.x, event.y]
 
             grid_pos = self.determine_grid_position(pixel_position)
-#           print(str(grid_pos) + str(self.target_radius.get()) + str(self.health_change_val.get()) + self.targetting.get())
 
             x1 = (grid_pos[0] - self.target_radius.get()) + 0.5
             x2 = (grid_pos[0] + self.target_radius.get()) + 0.5
@@ -144,7 +140,6 @@ class DungeonMap():
             for i in self.control.entities:
                 pos = self.determine_pixel_position([i.location_x, i.location_y])
                 if (((i.location_x - grid_pos[0]) ** 2) + ((i.location_y - grid_pos[1]) ** 2) <= (self.target_radius.get()) ** 2):
-                        #(math.sqrt(i.location_x - grid_pos[0])) + (math.sqrt(i.location_y - grid_pos[1])) >= math.sqrt(self.target_radius.get())):
                     print(str(i.location_x) + ':' + str(i.location_y))
                     self.canvas.create_oval(pos[0] - tempvar,
                                             pos[1] - tempvar,
@@ -160,15 +155,14 @@ class DungeonMap():
         else:
             print("radius=0")
 
-
-
     def update_players(self):
         tempvar = (0.5 * self.square_size)
         for i in range(len(self.control.entities)):
             cur_ent = self.control.entities[i]
             cur_ent.set_index(i)
             pos = self.determine_pixel_position([cur_ent.location_x, cur_ent.location_y])
-            self.entity_dict.update({(str(cur_ent.get_index()) + ":" + str(cur_ent.get_name())): i})
+            dict_string = (str(cur_ent.get_index()) + ":" + str(cur_ent.get_name()))
+            self.entity_dict.update({dict_string: i})
 
             if cur_ent.role == "player":
                 self.canvas.create_oval(pos[0] - tempvar,
@@ -176,52 +170,46 @@ class DungeonMap():
                                         pos[0] + tempvar,
                                         pos[1] + tempvar,
                                         fill="blue",
-                                        tags="target_circle")
-                self.canvas.create_text(pos[0], pos[1], text=str(i), fill="white")
+                                        tags=["entity", dict_string])
+                self.canvas.create_text(pos[0], pos[1], text=str(i), fill="white", tags=["entity", dict_string])
             else:
                 self.canvas.create_oval(pos[0] - tempvar,
                                         pos[1] - tempvar,
                                         pos[0] + tempvar,
                                         pos[1] + tempvar,
                                         fill="green",
-                                        tags="target_circle")
-                self.canvas.create_text(pos[0], pos[1], text=str(i), fill="white")
+                                        tags=["entity", dict_string])
+                self.canvas.create_text(pos[0], pos[1], text=str(i), fill="white", tags=["entity", dict_string])
 
     def init_movement_panel(self):
         movement_panel = tk.LabelFrame(self.controller, text="Movement")
         movement_panel.grid(row=1, column=0)
         # may need to add an ID property to controllable entity object to correctly 
         # differentiate between objects with the same name, trying index for now, it should work ...
-        movement_val = tk.IntVar()
 
         ent_select_box = ttk.Combobox(movement_panel, width=20,
                                       textvariable=self.move_select)
-#       ent_list = []
-#       for i in self.control.entities:
-#           ent_list.append(str(i.get_name(), i.get_index()))
-#           ent_select_box['values'] += (str(i.get_name) + " : " + str(i.get_index()))
 
         ent_select_box['values'] = self.control.get_name_list()
         ent_select_box.bind('<<ComboboxSelected>>', self.draw_move_selector)
-#       self.move_select.trace_add("write", self.draw_move_selector)
         ent_select_box.grid(row=0, column=0)
 
         # make a crossbar with the N, S, E, W buttons and entry box for setting how much to move by
         move_comp_frame = tk.Frame(movement_panel)
         move_comp_frame.grid(row=1, column=0)
-        move_north_button = tk.Button(move_comp_frame, text="N")
+        move_north_button = tk.Button(move_comp_frame, text="N", command= lambda : self.move_entity('N', self.move_amount.get()))
         move_north_button.pack(side=tk.TOP)
 
-        move_south_button = tk.Button(move_comp_frame, text="s")
+        move_south_button = tk.Button(move_comp_frame, text="S", command= lambda : self.move_entity('S', self.move_amount.get()))
         move_south_button.pack(side=tk.BOTTOM)
 
-        move_east_button = tk.Button(move_comp_frame, text="E")
+        move_east_button = tk.Button(move_comp_frame, text="E" , command= lambda : self.move_entity('E', self.move_amount.get()))
         move_east_button.pack(side=tk.RIGHT)
 
-        move_west_button = tk.Button(move_comp_frame, text="W")
+        move_west_button = tk.Button(move_comp_frame, text="W" , command= lambda : self.move_entity('W', self.move_amount.get()))
         move_west_button.pack(side=tk.LEFT)
 
-        move_val_entry = tk.Entry(move_comp_frame, textvariable= movement_val, width=4)
+        move_val_entry = tk.Entry(move_comp_frame, textvariable= self.move_amount, width=4)
         move_val_entry.pack()
 
     def draw_move_selector(self, event=""):
@@ -232,8 +220,6 @@ class DungeonMap():
         char = self.control.entities[self.entity_dict[self.move_select.get()]]
         char.print()
         pos = self.determine_pixel_position([char.location_x, char.location_y])
-#       pos = self.determine_pixel_position([self.control.entities[self.move_select.get()].location_x,
-#                                            self.control.entities[self.move_select.get()].location_y])
         self.canvas.create_oval(pos[0] - tempvar,
                                 pos[1] - tempvar,
                                 pos[0] + tempvar,
@@ -242,6 +228,25 @@ class DungeonMap():
                                 width=3,
                                 tags="move_selector")
         print(str(self.move_select.get()))
+
+    def move_entity(self, direction: chr, magnitude: int):
+        character = self.control.entities[self.entity_dict[self.move_select.get()]]
+        if direction == 'N':
+            character.location_y -= self.move_amount.get()
+        elif direction == 'S':
+            character.location_y += self.move_amount.get()
+        elif direction == 'E':
+            character.location_x += self.move_amount.get()
+        elif direction == 'W':
+            character.location_x -= self.move_amount.get()
+        else:
+            print("should not get here")
+        self.canvas.delete("target_circle")
+        self.canvas.delete("entity")
+        self.update_players()
+        self.draw_move_selector()
+
+#   def remove_entity(self, identifier)
 
 
 ##### test code
