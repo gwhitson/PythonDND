@@ -98,6 +98,8 @@ class DungeonMap():
         self.target_radius = target_radius
         self.targetting = targetting
         self.health_change_val = health_change_val
+        self.update_players()
+        self.draw_move_selector()
 
     def determine_grid_position(self, pos: list[int, int]):
         pos = numpy.array(pos)
@@ -111,6 +113,7 @@ class DungeonMap():
     def draw_circle_on_click(self, event):
         self.canvas.delete("target_circle")
         self.update_players()
+        self.draw_move_selector()
         
         if self.target_radius.get() != 0:
             pixel_position = [event.x, event.y]
@@ -185,7 +188,6 @@ class DungeonMap():
         ent_select_box = ttk.Combobox(movement_panel, width=20,
                                       textvariable=self.move_select)
         ent_select_box['values'] = self.control.get_name_list()
-        movement_panel.bind('<Button-1>', self.draw_move_selector())
         ent_select_box.grid(row=0, column=0)
 
         # make a crossbar with the N, S, E, W buttons and entry box for setting how much to move by
@@ -216,7 +218,9 @@ class DungeonMap():
                                 pos[0] + tempvar,
                                 pos[1] + tempvar,
                                 outline="orange",
+                                width=3,
                                 tags="move_selector")
+        print(str(self.move_select.get()))
 
 
 ##### test code
