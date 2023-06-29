@@ -18,7 +18,7 @@ class DungeonMap():
                                 width=(screensize),
                                 height=screensize)
         self.canvas.pack(side=tk.LEFT)
-        self.canvas.bind('<Button-1>', self.draw_circle_on_click)
+        self.canvas.bind('<Button-1>', self.draw_circle_on_click, add="+")
 
         self.control = control
         self.controller = tk.LabelFrame(self.window, text="controls",
@@ -30,7 +30,10 @@ class DungeonMap():
         self.targetting = tk.StringVar()
         self.health_change_val = tk.IntVar()
         self.target_radius = tk.IntVar()
-        self.move_select = tk.IntVar()
+        self.move_select = tk.StringVar()
+        self.move_select.set("0:" + str(self.control.entities[0].get_name()))
+
+        self.entity_dict = {}
 
     def mainloop(self):
         self.window.mainloop()
@@ -55,12 +58,16 @@ class DungeonMap():
         health_change_val = tk.IntVar()
         target_radius = tk.IntVar()
 
-        self.controller.bind('<Button-1>', self.update_targetting_vars(target_radius, targetting, health_change_val))
+        deal_heal_frame = tk.Frame(self.controller)
+        deal_heal_frame.grid(row=0, column=0)
 
-        deal_heal_dmgbtn = tk.Button(self.controller, text="Deal/Heal Damage")
+        deal_heal_frame.bind('<Button-1>', self.update_targetting_vars(target_radius, targetting, health_change_val), add="+")
+
+
+        deal_heal_dmgbtn = tk.Button(deal_heal_frame, text="Deal/Heal Damage")
         deal_heal_dmgbtn.grid(row=0, column=0)
 
-        health_change_label = tk.LabelFrame(self.controller,
+        health_change_label = tk.LabelFrame(deal_heal_frame,
                                             text="change in health:")
         health_change_label.grid(row=1, column=0)
 
@@ -69,7 +76,7 @@ class DungeonMap():
         health_change_box.insert(0, "0")
         health_change_box.grid(row=0, column=0)
 
-        dmg_opts_frame = tk.LabelFrame(self.controller,
+        dmg_opts_frame = tk.LabelFrame(deal_heal_frame,
                                        text="Deal/Heal options")
         dmg_opts_frame.grid(row=2, column=0)
 
@@ -149,19 +156,19 @@ class DungeonMap():
                 else:
                     i.targetted = False
 
-                i.print()
+                # i.print()
         else:
             print("radius=0")
 
 
 
     def update_players(self):
-        playercount = 1
         tempvar = (0.5 * self.square_size)
         for i in range(len(self.control.entities)):
             cur_ent = self.control.entities[i]
             cur_ent.set_index(i)
             pos = self.determine_pixel_position([cur_ent.location_x, cur_ent.location_y])
+            self.entity_dict.update({(str(cur_ent.get_index()) + ":" + str(cur_ent.get_name())): i})
 
             if cur_ent.role == "player":
                 self.canvas.create_oval(pos[0] - tempvar,
@@ -170,8 +177,7 @@ class DungeonMap():
                                         pos[1] + tempvar,
                                         fill="blue",
                                         tags="target_circle")
-                self.canvas.create_text(pos[0], pos[1], text=str(playercount), fill="white")
-                playercount += 1
+                self.canvas.create_text(pos[0], pos[1], text=str(i), fill="white")
             else:
                 self.canvas.create_oval(pos[0] - tempvar,
                                         pos[1] - tempvar,
@@ -179,17 +185,25 @@ class DungeonMap():
                                         pos[1] + tempvar,
                                         fill="green",
                                         tags="target_circle")
+                self.canvas.create_text(pos[0], pos[1], text=str(i), fill="white")
 
     def init_movement_panel(self):
         movement_panel = tk.LabelFrame(self.controller, text="Movement")
-        movement_panel.grid(row=3, column=0)
+        movement_panel.grid(row=1, column=0)
         # may need to add an ID property to controllable entity object to correctly 
         # differentiate between objects with the same name, trying index for now, it should work ...
         movement_val = tk.IntVar()
 
         ent_select_box = ttk.Combobox(movement_panel, width=20,
                                       textvariable=self.move_select)
+#       ent_list = []
+#       for i in self.control.entities:
+#           ent_list.append(str(i.get_name(), i.get_index()))
+#           ent_select_box['values'] += (str(i.get_name) + " : " + str(i.get_index()))
+
         ent_select_box['values'] = self.control.get_name_list()
+        ent_select_box.bind('<<ComboboxSelected>>', self.draw_move_selector)
+#       self.move_select.trace_add("write", self.draw_move_selector)
         ent_select_box.grid(row=0, column=0)
 
         # make a crossbar with the N, S, E, W buttons and entry box for setting how much to move by
@@ -210,11 +224,16 @@ class DungeonMap():
         move_val_entry = tk.Entry(move_comp_frame, textvariable= movement_val, width=4)
         move_val_entry.pack()
 
-    def draw_move_selector(self):
+    def draw_move_selector(self, event=""):
         self.canvas.delete("move_selector")
         tempvar = 0.5 * self.square_size
-        pos = self.determine_pixel_position([self.control.entities[self.move_select.get()].location_x,
-                                             self.control.entities[self.move_select.get()].location_y])
+        print(self.entity_dict)
+        print(str(self.move_select.get()))
+        char = self.control.entities[self.entity_dict[self.move_select.get()]]
+        char.print()
+        pos = self.determine_pixel_position([char.location_x, char.location_y])
+#       pos = self.determine_pixel_position([self.control.entities[self.move_select.get()].location_x,
+#                                            self.control.entities[self.move_select.get()].location_y])
         self.canvas.create_oval(pos[0] - tempvar,
                                 pos[1] - tempvar,
                                 pos[0] + tempvar,

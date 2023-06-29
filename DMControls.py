@@ -53,7 +53,7 @@ class control_scheme:
     def get_name_list(self) -> list:
         lits = []
         for i in self.entities:
-            lits.append(i.get_name())
+            lits.append(str(i.get_index()) + ":" + str(i.get_name()))
         return lits
 
     def print(self):
