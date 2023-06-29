@@ -9,6 +9,7 @@ class controllable_entity:
         self.location_y = location_y
         self.role = role
         self.targetted = False
+        self.index = 0
 
     def add_health(self, health_gain):
         self.HP = (self.HP + health_gain)
@@ -22,6 +23,12 @@ class controllable_entity:
 
     def get_name(self):
         return self.name
+
+    def set_index(self, id: int):
+        self.index = id
+
+    def get_index(self):
+        return self.index
 
     def print(self):
         print("name: " + self.name)

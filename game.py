@@ -114,7 +114,7 @@ class DungeonMap():
         self.canvas.delete("target_circle")
         self.update_players()
         self.draw_move_selector()
-        
+
         if self.target_radius.get() != 0:
             pixel_position = [event.x, event.y]
 
@@ -158,10 +158,12 @@ class DungeonMap():
     def update_players(self):
         playercount = 1
         tempvar = (0.5 * self.square_size)
-        for i in self.control.entities:
-            pos = self.determine_pixel_position([i.location_x, i.location_y])
+        for i in range(len(self.control.entities)):
+            cur_ent = self.control.entities[i]
+            cur_ent.set_index(i)
+            pos = self.determine_pixel_position([cur_ent.location_x, cur_ent.location_y])
 
-            if i.role == "player":
+            if cur_ent.role == "player":
                 self.canvas.create_oval(pos[0] - tempvar,
                                         pos[1] - tempvar,
                                         pos[0] + tempvar,
