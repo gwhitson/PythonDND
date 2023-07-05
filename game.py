@@ -215,10 +215,10 @@ class DungeonMap():
     def draw_move_selector(self, event=""):
         self.canvas.delete("move_selector")
         tempvar = 0.5 * self.square_size
-        print(self.entity_dict)
-        print(str(self.move_select.get()))
+        # print(self.entity_dict)
+        # print(str(self.move_select.get()))
         char = self.control.entities[self.entity_dict[self.move_select.get()]]
-        char.print()
+        # char.print()
         pos = self.determine_pixel_position([char.location_x, char.location_y])
         self.canvas.create_oval(pos[0] - tempvar,
                                 pos[1] - tempvar,
@@ -227,8 +227,23 @@ class DungeonMap():
                                 outline="orange",
                                 width=3,
                                 tags="move_selector")
-        print(str(self.move_select.get()))
+        # print(str(self.move_select.get()))
+        self.display_sel_char_props()
 
+    def display_sel_char_props(self):
+        char = self.control.entities[self.entity_dict[self.move_select.get()]]
+        
+        char_inf_frame = tk.LabelFrame(self.controller, text="Player Info")
+        char_inf_frame.grid(row=4, column=0, sticky=(tk.N, tk.S, tk.E, tk.W))
+        
+        name_string = ('{0: <10}'.format("Name:")) + char.name
+        char_name = tk.Label(char_inf_frame, text=name_string)
+        char_name.grid(row=0,column=0, sticky=tk.W)
+
+        health_string = ('{0: <11}'.format("Health:")) + str(char.HP)
+        char_health = tk.Label(char_inf_frame, text=health_string)
+        char_health.grid(row=1,column=0, sticky=tk.W)
+        
     def move_entity(self, direction: chr, magnitude: int):
         character = self.control.entities[self.entity_dict[self.move_select.get()]]
         if direction == 'N':
