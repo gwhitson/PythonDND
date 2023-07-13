@@ -114,6 +114,16 @@ class DungeonMap():
                     (pos[1] * self.square_size) + (0.5 * self.square_size)]
         return position
 
+    def set_background_image(self):
+        img_set_frame = tk.LabelFrame(self.controller, text="Set Background Image")
+        img_set_frame.grid(row=6, column=0)
+
+        img_path_label = tk.Label(img_set_frame, text="Path to Background Image:")
+        img_path_label.grid(row=0, column=0)
+
+        set_img_button = tk.Button(img_set_frame, text="Set Background")
+        set_img_button.grid(row=1, column=0)
+
     def draw_circle_on_click(self, event):
         self.canvas.delete("target_circle")
         self.update_players()
@@ -123,28 +133,29 @@ class DungeonMap():
             pixel_position = [event.x, event.y]
 
             grid_pos = self.determine_grid_position(pixel_position)
+            radius_translated = self.target_radius.get() / 2
 
-            x1 = (grid_pos[0] - self.target_radius.get()) + 0.5
-            x2 = (grid_pos[0] + self.target_radius.get()) + 0.5
-            y1 = (grid_pos[1] - self.target_radius.get()) + 0.5
-            y2 = (grid_pos[1] + self.target_radius.get()) + 0.5
+            x1 = (grid_pos[0] - radius_translated) + 0.5
+            x2 = (grid_pos[0] + radius_translated) + 0.5
+            y1 = (grid_pos[1] - radius_translated) + 0.5
+            y2 = (grid_pos[1] + radius_translated) + 0.5
 
-            x1 = x1 * self.square_size
-            x2 = x2 * self.square_size
-            y1 = y1 * self.square_size
-            y2 = y2 * self.square_size
+            x1 = (x1) * self.square_size
+            x2 = (x2) * self.square_size
+            y1 = (y1) * self.square_size
+            y2 = (y2) * self.square_size
 
             self.canvas.create_oval(x1, y1, x2, y2, width=3, tags="target_circle")
 
-            tempvar = (0.5 * self.square_size)
+            shift_to_middle = (0.5 * self.square_size)
             for i in self.control.entities:
                 pos = self.determine_pixel_position([i.location_x, i.location_y])
                 if (((i.location_x - grid_pos[0]) ** 2) + ((i.location_y - grid_pos[1]) ** 2) <= (self.target_radius.get()) ** 2):
                     print(str(i.location_x) + ':' + str(i.location_y))
-                    self.canvas.create_oval(pos[0] - tempvar,
-                                            pos[1] - tempvar,
-                                            pos[0] + tempvar,
-                                            pos[1] + tempvar,
+                    self.canvas.create_oval(pos[0] - shift_to_middle,
+                                            pos[1] - shift_to_middle,
+                                            pos[0] + shift_to_middle,
+                                            pos[1] + shift_to_middle,
                                             fill="red",
                                             tags="target_circle")
                     i.targetted = True
@@ -156,7 +167,7 @@ class DungeonMap():
             print("radius=0")
 
     def update_players(self):
-        tempvar = (0.5 * self.square_size)
+        shift_to_center = (0.5 * self.square_size)
         for i in range(len(self.control.entities)):
             cur_ent = self.control.entities[i]
             cur_ent.set_index(i)
@@ -165,18 +176,18 @@ class DungeonMap():
             self.entity_dict.update({dict_string: i})
 
             if cur_ent.role == "player":
-                self.canvas.create_oval(pos[0] - tempvar,
-                                        pos[1] - tempvar,
-                                        pos[0] + tempvar,
-                                        pos[1] + tempvar,
+                self.canvas.create_oval(pos[0] - shift_to_center,
+                                        pos[1] - shift_to_center,
+                                        pos[0] + shift_to_center,
+                                        pos[1] + shift_to_center,
                                         fill="blue",
                                         tags=["entity", dict_string])
                 self.canvas.create_text(pos[0], pos[1], text=str(i), fill="white", tags=["entity", dict_string])
             else:
-                self.canvas.create_oval(pos[0] - tempvar,
-                                        pos[1] - tempvar,
-                                        pos[0] + tempvar,
-                                        pos[1] + tempvar,
+                self.canvas.create_oval(pos[0] - shift_to_center,
+                                        pos[1] - shift_to_center,
+                                        pos[0] + shift_to_center,
+                                        pos[1] + shift_to_center,
                                         fill="green",
                                         tags=["entity", dict_string])
                 self.canvas.create_text(pos[0], pos[1], text=str(i), fill="white", tags=["entity", dict_string])
@@ -214,16 +225,16 @@ class DungeonMap():
 
     def draw_move_selector(self, event=""):
         self.canvas.delete("move_selector")
-        tempvar = 0.5 * self.square_size
+        shift_to_center = 0.5 * self.square_size
         # print(self.entity_dict)
         # print(str(self.move_select.get()))
         char = self.control.entities[self.entity_dict[self.move_select.get()]]
         # char.print()
         pos = self.determine_pixel_position([char.location_x, char.location_y])
-        self.canvas.create_oval(pos[0] - tempvar,
-                                pos[1] - tempvar,
-                                pos[0] + tempvar,
-                                pos[1] + tempvar,
+        self.canvas.create_oval(pos[0] - shift_to_center,
+                                pos[1] - shift_to_center,
+                                pos[0] + shift_to_center,
+                                pos[1] + shift_to_center,
                                 outline="orange",
                                 width=3,
                                 tags="move_selector")
@@ -354,4 +365,5 @@ test.init_deal_heal()
 test.update_players()
 test.init_movement_panel()
 test.init_ent_mgmt_panel()
+test.set_background_image()
 test.mainloop()
