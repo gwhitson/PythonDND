@@ -261,7 +261,76 @@ class DungeonMap():
         self.update_players()
         self.draw_move_selector()
 
-#   def remove_entity(self, identifier)
+    def init_ent_mgmt_panel(self):
+        frame = tk.LabelFrame(self.controller, text="Entity Management")
+        frame.grid(row=3, column=0, sticky=(tk.N, tk.S, tk.E, tk.W))
+
+        button1 = tk.Button(frame, text="remove selected entitiy", command= lambda : self.remove_entity(self.entity_dict[self.move_select.get()]))
+        button1.grid(row=0, column = 0)
+        button2 = tk.Button(frame, text="add entitiy", command= lambda : self.ent_prompt())
+        button2.grid(row=1, column = 0)
+
+    def ent_prompt(self):
+        prompt = tk.Tk()
+        name = tk.StringVar()
+        health = tk.IntVar()
+        x = tk.IntVar()
+        y = tk.IntVar()
+        role = tk.StringVar()
+
+        name_label = tk.Label(prompt, text="name")
+        name_label.grid(row=0,rowspan=1, column=0)
+
+        health_label = tk.Label(prompt, text="health")
+        health_label.grid(row=1,rowspan=1, column=0)
+
+        location_x_label = tk.Label(prompt, text="location_x")
+        location_x_label.grid(row=2,rowspan=1, column=0)
+
+        location_y_label = tk.Label(prompt, text="location_y")
+        location_y_label.grid(row=3,rowspan=1, column=0)
+
+        role_label = tk.Label(prompt, text="role")
+        role_label.grid(row=4,rowspan=1, column=0)
+
+        name_entry = tk.Entry(prompt, textvariable=name)
+        name_entry.grid(row=0,rowspan=1, column=1)
+
+        health_entry = tk.Entry(prompt, textvariable=health)
+        health_entry.grid(row=1,rowspan=1, column=1)
+
+        location_x_entry = tk.Entry(prompt, textvariable=x)
+        location_x_entry.grid(row=2,rowspan=1, column=1)
+
+        location_y_entry = tk.Entry(prompt, textvariable=y)
+        location_y_entry.grid(row=3,rowspan=1, column=1)
+
+        role_entry = tk.Entry(prompt, textvariable=role)
+        role_entry.grid(row=4,rowspan=1, column=1)
+
+        prompt_button = tk.Button(prompt, text="Add Entity", command= lambda: self.add_entity(name.get(), health.get(), x.get(), y.get(), role.get(), prompt))
+        prompt_button.grid(row=5, rowspan=2, column=1)
+
+    def remove_entity(self, identifier: int):
+        ent_to_remove = self.control.entities[identifier]
+        self.control.entities.remove(ent_to_remove)
+        self.canvas.delete("target_circle")
+        self.canvas.delete("entity")
+        self.update_players()
+        self.draw_move_selector()
+        self.init_movement_panel()
+
+    def add_entity(self, name, health, x, y, role, inprompt):
+        self.control.entities.append(dm.controllable_entity(name, health, x, y, role))
+        inprompt.destroy()
+        self.canvas.delete("target_circle")
+        self.canvas.delete("entity")
+        self.update_players()
+        self.draw_move_selector()
+        self.init_movement_panel()
+
+
+
 
 
 ##### test code
@@ -284,5 +353,5 @@ test.init_gamescreen()
 test.init_deal_heal()
 test.update_players()
 test.init_movement_panel()
+test.init_ent_mgmt_panel()
 test.mainloop()
-
