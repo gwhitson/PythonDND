@@ -29,6 +29,7 @@ class DungeonMap():
         self.square_size = (screensize / self.control.map_size)
 
         self.selected_image = ""
+        self.image = ''
         self.targetting = tk.StringVar()
         self.health_change_val = tk.IntVar()
         self.target_radius = tk.IntVar()
@@ -55,6 +56,11 @@ class DungeonMap():
                                     0,
                                     (i * self.square_size),
                                     screensize)
+        test.init_deal_heal()
+        test.update_players()
+        test.init_movement_panel()
+        test.init_ent_mgmt_panel()
+        test.set_background_image()
 
 # longest boi here, creates and defines all of the controls schema
     def init_deal_heal(self):
@@ -149,7 +155,7 @@ class DungeonMap():
             shift_to_middle = (0.5 * self.square_size)
             for i in self.control.entities:
                 pos = self.determine_pixel_position([i.location_x, i.location_y])
-                if (((i.location_x - grid_pos[0]) ** 2) + ((i.location_y - grid_pos[1]) ** 2) <= (self.target_radius.get()) ** 2):
+                if (((i.location_x - grid_pos[0]) ** 2) + ((i.location_y - grid_pos[1]) ** 2) <= ((self.target_radius.get() / 2)) ** 2):
                     print(str(i.location_x) + ':' + str(i.location_y))
                     self.canvas.create_oval(pos[0] - shift_to_middle,
                                             pos[1] - shift_to_middle,
@@ -242,7 +248,10 @@ class DungeonMap():
 
     def prompt_image_choice(self):
         self.selected_image = tk.filedialog.askopenfilename()
-        self.canvas
+        self.image = tk.PhotoImage(file=self.selected_image)
+        self.canvas.create_image((0, 0), image=self.image, anchor='nw')
+        print('test')
+        self.init_gamescreen()
 
     def char_properties_window(self):
         char = self.control.entities[self.entity_dict[self.move_select.get()]]
@@ -364,9 +373,4 @@ game = dm.control_scheme(ents, 30)
 
 test = DungeonMap(game)
 test.init_gamescreen()
-test.init_deal_heal()
-test.update_players()
-test.init_movement_panel()
-test.init_ent_mgmt_panel()
-test.set_background_image()
 test.mainloop()
