@@ -1,9 +1,10 @@
 import DMControls as dm
-# import os
-# import sys
+import os
+import sys
 # import json
 import tkinter as tk
 from tkinter import ttk
+from tkinter import filedialog
 import numpy
 
 screensize = 600
@@ -27,6 +28,7 @@ class DungeonMap():
 
         self.square_size = (screensize / self.control.map_size)
 
+        self.selected_image = ""
         self.targetting = tk.StringVar()
         self.health_change_val = tk.IntVar()
         self.target_radius = tk.IntVar()
@@ -115,13 +117,10 @@ class DungeonMap():
         return position
 
     def set_background_image(self):
-        img_set_frame = tk.LabelFrame(self.controller, text="Set Background Image")
+        img_set_frame = tk.Frame(self.controller)
         img_set_frame.grid(row=6, column=0)
 
-        img_path_label = tk.Label(img_set_frame, text="Path to Background Image:")
-        img_path_label.grid(row=0, column=0)
-
-        set_img_button = tk.Button(img_set_frame, text="Set Background")
+        set_img_button = tk.Button(img_set_frame, text="Set Background", command=self.prompt_image_choice)
         set_img_button.grid(row=1, column=0)
 
     def draw_circle_on_click(self, event):
@@ -239,22 +238,26 @@ class DungeonMap():
                                 width=3,
                                 tags="move_selector")
         # print(str(self.move_select.get()))
-        self.display_sel_char_props()
+        self.char_properties_window()
 
-    def display_sel_char_props(self):
+    def prompt_image_choice(self):
+        self.selected_image = tk.filedialog.askopenfilename()
+        self.canvas
+
+    def char_properties_window(self):
         char = self.control.entities[self.entity_dict[self.move_select.get()]]
-        
+
         char_inf_frame = tk.LabelFrame(self.controller, text="Player Info")
         char_inf_frame.grid(row=4, column=0, sticky=(tk.N, tk.S, tk.E, tk.W))
-        
+
         name_string = ('{0: <10}'.format("Name:")) + char.name
         char_name = tk.Label(char_inf_frame, text=name_string)
-        char_name.grid(row=0,column=0, sticky=tk.W)
+        char_name.grid(row=0, column=0, sticky=tk.W)
 
         health_string = ('{0: <11}'.format("Health:")) + str(char.HP)
         char_health = tk.Label(char_inf_frame, text=health_string)
-        char_health.grid(row=1,column=0, sticky=tk.W)
-        
+        char_health.grid(row=1, column=0, sticky=tk.W)
+
     def move_entity(self, direction: chr, magnitude: int):
         character = self.control.entities[self.entity_dict[self.move_select.get()]]
         if direction == 'N':
