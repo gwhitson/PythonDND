@@ -1,4 +1,3 @@
-
 class controllable_entity:
     def __init__(name = "", HP = 0, AC = 0, grid_x = 0, grid_y = 0, role = "player", index = -1, targetted = false):
         self.name = name
