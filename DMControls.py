@@ -1,21 +1,22 @@
 class controllable_entity:
-    def __init__(name = "", HP = 0, AC = 0, grid_x = 0, grid_y = 0, role = "player", index = -1, targetted = false):
+    def __init__(self, name="", HP=0, AC=0, grid_x=0, grid_y=0, role="player", index=-1, targetted=False):
         self.name = name
-        self.HP = HP 
-        self.AC = AC 
-        self.grid_x = grid_x 
-        self.grid_y = grid_y 
-        self.role = role 
-        self.index = index 
+        self.HP = HP
+        self.AC = AC
+        self.grid_x = grid_x
+        self.grid_y = grid_y
+        self.role = role
+        self.index = index
         self.targetted = targetted
-    
-    ### setter funcs
+
+    # setter funcs
+
     def add_health(self, change):
         self.HP = self.HP + change
 
     def rem_health(self, change):
         self.HP = self.HP - change
-        
+
     def change_x(self, change):
         self.grid_x += change
 
@@ -28,8 +29,8 @@ class controllable_entity:
     def set_ac(self, new_ac):
         self.AC = new_ac
 
+    # getter funcs
 
-    ### getter funcs
     def get_HP(self):
         return self.HP
 
@@ -44,7 +45,7 @@ class controllable_entity:
 
     def get_role(self):
         return self.role
-        
+
     def get_index(self):
         return self.index
 
@@ -53,9 +54,9 @@ class controllable_entity:
 
 
 class control_scheme:
-    def __init__(self, entities: list, map_size=1):
+    def __init__(self, entities: list, square_size: int):
         self.entities = entities
-        self.map_size = map_size
+        self.square_size = square_size
 
     def add_entity(self, entity_to_add: controllable_entity()):
         self.entities += entity_to_add
