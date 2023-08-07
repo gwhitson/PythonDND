@@ -9,13 +9,7 @@ class DungeonMap():
     def __init__(self, control: dm.control_scheme):
         self.window = tk.Tk()
         self.window.title = "Dungeons & Dragons"
-        self.map = tk.Canvas(self.window,
-                             width=(self.get_screen_size()[0] - 200),
-                             height=self.get_screen_size()[1])
-        self.map.pack(side=tk.LEFT)
-#       self.map.bind('<Button-1>',
-#                        self.draw_circle_on_click,
-#                        add="+")
+
         self.control = control
         self.controller = tk.LabelFrame(self.window,
                                         text="controls",
@@ -24,7 +18,18 @@ class DungeonMap():
         self.controller.pack(side=tk.RIGHT, fill=tk.BOTH)
         self.screensize = self.get_screen_size()
 
+        self.map = tk.Canvas(self.window,
+                             width=(self.get_screen_size()[0] - 200),
+                             height=self.get_screen_size()[1])
+        self.map.pack(side=tk.LEFT)
+#       self.map.bind('<Button-1>',
+#                        self.draw_circle_on_click,
+#                        add="+")
+
+        # object bound variables
+
     def mainloop(self):
+        self.init_mod_health()
         self.window.mainloop()
 
     # main render function
@@ -48,7 +53,31 @@ class DungeonMap():
                                  self.screensize[1])
 
     # control methods
-#   def init_deal_heal(self):
+    def init_mod_health(self):
+        targetting = tk.IntVar(value=0)
+        health_change = tk.IntVar(value=0)
+        target_radius = tk.IntVar(value=0)
+
+        mh_frame = tk.LabelFrame(self.controller, text="Modify Health")
+        mh_frame.grid(row=0, column=0)
+
+        mh_radius_b = tk.Button(mh_frame, text="Draw Radius", command= lambda : (target_radius.set(target_radius.get() + 1)), width=10)
+        mh_radius_b.grid(row=0, column=1)
+
+        mh_radius_entry = tk.Entry(mh_frame, width=7, textvariable=target_radius)
+        mh_radius_entry.grid(row=0, column=0)
+
+        mh_health_change_b = tk.Button(mh_frame, text="Mod Health",
+                                       command= lambda : (health_change.set(health_change.get() + 1)), width=10)
+        mh_health_change_b.grid(row=1, column=1)
+
+        mh_health_change_entry = tk.Entry(mh_frame, width=7, textvariable=health_change)
+        mh_health_change_entry.grid(row=1, column=0)
+
+        
+
+#       test = tk.Label(mh_frame, text="test")
+#       test.pack()
 
 #   def init_move_panel(self):
 
