@@ -9,6 +9,10 @@ class DungeonMap():
     def __init__(self, control: dm.control_scheme):
         self.window = tk.Tk()
         self.window.title = "Dungeons & Dragons"
+        try: 
+            self.window.attributes("-zoomed", True)
+        except:
+            self.window.state('zoomed')
 
         self.control = control
         self.controller = tk.LabelFrame(self.window,
@@ -19,12 +23,12 @@ class DungeonMap():
         self.screensize = self.get_screen_size()
 
         self.map = tk.Canvas(self.window,
-                             width=(self.get_screen_size()[0] - 200),
+                             width=(self.get_screen_size()[0]),
                              height=self.get_screen_size()[1])
         self.map.pack(side=tk.LEFT)
-#       self.map.bind('<Button-1>',
-#                        self.draw_circle_on_click,
-#                        add="+")
+ #      self.map.bind('<Button-1>',
+ #                       self.draw_circle_on_click,
+ #                       add="+")
 
         # object bound variables
 
@@ -74,12 +78,25 @@ class DungeonMap():
         mh_health_change_entry = tk.Entry(mh_frame, width=7, textvariable=health_change)
         mh_health_change_entry.grid(row=1, column=0)
 
+    def init_move_panel(self):
+        ent_to_move = tk.IntVar(value=0)
+        dist_to_move = tk.IntVar(value=0)
         
+        mv_frame = tk.LabelFrame(self.controller, text="Movement")
+        mv_frame.grid(row=1, column=0)
+        
+        mv_entity_select = ttk.Combobox(mv_frame, width=18, textvariable=ent_to_move)
+#       mv_entity_select['values'] = self.q
+        mv_entity_select.grid(row=0, column=0, columnspan=2)
+        
+        mv_move_dist_b = tk.Button(mv_frame, text="Move",
+                               command= lambda : (health_change.set(health_change.get() + 1)), width=10)
+        mv_move_dist_b.grid(row=1, column=1)
+        
+        mv_move_dist_entry = tk.Entry(mv_frame, width=7, textvariable=dist_to_move)
+        mv_move_dist_entry.grid(row=1, column=0)
 
-#       test = tk.Label(mh_frame, text="test")
-#       test.pack()
 
-#   def init_move_panel(self):
 
 #   def draw_circle_on_click(self, event):
 
@@ -115,4 +132,5 @@ game = dm.control_scheme(ents, 30)
 
 test = DungeonMap(game)
 test.init_gamescreen()
+test.init_move_panel()
 test.mainloop()
