@@ -26,9 +26,10 @@ class DungeonMap():
                              width=(self.get_screen_size()[0]),
                              height=self.get_screen_size()[1])
         self.map.pack(side=tk.LEFT)
- #      self.map.bind('<Button-1>',
- #                       self.draw_circle_on_click,
- #                       add="+")
+        self.map.bind('<Button-1>',
+                      self.draw_circle_on_click,
+                         add="+")
+        self.square_size = (self.get_screen_size()[0] - 200) / self.control.map_size
 
         # object bound variables
 
@@ -39,22 +40,15 @@ class DungeonMap():
     # main render function
     def init_gamescreen(self):
         # create horizontal lines
-        o = 0
-        while o <= self.screensize[1]:
-            o += self.control.square_size
-            self.map.create_line(0,
-                                 o,
-                                 self.screensize[0],
-                                 o)
-
+        for i in range(self.control.map_size + 1):
+            self.map.create_line(0, (i * self.square_size),
+                                 self.screensize[0], (i * self.square_size))
         # create vertical lines
-        o = 0
-        while o <= self.screensize[0]:
-            o += self.control.square_size
-            self.map.create_line(o,
-                                 0,
-                                 o,
-                                 self.screensize[1])
+        for i in range(self.control.map_size + 1):
+            self.map.create_line((i * self.square_size),
+                                    0,
+                                    (i * self.square_size),
+                                    self.screensize[1])
 
     # control methods
     def init_mod_health(self):
@@ -86,7 +80,8 @@ class DungeonMap():
         mv_frame.grid(row=1, column=0)
         
         mv_entity_select = ttk.Combobox(mv_frame, width=18, textvariable=ent_to_move)
-#       mv_entity_select['values'] = self.q
+        mv_entity_select['values'] = self.control.ent_list()
+        print(self.control.ent_list())
         mv_entity_select.grid(row=0, column=0, columnspan=2)
         
         mv_move_dist_b = tk.Button(mv_frame, text="Move",
@@ -98,7 +93,8 @@ class DungeonMap():
 
 
 
-#   def draw_circle_on_click(self, event):
+    def draw_circle_on_click(self, event) -> list[int, int]:
+        print(str(event))
 
 #   def update_players(self):
 

@@ -8,6 +8,7 @@ class controllable_entity:
         self.role = role
         self.index = index
         self.targetted = targetted
+        self.id = ""
 
     # setter funcs
 
@@ -29,7 +30,13 @@ class controllable_entity:
     def set_ac(self, new_ac):
         self.AC = new_ac
 
+    def set_id(self):
+        self.id = str(self.get_index()) + ":" + str(self.get_name())
+
     # getter funcs
+
+    def get_name(self):
+        return self.name
 
     def get_HP(self):
         return self.HP
@@ -52,14 +59,31 @@ class controllable_entity:
     def get_targetted(self):
         return self.targetted
 
+    def get_id(self):
+        return self.id
+
 
 class control_scheme:
-    def __init__(self, entities: list, square_size: int):
+    def __init__(self, entities: list, map_size: int):
         self.entities = entities
-        self.square_size = square_size
+        self.map_size = map_size
+        self.update_ents()
+
+    def update_ents(self):
+        for i in range(len(self.entities)):
+            self.entities[i].set_index(i)
+            self.entities[i].set_id()
+
 
     def add_entity(self, entity_to_add: controllable_entity()):
         self.entities += entity_to_add
 
     def remove_entity(self, entity_to_remove: controllable_entity()):
         self.entities -= entity_to_remove
+    
+    def ent_list(self):
+        local_list = []
+        for i in self.entities:
+            local_list.append(i.get_id())
+
+        return local_list
