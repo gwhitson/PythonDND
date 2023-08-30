@@ -1,7 +1,7 @@
 import DMControls as dm
 import tkinter as tk
 from tkinter import ttk
-import numpy
+#import numpy
 
 
 class DungeonMap():
@@ -95,6 +95,9 @@ class DungeonMap():
 
     def draw_circle_on_click(self, event) -> list[int, int]:
         print(str(event))
+        print(str(int(event.x / self.square_size)) + ": x")
+        print(str(int(event.y / self.square_size)) + ": y")
+        print(str(self.determine_grid_pos(event.x, event.y)))
 
 #   def update_players(self):
 
@@ -103,7 +106,8 @@ class DungeonMap():
     # info gathering methods
 #   def update_targetting(self):
 
-#   def determine_grid_pos(self):
+    def determine_grid_pos(self, x: int, y: int) -> list[int,int]:
+        return [int(x / self.square_size), int(y / self.square_size)]
 
 #   def determine_pixel_pos(self):
 
