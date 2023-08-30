@@ -18,11 +18,11 @@ class controllable_entity:
     def rem_health(self, change):
         self.HP = self.HP - change
 
-    def change_x(self, change):
-        self.grid_x += change
+    def set_x(self, new_x):
+        self.grid_x = new_x
 
-    def change_y(self, change):
-        self.grid_y += change
+    def set_y(self, new_y):
+        self.grid_y = new_y
 
     def set_index(self,  new_index):
         self.index = new_index
