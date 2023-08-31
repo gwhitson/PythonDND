@@ -27,12 +27,14 @@ class DungeonMap():
                              height=self.get_screen_size()[1])
         self.map.pack(side=tk.LEFT)
         self.map.bind('<Button-1>',
-                      self.draw_circle_on_click,
+                      self.click,
                          add="+")
         self.square_size = (self.get_screen_size()[0] - 200) / self.control.map_size
 
         # object bound variables
         self.mh_radius = tk.IntVar(value=0)
+        self.fl_move_ent = False
+        self.fl_draw_target = False
 
     def mainloop(self):
         self.init_mod_health()
@@ -59,7 +61,7 @@ class DungeonMap():
         mh_frame = tk.LabelFrame(self.controller, text="Modify Health")
         mh_frame.grid(row=0, column=0)
 
-        mh_radius_b = tk.Button(mh_frame, text="Draw Radius", command= lambda : (self.mh_radius.set(self.mh_radius.get() + 1)), width=10)
+        mh_radius_b = tk.Button(mh_frame, text="Draw Radius", command= lambda : self.set_draw_target_flag(), width=10)
         mh_radius_b.grid(row=0, column=1)
 
         mh_radius_entry = tk.Entry(mh_frame, width=7, textvariable=self.mh_radius)
@@ -85,7 +87,7 @@ class DungeonMap():
         mv_entity_select.grid(row=0, column=0, columnspan=2)
         
         mv_move_dist_b = tk.Button(mv_frame, text="Move",
-                               command= lambda : (dist_to_move.set(dist_to_move.get() + 1)), width=10)
+                               command= lambda : self.show_movement_radius(self.control.entities[ent_to_move.get()]), width=10)
         mv_move_dist_b.grid(row=1, column=1)
         
         mv_move_dist_entry = tk.Entry(mv_frame, width=7, textvariable=dist_to_move)
@@ -94,6 +96,19 @@ class DungeonMap():
 
 
     # control methods
+    def click(self, event):
+        print(str(self.determine_grid_pos(event.x, event.y)))
+        self.map.delete("target")
+
+        if (self.fl_move_ent):
+            print("moving ent to " + str(self.determine_grid_pos(event.x, event.y)))
+            self.fl_move_ent = False
+            self.map.delete("movement")
+
+        elif (self.fl_draw_target):
+            print("draw target radius of size " + str(self.mh_radius.get()))
+            self.show_target_radius(event.x, event.y, self.mh_radius.get())
+
     def draw_circle_on_click(self, event) -> list[int, int]:
         # placeholders
         print(str(self.determine_grid_pos(event.x, event.y)))
@@ -147,6 +162,7 @@ class DungeonMap():
         cur_ent.set_x(new_pos[0])
         cur_ent.set_y(new_pos[1])
         self.update_players()
+        self.show_movement_radius(cur_ent)
 
 #   def ent_mgmt_panel(self):
 
@@ -166,7 +182,33 @@ class DungeonMap():
 
     # player interactive methods
     def show_movement_radius(self, cur_ent: dm.controllable_entity):
-        print()
+        self.map.delete("movement")
+        l_pos = self.determine_pixel_pos(int(cur_ent.get_grid_x()), int(cur_ent.get_grid_y()))
+        self.map.create_oval(l_pos[0] - int(cur_ent.get_move_speed() * self.square_size),
+                             l_pos[1] - int(cur_ent.get_move_speed() * self.square_size),
+                             l_pos[0] + int(cur_ent.get_move_speed() * self.square_size),
+                             l_pos[1] + int(cur_ent.get_move_speed() * self.square_size),
+                             width=3,
+                             tags="movement")
+        self.fl_move_ent = True
+
+    def show_target_radius(self, x: int, y: int, radius: int):
+        self.map.delete("target")
+#       l_pos = self.determine_pixel_pos(int(cur_ent.get_grid_x()), int(cur_ent.get_grid_y()))
+        self.map.create_oval(x - int(radius * self.square_size),
+                             y - int(radius * self.square_size),
+                             x + int(radius * self.square_size),
+                             y + int(radius * self.square_size),
+                             width=3,
+                             tags="target")
+        self.fl_move_ent = True
+
+    # helper methods
+    def set_draw_target_flag(self):
+        self.fl_draw_target = True
+
+
+
 
 #### test code
 player1 = dm.controllable_entity(name="player1", HP=5, AC=8, grid_x=1, grid_y=9, role="player")
@@ -180,7 +222,10 @@ ents = [player1,player2,player3,player4,player5]
 for i in range(5):
     ents.append(dm.controllable_entity(name="goblin", HP=(6 + (i * 2)), AC=9 + (i * 2), grid_x=(5 + i), grid_y=(6 + i), role="enemy"))
 
-game = dm.control_scheme(ents, 30)
+for o in ents:
+    o.set_move_speed(25)
+
+game = dm.control_scheme(ents, 50)
 
 
 test = DungeonMap(game)
