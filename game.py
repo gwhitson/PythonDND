@@ -33,6 +33,7 @@ class DungeonMap():
 
         # object bound variables
         self.mh_radius = tk.IntVar(value=0)
+        self.mv_ent_to_move = tk.StringVar(value="")
         self.fl_move_ent = False
         self.fl_draw_target = False
 
@@ -41,7 +42,7 @@ class DungeonMap():
         self.window.mainloop()
 
     # main render function
-    def init_gamescreen(self):
+    def update_gamescreen(self):
         # create horizontal lines
         for i in range(self.control.map_size + 1):
             self.map.create_line(0, (i * self.square_size),
@@ -75,19 +76,20 @@ class DungeonMap():
         mh_health_change_entry.grid(row=1, column=0)
 
     def init_move_panel(self):
-        ent_to_move = tk.IntVar(value=0)
         dist_to_move = tk.IntVar(value=0)
         
         mv_frame = tk.LabelFrame(self.controller, text="Movement")
         mv_frame.grid(row=1, column=0)
         
-        mv_entity_select = ttk.Combobox(mv_frame, width=18, textvariable=ent_to_move)
+        mv_entity_select = ttk.Combobox(mv_frame, width=18, textvariable=self.mv_ent_to_move)
         mv_entity_select['values'] = self.control.ent_list()
+        self.mv_ent_to_move.set((mv_entity_select['values'])[0])
+
         print(self.control.ent_list())
         mv_entity_select.grid(row=0, column=0, columnspan=2)
         
         mv_move_dist_b = tk.Button(mv_frame, text="Move",
-                               command= lambda : self.show_movement_radius(self.control.entities[ent_to_move.get()]), width=10)
+                                   command= lambda : self.show_movement_radius(self.control.entities[self.get_index_from_id()]), width=10)
         mv_move_dist_b.grid(row=1, column=1)
         
         mv_move_dist_entry = tk.Entry(mv_frame, width=7, textvariable=dist_to_move)
@@ -200,13 +202,21 @@ class DungeonMap():
                              x + int(radius * self.square_size),
                              y + int(radius * self.square_size),
                              width=3,
+                             outline="orange",
+                             fill="#ffe08c",
                              tags="target")
         self.fl_move_ent = True
+        self.update_gamescreen()
+        
 
     # helper methods
     def set_draw_target_flag(self):
         self.fl_draw_target = True
 
+    def get_index_from_id(self) -> int:
+        index = (self.mv_ent_to_move.get())[0:1]
+        print("--" + str(index))
+        return int(index)
 
 
 
@@ -229,7 +239,7 @@ game = dm.control_scheme(ents, 50)
 
 
 test = DungeonMap(game)
-test.init_gamescreen()
+test.update_gamescreen()
 test.init_move_panel()
 test.update_players()
 test.mainloop()
