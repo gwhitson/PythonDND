@@ -9,6 +9,7 @@ class controllable_entity:
         self.index = index
         self.targetted = targetted
         self.id = ""
+        self.move_speed = -1
 
     # setter funcs
 
@@ -32,6 +33,9 @@ class controllable_entity:
 
     def set_id(self):
         self.id = str(self.get_index()) + ":" + str(self.get_name())
+
+    def set_move_speed(self, new_speed: int):
+        self.move_speed = new_speed
 
     # getter funcs
 
@@ -61,6 +65,9 @@ class controllable_entity:
 
     def get_id(self):
         return self.id
+    
+    def get_move_speed(self):
+        return self.move_speed
 
 
 class control_scheme:
