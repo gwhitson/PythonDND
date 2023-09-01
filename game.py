@@ -259,7 +259,7 @@ for i in range(5):
 for o in ents:
     o.set_move_speed(25)
 
-game = dm.control_scheme(ents, 150)
+game = dm.control_scheme(ents, 0)
 
 
 test = DungeonMap(game)
