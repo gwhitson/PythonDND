@@ -150,6 +150,18 @@ class DungeonMap():
                 self.map.delete("movement")
             else:
                 print("neg test")
+#       while (self.fl_move_ent):
+#           cur_ent = self.control.entities[self.get_index_from_id()]
+#           if (self.ent_in_radius(cur_ent, cur_ent.get_move_speed(), [event.x, event.y])):
+#               new_pos = self.determine_grid_pos(event.x, event.y)
+#               print("moving ent to " + str(new_pos))
+#               cur_ent.set_x(new_pos[0])
+#               cur_ent.set_y(new_pos[1])
+#               self.fl_move_ent = False
+#               self.map.delete("movement")
+#           else:
+#               print("neg test")
+
 
         elif (self.fl_draw_target):
             print("draw target radius of size " + str(self.mh_radius.get()))
@@ -247,10 +259,11 @@ for i in range(5):
 for o in ents:
     o.set_move_speed(25)
 
-game = dm.control_scheme(ents, 50)
+game = dm.control_scheme(ents, 150)
 
 
 test = DungeonMap(game)
 test.update_gamescreen()
+test.update_players()
 test.init_move_panel()
 test.mainloop()
