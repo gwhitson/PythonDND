@@ -141,7 +141,7 @@ class DungeonMap():
 
         if (self.fl_move_ent):
             cur_ent = self.control.entities[self.get_index_from_id()]
-            if (self.ent_in_radius(cur_ent, cur_ent.get_move_speed(), [event.x, event.y])):
+            if (self.ent_in_radius(cur_ent, int(cur_ent.get_move_speed() / 5)  + 0.5, [event.x, event.y])):
                 new_pos = self.determine_grid_pos(event.x, event.y)
                 print("moving ent to " + str(new_pos))
                 cur_ent.set_x(new_pos[0])
@@ -207,11 +207,12 @@ class DungeonMap():
     # player interactive methods
     def show_movement_radius(self, cur_ent: dm.controllable_entity):
         self.map.delete("movement")
+        shift = int(self.square_size / 2)
         l_pos = self.determine_pixel_pos(int(cur_ent.get_grid_x()), int(cur_ent.get_grid_y()))
-        self.map.create_oval(l_pos[0] - int(cur_ent.get_move_speed() * self.square_size),
-                             l_pos[1] - int(cur_ent.get_move_speed() * self.square_size),
-                             l_pos[0] + int(cur_ent.get_move_speed() * self.square_size),
-                             l_pos[1] + int(cur_ent.get_move_speed() * self.square_size),
+        self.map.create_oval(l_pos[0] - (int((cur_ent.get_move_speed() / 5) * self.square_size) + shift),
+                             l_pos[1] - (int((cur_ent.get_move_speed() / 5) * self.square_size) + shift),
+                             l_pos[0] + (int((cur_ent.get_move_speed() / 5) * self.square_size) + shift),
+                             l_pos[1] + (int((cur_ent.get_move_speed() / 5) * self.square_size) + shift),
                              width=3,
                              outline="green",
                              fill="#caffcc",
@@ -233,7 +234,7 @@ class DungeonMap():
         self.fl_move_ent = True
         self.update_gamescreen()
 
-    def ent_in_radius(self, cur_ent: dm.controllable_entity, radius: int, center: list[int,int]) -> bool:
+    def ent_in_radius(self, cur_ent: dm.controllable_entity, radius: float, center: list[int,int]) -> bool:
         ent_pos = self.determine_pixel_pos(cur_ent.get_grid_x(),cur_ent.get_grid_y())
 #       print("ent:" + str(ent_pos))
 #       self.map.create_oval(ent_pos[0], ent_pos[1], ent_pos[0] + self.square_size, ent_pos[1] + self.square_size, fill="blue")
