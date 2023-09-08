@@ -29,6 +29,10 @@ class DungeonMap():
                          add="+")
         self.square_size = (self.get_screen_size()[0]) / self.control.map_size
 
+        # GUI items
+        self.mv_frame = tk.LabelFrame()
+        self.mh_frame = tk.LabelFrame()
+
         # object bound variables
         self.mh_radius = tk.IntVar(value=0)
         self.mv_ent_to_move = tk.StringVar(value="")
@@ -36,7 +40,12 @@ class DungeonMap():
         self.fl_draw_target = False
 
     def mainloop(self):
-        self.init_mod_health()
+#       self.init_mod_health()
+#       self.init_move_panel()
+#       self.init_switch_modes()
+        self.draw_entity_select()
+        self.draw_attack_controls()
+        self.draw_move_controls()
         self.window.mainloop()
 
     # main render functions
@@ -95,51 +104,95 @@ class DungeonMap():
                                      tags="entity")
             self.map.create_text(l_pos[0], l_pos[1], text=(i.get_index()), fill="white", tags="entity", font=l_font)
 
+    def att_md(self):
+        self.mv_frame.grid_remove()
+        self.mh_frame.grid(row=1, column=0)
+
+    def mov_md(self):
+        self.mh_frame.grid_remove()
+        self.mv_frame.grid(row=1, column=0)
+
     # display methods
-    def init_mod_health(self):
-        targetting = tk.IntVar(value=0)
-        health_change = tk.IntVar(value=0)
-        cur_ent = self.control.entities[self.get_index_from_id()]
+    # i dont know that i want to have multiple modes at first, might make the combat portion solid and
+    # add in additional parts to make it more like a full world vs a single dungeon
+    # original goal was to display combat encounters, im starting there cause this has grown so much
+#   def init_switch_modes(self):
+#       sm_frame = tk.LabelFrame(self.controller, text="Switch Modes")
+#       sm_frame.grid(row=7, column=0)
+#       
+#       sm_combat_mode_b = tk.Button(sm_frame, text="Combat Mode", command=self.att_md)
+#       sm_combat_mode_b.grid(row=0, column=0)
 
-        mh_frame = tk.LabelFrame(self.controller, text="Modify Health")
-        mh_frame.grid(row=0, column=0)
+#       sm_noncom_mode_b = tk.Button(sm_frame, text="Non-Combat Mode", command=self.mov_md)
+#       sm_noncom_mode_b.grid(row=0, column=1)
 
-        mh_radius_b = tk.Button(mh_frame, text="Draw Radius",
-                                command= lambda : self.raise_draw_target_flag(), width=10)
-        mh_radius_b.grid(row=0, column=1)
 
-        mh_radius_entry = tk.Entry(mh_frame, width=7, textvariable=self.mh_radius)
-        mh_radius_entry.grid(row=0, column=0)
+#   def init_mod_health(self):
+#       targetting = tk.IntVar(value=0)
+#       health_change = tk.IntVar(value=0)
+#       cur_ent = self.control.entities[self.get_index_from_id()]
 
-        mh_health_change_b = tk.Button(mh_frame, text="Mod Health",
-                                       command= lambda : (health_change.set(health_change.get() + 1)), width=10)
-        mh_health_change_b.grid(row=1, column=1)
+#       self.mh_frame = tk.LabelFrame(self.controller, text="Modify Health")
+#       self.mh_frame.grid(row=0, column=0)
 
-        mh_health_change_entry = tk.Entry(mh_frame, width=7, textvariable=health_change)
-        mh_health_change_entry.grid(row=1, column=0)
+#       mh_radius_b = tk.Button(self.mh_frame, text="Draw Radius",
+#                               command= lambda : self.raise_draw_target_flag(), width=10)
+#       mh_radius_b.grid(row=0, column=1)
 
-    def init_move_panel(self):
-        dist_to_move = tk.IntVar(value=0)
-        
-        mv_frame = tk.LabelFrame(self.controller, text="Movement")
-        mv_frame.grid(row=1, column=0)
-        
-        mv_entity_select = ttk.Combobox(mv_frame, width=18, textvariable=self.mv_ent_to_move)
-        mv_entity_select['values'] = self.control.ent_list()
-        self.mv_ent_to_move.set((mv_entity_select['values'])[0])
+#       mh_radius_entry = tk.Entry(self.mh_frame, width=7, textvariable=self.mh_radius)
+#       mh_radius_entry.grid(row=0, column=0)
 
-        print(self.control.ent_list())
-        mv_entity_select.grid(row=0, column=0, columnspan=2)
-        
-#        mv_move_dist_b = tk.Button(mv_frame, text="Move",
+#       mh_health_change_b = tk.Button(self.mh_frame, text="Mod Health",
+#                                      command= lambda : (health_change.set(health_change.get() + 1)), width=10)
+#       mh_health_change_b.grid(row=1, column=1)
+
+#       mh_health_change_entry = tk.Entry(self.mh_frame, width=7, textvariable=health_change)
+#       mh_health_change_entry.grid(row=1, column=0)
+
+#   def init_move_panel(self):
+#       dist_to_move = tk.IntVar(value=0)
+#       
+#       self.mv_frame = tk.LabelFrame(self.controller, text="Movement")
+#       self.mv_frame.grid(row=1, column=0)
+#       
+#       mv_entity_select = ttk.Combobox(self.mv_frame, width=18, textvariable=self.mv_ent_to_move)
+#       mv_entity_select['values'] = self.control.ent_list()
+#       self.mv_ent_to_move.set((mv_entity_select['values'])[0])
+
+#       print(self.control.ent_list())
+#       mv_entity_select.grid(row=0, column=0, columnspan=2)
+#       
+#        mv_move_dist_b = tk.Button(self.mv_frame, text="Move",
 #                                   command= lambda : self.show_movement_radius(self.control.entities[self.get_index_from_id()]), width=18)
-        ent = self.control.entities[self.get_index_from_id()]
-        mv_move_dist_b = tk.Button(mv_frame, text="Move",
-                                   #command= lambda : self.show_range(ent, ent.get_move_speed(), "#a8ffa8"),
-                                   command= lambda : self.raise_move_flag(),
-                                   width=18)
-        mv_move_dist_b.grid(row=1, column=0, columnspan=2)
-        
+#       ent = self.control.entities[self.get_index_from_id()]
+#       mv_move_dist_b = tk.Button(self.mv_frame, text="Move",
+#                                  #command= lambda : self.show_range(ent, ent.get_move_speed(), "#a8ffa8"),
+#                                  command= lambda : self.raise_move_flag(),
+#                                  width=18)
+#       mv_move_dist_b.grid(row=1, column=0, columnspan=2)
+    def draw_entity_select(self):
+        ent_sel_frame = tk.LabelFrame(self.controller, text="Select Entity")
+        ent_sel_frame.grid(row=0,column=0)
+
+        ent_sel_box = ttk.Combobox(ent_sel_frame, textvariable=self.mv_ent_to_move)
+        ent_sel_box['values'] = self.control.ent_list()
+        self.mv_ent_to_move.set((ent_sel_box['values'])[0])
+        ent_sel_box.grid(row=0,column=0)
+
+    def draw_attack_controls(self):
+        attack_controls_frame = tk.LabelFrame(self.controller, text="Attack")
+        attack_controls_frame.grid(row=2,column=0)
+
+        attack_button = tk.Button(attack_controls_frame, text="Attack!", command=lambda: self.raise_draw_target_flag(), width=18)
+        attack_button.grid()
+
+    def draw_move_controls(self):
+        move_controls_frame = tk.LabelFrame(self.controller, text="Movement")
+        move_controls_frame.grid(row=1,column=0)
+
+        move_button = tk.Button(move_controls_frame, text="Move", command=lambda: self.raise_move_flag(), width=18)
+        move_button.grid()
+
     # control methods
     def click(self, event):
         print(str(self.determine_grid_pos(event.x, event.y)))
@@ -156,18 +209,6 @@ class DungeonMap():
                 self.map.delete("range")
             else:
                 print("neg test")
-#       while (self.fl_move_ent):
-#           cur_ent = self.control.entities[self.get_index_from_id()]
-#           if (self.ent_in_radius(cur_ent, cur_ent.get_move_speed(), [event.x, event.y])):
-#               new_pos = self.determine_grid_pos(event.x, event.y)
-#               print("moving ent to " + str(new_pos))
-#               cur_ent.set_x(new_pos[0])
-#               cur_ent.set_y(new_pos[1])
-#               self.fl_move_ent = False
-#               self.map.delete("movement")
-#           else:
-#               print("neg test")
-
 
         elif (self.fl_draw_target):
             self.draw_target = False
@@ -177,20 +218,11 @@ class DungeonMap():
 
         self.update_gamescreen()
 
-#   def draw_circle_on_click(self, event) -> list[int, int]:
-#       # placeholders
-#       print(str(self.determine_grid_pos(event.x, event.y)))
-#       test = self.determine_grid_pos(event.x, event.y)
-#       print(str(self.determine_pixel_pos(test[0], test[1])))
-#       self.update_players()
-
 
     def move_entity(self, cur_ent: dm.controllable_entity, new_pos: list[int,int]):
         cur_ent.set_x(new_pos[0])
         cur_ent.set_y(new_pos[1])
         self.update_players()
-#       self.show_movement_radius(cur_ent)
-#       self.show_range(cur_ent, cur_ent.get_move_speed(), "#a8ffa8")
 
 #   def ent_mgmt_panel(self):
 
@@ -221,34 +253,6 @@ class DungeonMap():
         return int(index)
     
     # player interactive methods
-#   def show_movement_radius(self, cur_ent: dm.controllable_entity):
-#       self.map.delete("movement")
-#       shift = int(self.square_size / 2)
-#       l_pos = self.determine_pixel_pos(int(cur_ent.get_grid_x()), int(cur_ent.get_grid_y()))
-#       self.map.create_oval(l_pos[0] - (int((cur_ent.get_move_speed() / 5) * self.square_size) + shift),
-#                            l_pos[1] - (int((cur_ent.get_move_speed() / 5) * self.square_size) + shift),
-#                            l_pos[0] + (int((cur_ent.get_move_speed() / 5) * self.square_size) + shift),
-#                            l_pos[1] + (int((cur_ent.get_move_speed() / 5) * self.square_size) + shift),
-#                            width=3,
-#                            outline="green",
-#                            fill="#a8ffa8",
-#                            tags="movement")
-#       self.fl_move_ent = True
-#       self.update_gamescreen()
-
-#   def show_target_radius(self, x: int, y: int, radius: int):
-#       self.map.delete("target")
-#       l_pos = self.determine_pixel_pos(int(cur_ent.get_grid_x()), int(cur_ent.get_grid_y()))
-#       self.map.create_oval(x - int(radius * self.square_size),
-#                            y - int(radius * self.square_size),
-#                            x + int(radius * self.square_size),
-#                            y + int(radius * self.square_size),
-#                            width=3,
-#                            outline="orange",
-#                            fill="#ffe08c",
-#                            tags="target")
-#       self.fl_move_ent = True
-#       self.update_gamescreen()
     def show_range(self, cur_ent: dm.controllable_entity, radius: float, color: str):
         self.map.delete("range")
         shift = int(self.square_size / 2)
@@ -267,8 +271,6 @@ class DungeonMap():
 
     def ent_in_radius(self, cur_ent: dm.controllable_entity, radius: float, center: list[int,int]) -> bool:
         ent_pos = self.determine_pixel_pos(cur_ent.get_grid_x(),cur_ent.get_grid_y())
-#       print("ent:" + str(ent_pos))
-#       self.map.create_oval(ent_pos[0], ent_pos[1], ent_pos[0] + self.square_size, ent_pos[1] + self.square_size, fill="blue")
         if (((ent_pos[0] - center[0]) ** 2) + ((ent_pos[1] - center[1]) ** 2) <= (radius * self.square_size) ** 2):
             return True
         else:
@@ -297,5 +299,4 @@ game = dm.control_scheme(ents, 50)
 test = DungeonMap(game)
 test.update_gamescreen()
 test.update_players()
-test.init_move_panel()
 test.mainloop()
