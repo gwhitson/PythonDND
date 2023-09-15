@@ -186,6 +186,9 @@ class DungeonMap():
         attack_button = tk.Button(attack_controls_frame, text="Attack!", command=lambda: self.raise_draw_target_flag(), width=18)
         attack_button.grid()
 
+        att_range = ttk.Entry(attack_controls_frame, textvariable=self.mh_radius)
+        att_range.grid(row=1,column=0)
+
     def draw_move_controls(self):
         move_controls_frame = tk.LabelFrame(self.controller, text="Movement")
         move_controls_frame.grid(row=1,column=0)
