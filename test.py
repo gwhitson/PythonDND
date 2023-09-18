@@ -104,6 +104,8 @@ class DungeonMap():
                                      tags="entity")
             self.map.create_text(l_pos[0], l_pos[1], text=(i.get_index()), fill="white", tags="entity", font=l_font)
 
+            #print(str(i.get_name())  + '--' + str(i.get_grid_x())  + ',' + str(i.get_grid_y()))
+
     def att_md(self):
         self.mv_frame.grid_remove()
         self.mh_frame.grid(row=1, column=0)
@@ -116,60 +118,6 @@ class DungeonMap():
     # i dont know that i want to have multiple modes at first, might make the combat portion solid and
     # add in additional parts to make it more like a full world vs a single dungeon
     # original goal was to display combat encounters, im starting there cause this has grown so much
-#   def init_switch_modes(self):
-#       sm_frame = tk.LabelFrame(self.controller, text="Switch Modes")
-#       sm_frame.grid(row=7, column=0)
-#       
-#       sm_combat_mode_b = tk.Button(sm_frame, text="Combat Mode", command=self.att_md)
-#       sm_combat_mode_b.grid(row=0, column=0)
-
-#       sm_noncom_mode_b = tk.Button(sm_frame, text="Non-Combat Mode", command=self.mov_md)
-#       sm_noncom_mode_b.grid(row=0, column=1)
-
-
-#   def init_mod_health(self):
-#       targetting = tk.IntVar(value=0)
-#       health_change = tk.IntVar(value=0)
-#       cur_ent = self.control.entities[self.get_index_from_id()]
-
-#       self.mh_frame = tk.LabelFrame(self.controller, text="Modify Health")
-#       self.mh_frame.grid(row=0, column=0)
-
-#       mh_radius_b = tk.Button(self.mh_frame, text="Draw Radius",
-#                               command= lambda : self.raise_draw_target_flag(), width=10)
-#       mh_radius_b.grid(row=0, column=1)
-
-#       mh_radius_entry = tk.Entry(self.mh_frame, width=7, textvariable=self.mh_radius)
-#       mh_radius_entry.grid(row=0, column=0)
-
-#       mh_health_change_b = tk.Button(self.mh_frame, text="Mod Health",
-#                                      command= lambda : (health_change.set(health_change.get() + 1)), width=10)
-#       mh_health_change_b.grid(row=1, column=1)
-
-#       mh_health_change_entry = tk.Entry(self.mh_frame, width=7, textvariable=health_change)
-#       mh_health_change_entry.grid(row=1, column=0)
-
-#   def init_move_panel(self):
-#       dist_to_move = tk.IntVar(value=0)
-#       
-#       self.mv_frame = tk.LabelFrame(self.controller, text="Movement")
-#       self.mv_frame.grid(row=1, column=0)
-#       
-#       mv_entity_select = ttk.Combobox(self.mv_frame, width=18, textvariable=self.mv_ent_to_move)
-#       mv_entity_select['values'] = self.control.ent_list()
-#       self.mv_ent_to_move.set((mv_entity_select['values'])[0])
-
-#       print(self.control.ent_list())
-#       mv_entity_select.grid(row=0, column=0, columnspan=2)
-#       
-#        mv_move_dist_b = tk.Button(self.mv_frame, text="Move",
-#                                   command= lambda : self.show_movement_radius(self.control.entities[self.get_index_from_id()]), width=18)
-#       ent = self.control.entities[self.get_index_from_id()]
-#       mv_move_dist_b = tk.Button(self.mv_frame, text="Move",
-#                                  #command= lambda : self.show_range(ent, ent.get_move_speed(), "#a8ffa8"),
-#                                  command= lambda : self.raise_move_flag(),
-#                                  width=18)
-#       mv_move_dist_b.grid(row=1, column=0, columnspan=2)
     def draw_entity_select(self):
         ent_sel_frame = tk.LabelFrame(self.controller, text="Select Entity")
         ent_sel_frame.grid(row=0,column=0)
@@ -198,34 +146,42 @@ class DungeonMap():
 
     # control methods
     def click(self, event):
-        print(str(self.determine_grid_pos(event.x, event.y)))
+        #print(str(self.determine_grid_pos(event.x, event.y)))
         self.map.delete("target")
         cur_ent = self.control.entities[self.get_index_from_id()]
+        event_grid = self.determine_grid_pos(event.x, event.y)
 
         if (self.fl_move_ent):
             if (self.ent_in_radius(cur_ent, int(cur_ent.get_move_speed() / 5)  + 0.5, [event.x, event.y])):
                 new_pos = self.determine_grid_pos(event.x, event.y)
-                print("moving ent to " + str(new_pos))
+                #print("moving ent to " + str(new_pos))
                 cur_ent.set_x(new_pos[0])
                 cur_ent.set_y(new_pos[1])
                 self.fl_move_ent = False
                 self.map.delete("range")
-            else:
-                print("neg test")
+            #else:
+                #print("neg test")
 
         elif (self.fl_draw_target):
             self.draw_target = False
             self.map.delete("range")
         else:
-            print("no flags")
+            for i in self.control.entities:
+                if (event_grid[1] == i.get_grid_y()):
+                    print("y is right")
+                else:
+                    print(str(i.get_grid_y()) + "---" + str(event_grid[1]))
+            #print("no flags")
 
         self.update_gamescreen()
+        print("post-click")
 
 
-    def move_entity(self, cur_ent: dm.controllable_entity, new_pos: list[int,int]):
-        cur_ent.set_x(new_pos[0])
-        cur_ent.set_y(new_pos[1])
-        self.update_players()
+#   def move_entity(self, cur_ent: dm.controllable_entity, new_pos: list[int,int]):
+#       cur_ent.set_x(new_pos[0])
+#       cur_ent.set_y(new_pos[1])
+#       self.update_players()
+#       print("move ent")
 
 #   def ent_mgmt_panel(self):
 
@@ -252,7 +208,7 @@ class DungeonMap():
 
     def get_index_from_id(self) -> int:
         index = (self.mv_ent_to_move.get())[0:1]
-        print("--" + str(index))
+        #print("--" + str(index))
         return int(index)
     
     # player interactive methods
@@ -268,8 +224,9 @@ class DungeonMap():
                              outline=color,
                              fill=color,
                              tags="range")
-        print("range")
+        #print("range")
         self.update_gamescreen()
+        print("show range")
 
 
     def ent_in_radius(self, cur_ent: dm.controllable_entity, radius: float, center: list[int,int]) -> bool:
@@ -301,5 +258,6 @@ game = dm.control_scheme(ents, 50)
 
 test = DungeonMap(game)
 test.update_gamescreen()
-test.update_players()
+#test.update_players()
+print("init screen drawn")
 test.mainloop()
