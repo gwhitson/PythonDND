@@ -23,8 +23,10 @@ class DungeonMap():
         self.screensize = self.get_screen_size()
         if (os.name == "nt"):
             self.os = "win"
+            self.res_location = os.getcwd() + "\\resources"
         else:
             self.os = "lin"
+            self.res_location = os.getcwd() + "/resources"
 
         # GUI items
         self.mv_frame = tk.LabelFrame()
@@ -61,6 +63,7 @@ class DungeonMap():
 
     def print_test(self, event=""):
         print(self.os)
+        print(self.res_location)
 
     def mainloop(self):
         # self.draw_entity_select()
