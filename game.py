@@ -3,6 +3,7 @@ import os
 import sys
 import tkinter as tk
 from tkinter import ttk
+from PIL import Image, ImageTk
 
 class DungeonMap():
 
@@ -111,6 +112,13 @@ class DungeonMap():
                                      l_pos[1] + shift_to_center,
                                      fill="red",
                                      tags="entity")
+            if (i.get_name() == "goblin"):
+                sprite = ImageTk.PhotoImage(Image.open(self.res_location + "\goblin.png"))
+                print(str(sprite))
+                test = tk.Label(self.map, image=sprite)
+                #test.place(x=l_pos[0], y=l_pos[1])
+                #test.pack()
+                self.map.create_image(l_pos[0], l_pos[1], image = sprite)
             # draw outlines, if targetted outline is orange
             if (i.get_targetted() is True):
                 self.map.create_oval(l_pos[0] - shift_to_center,
@@ -183,8 +191,7 @@ class DungeonMap():
         move_controls_frame.grid(row=1, column=0)
 
         move_button = tk.Button(move_controls_frame, text="Move",
-                                command=lambda: self.raise_move_flag(self.control.entities[self.get_index_from_id()]
-                                                                     ), width=18)
+                                command=self.move_entity, width=18)
         move_button.grid()
 
     # control methods
