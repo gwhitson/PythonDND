@@ -21,6 +21,10 @@ class DungeonMap():
                                         height=self.get_screen_size()[1])
         self.controller.pack(side=tk.RIGHT, fill=tk.BOTH)
         self.screensize = self.get_screen_size()
+        if (os.name == "nt"):
+            self.os = "win"
+        else:
+            self.os = "lin"
 
         # GUI items
         self.mv_frame = tk.LabelFrame()
@@ -56,7 +60,7 @@ class DungeonMap():
                          add="+")
 
     def print_test(self, event=""):
-        print(str(os.getcwd()))
+        print(self.os)
 
     def mainloop(self):
         # self.draw_entity_select()

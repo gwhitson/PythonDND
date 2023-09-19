@@ -29,10 +29,14 @@ That is yet more work...
 
 
 To-dos:
-- refactor code to work with self.ent_to_act      [ ]
+- refactor code to work with self.ent_to_act      [x]
+        fleshed out turn based combat system a little,
+        start combat button now goes away to symbolize combat has started,
+        I may end up replacing it with an end combat button later
+        a selector circle also shows which character is up to act
 
 - clean any unnecesary functions left behind
-  from the original selection system              [ ]
+  from the original selection system              [x] clean??
 
 - fix/test click function thoroughly, i 
   believe there were issues with it keeping
