@@ -23,6 +23,7 @@ class DungeonMap():
         # GUI items
         self.mv_frame = tk.LabelFrame()
         self.mh_frame = tk.LabelFrame()
+        self.sc_frame = tk.LabelFrame(self.controller, text="")
 
         # object bound variables
         self.combat_mode = False
@@ -43,9 +44,12 @@ class DungeonMap():
         self.map.bind('<Button-1>',
                       self.click,
                       add="+")
-        self.window.bind('<space>',
+        self.window.bind('<Return>',
                       self.next_turn,
                       add="+")
+        self.window.bind('<space>',
+                         print("test"),
+                         add="+")
 
     def mainloop(self):
         # self.draw_entity_select()
@@ -114,7 +118,9 @@ class DungeonMap():
     def start_combat(self):
         # get initiative list
         self.move_order = self.control.entities
+        self.ent_to_act = self.move_order[0]
         self.next_turn
+        self.sc_frame.grid_remove()
 
     def next_turn(self, event=""):
         self.ent_to_act = self.move_order[self.next_ent_index]
@@ -128,11 +134,12 @@ class DungeonMap():
 
     # display methods
     def draw_start_combat_button(self):
-        start_combat_b = tk.Button(self.controller, text="Start Combat", command=self.start_combat)
+        start_combat_b = tk.Button(self.sc_frame, text="Start Combat", command=self.start_combat)
+        self.sc_frame.grid(row=0, column=0)
         start_combat_b.grid(row=0, column=0)
 
     def draw_next_turn_button(self):
-        next_turn_b = tk.Button(self.controller, text="Next Turn", command=self.next_turn)
+        next_turn_b = tk.Button(self.controller, text="Next Turn", command=lambda: self.next_turn())
         next_turn_b.grid(row=9, column=0)
 
     def draw_attack_controls(self):
@@ -194,6 +201,7 @@ class DungeonMap():
         # self.update_players()
         # print("move ent")
         self.show_range(cur_ent, cur_ent.get_move_speed(), "#a8ffa8")
+        self.raise_move_flag(self.ent_to_act)
 
 
 #   def ent_mgmt_panel(self):
