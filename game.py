@@ -1,4 +1,6 @@
 import DMControls as dm
+import os
+import sys
 import tkinter as tk
 from tkinter import ttk
 
@@ -33,7 +35,6 @@ class DungeonMap():
         self.move_order = [self.selected_entity]
         self.square_size = (self.get_screen_size()[0]) / self.control.map_size
         self.mh_radius = tk.IntVar(value=0)
-        self.mv_ent_to_move = tk.StringVar(value="")
         self.fl_move_ent = False
         self.fl_draw_target = False
 
@@ -48,8 +49,14 @@ class DungeonMap():
                       self.next_turn,
                       add="+")
         self.window.bind('<space>',
-                         print("test"),
+                         self.next_turn,
                          add="+")
+        self.window.bind('<m>',
+                         self.move_entity,
+                         add="+")
+
+    def print_test(self, event=""):
+        print(str(os.getcwd()))
 
     def mainloop(self):
         # self.draw_entity_select()
@@ -114,9 +121,20 @@ class DungeonMap():
                                      width=3,
                                      tags="entity")
             self.map.create_text(l_pos[0], l_pos[1], text=(i.get_index()), fill="white", tags="entity", font=l_font)
+        if self.combat_mode is True:
+            l_pos = self.determine_pixel_pos(int(self.ent_to_act.get_grid_x()), int(self.ent_to_act.get_grid_y()))
+            self.map.create_oval(l_pos[0] - shift_to_center,
+                                 l_pos[1] - shift_to_center,
+                                 l_pos[0] + shift_to_center,
+                                 l_pos[1] + shift_to_center,
+                                 width=3,
+                                 outline="orange",
+                                 tags="entity")
+        self.print_test()
 
     def start_combat(self):
         # get initiative list
+        self.combat_mode = True
         self.move_order = self.control.entities
         self.ent_to_act = self.move_order[0]
         self.next_turn
@@ -125,6 +143,7 @@ class DungeonMap():
     def next_turn(self, event=""):
         self.ent_to_act = self.move_order[self.next_ent_index]
         print(self.ent_to_act.get_name())
+        self.update_gamescreen()
 
         # increment/loop next entity index
         if (self.next_ent_index == len(self.move_order) - 1):
@@ -165,8 +184,7 @@ class DungeonMap():
     def click(self, event):
         print(str(event))
         self.map.delete("target")
-        #cur_ent = self.control.entities[self.get_index_from_id()]
-        cur_ent = self.selected_entity
+        cur_ent = self.ent_to_act
         event_grid = self.determine_grid_pos(event.x, event.y)
 
         if (self.fl_move_ent is True):
@@ -181,26 +199,24 @@ class DungeonMap():
             self.draw_target = False
             self.map.delete("range")
         else:
-            for i in self.control.entities:
-                if (event_grid[1] == i.get_grid_y()):
-                    print("y is right")
-                    if (event_grid[0] == i.get_grid_x()):
-                        print(str(i.get_name()) + " selected")
-                        self.selected_entity = i
-                        self.raise_move_flag(self.selected_entity)
+            if (self.combat_mode is False):
+                for i in self.control.entities:
+                    if (event_grid[1] == i.get_grid_y()):
+                        print("y is right")
+                        if (event_grid[0] == i.get_grid_x()):
+                            print(str(i.get_name()) + " selected")
+                            self.ent_to_act = i
+                            self.raise_move_flag(self.ent_to_act)
 
-            if self.fl_move_ent is True:
-                self.show_range(self.selected_entity, self.selected_entity.get_move_speed(), "#a8ffa8")
+                if self.fl_move_ent is True:
+                    self.show_range(self.ent_to_act, self.ent_to_act.get_move_speed(), "#a8ffa8")
 
         self.update_gamescreen()
-        print("post-click")
+        print("move-targ")
+        print(str(self.fl_move_ent) + "-" + str(self.fl_draw_target))
 
-    def move_entity(self, cur_ent: dm.controllable_entity):
-        # cur_ent.set_x(new_pos[0])
-        # cur_ent.set_y(new_pos[1])
-        # self.update_players()
-        # print("move ent")
-        self.show_range(cur_ent, cur_ent.get_move_speed(), "#a8ffa8")
+    def move_entity(self, event=""):
+        self.show_range(self.ent_to_act, self.ent_to_act.get_move_speed(), "#a8ffa8")
         self.raise_move_flag(self.ent_to_act)
 
 
@@ -211,26 +227,16 @@ class DungeonMap():
         return [int(x / self.square_size), int(y / self.square_size)]
 
     def determine_pixel_pos(self, x: int, y: int) -> list[int, int]:
-        # not thoroughly tested
-        return[int((x * self.square_size) + (self.square_size / 2)), int((y * self.square_size) + (self.square_size / 2))]
+        return [int((x * self.square_size) + (self.square_size / 2)), int((y * self.square_size) + (self.square_size / 2))]
 
     def get_screen_size(self):
         return [self.window.winfo_screenwidth(), self.window.winfo_screenheight()]
 
     def raise_draw_target_flag(self):
         self.fl_draw_target = True
-        #cur_ent = self.control.entities[self.get_index_from_id()]
-        #self.show_range(cur_ent, self.mh_radius.get(), "#f6bf51")
 
     def raise_move_flag(self, cur_ent: dm.controllable_entity):
         self.fl_move_ent = True
-        # cur_ent = self.control.entities[self.get_index_from_id()]
-        # self.show_range(cur_ent, cur_ent.get_move_speed(), "#a8ffa8")
-
-    def get_index_from_id(self) -> int:
-        index = (self.mv_ent_to_move.get())[0:1]
-        #print("--" + str(index))
-        return int(index)
 
     # player interactive methods
     def show_range(self, cur_ent: dm.controllable_entity, radius: float, color: str):
