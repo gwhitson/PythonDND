@@ -6,7 +6,82 @@ An interactive map for hosting DND sessions.
 It will be up to the DM to find/create maps to use within the app,
 it is currently set to start at your monitors native resolution.
 
+This has and likely will continue to go through a large amount of changes in
+my  control scheme and overall app flow. The current idea seems to be the best.
 
-Still working on architecting it a bit but at the moment I am 
-planning on having there be multiple modes to switch between. Movement vs. attack
-I may make it have combat/non-combat modes. Ill cross that bridge when I get there.
+I decided (and this seems simple in hindsight) that setting up a turn 
+based combat system that cycles through the entities given in the move order
+and allows you to act from there. Not having to select your entities manually
+makes a significant difference in use and it seems much better, at least at the moment.
+
+I will have to build the system for setting up the move order. Until I do that,
+it uses the list of entities given to build the map.
+
+I am thinking about building systems for tracking actions, however the amount of
+variance that can be makes it seem like a pretty difficult task to get right.
+Bonus actions and boss entities with multiple actions per turn means it needs to be
+something that can be set easily with the base configuration. Most likely would be a
+part of the entity class.
+
+Another addition to the entity class would be weapons/attacks that are able to have a range
+set on them and can prompt players to roll damage rolls and track status effects.
+That is yet more work...
+
+
+To-dos:
+- refactor code to work with self.ent_to_act      [ ]
+
+- clean any unnecesary functions left behind
+  from the original selection system              [ ]
+
+- fix/test click function thoroughly, i 
+  believe there were issues with it keeping
+  flags set when they were not supposed to be     [ ]
+
+- build targetting systems, highlight target-
+  ted entities                                    [ ]
+
+- also need to make aoe to work on top of range   [ ]
+    I think i want this to be a circle that moves 
+    with the mouse and shows what the aoe would be
+    where you click
+
+- adding and removing entities                    [ ]
+
+- tracking damage and removing entities when hp=0 [ ]
+
+- adding backgrounds and scaling it to screen     [ ]
+
+- build intiative ordering                        [ ]
+
+- create enemy symbols and assign them to ents    [ ]
+
+- allow player ents to be assigned letters        [ ]
+    this will be quite a bit easier with the turn
+    based combat setup than the selection one, tbc
+    works with the entities themselves and does not 
+    need to print unique identifies for player interaction
+
+- add movement tracking system                    [ ]
+    ideally, this will allow ents to make multi-part movements
+    it largely just adds more flexibility
+
+- make non-combat mode leverage movement tracking
+  system to allow entities to be placed anywhere
+  on the map before combat starts                 [ ]
+    this will most likely use the click-to-select system
+    that i just made and am mostly moving away from already
+    taking out the need to attack in that mode too makes it 
+    easier to track everything
+
+- may need to rework the click function to be
+  better suited to the turn based combat system   [ ]
+
+- will likely need quite large scale refactoring
+  and cleaning here                               [ ]
+
+- action tracking?                                [ ]
+
+- add attacks to class                            [ ]
+
+- more.....
