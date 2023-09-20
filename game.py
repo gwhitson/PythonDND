@@ -30,8 +30,8 @@ class DungeonMap():
             self.res_location = os.getcwd() + "/resources"
 
         # GUI items
-        self.sprite = None
-        self.img = None
+        # self.sprite = None
+        # self.img = None
         self.mv_frame = tk.LabelFrame()
         self.mh_frame = tk.LabelFrame()
         self.sc_frame = tk.LabelFrame(self.controller, text="")
@@ -62,6 +62,9 @@ class DungeonMap():
                          add="+")
         self.window.bind('<m>',
                          self.move_entity,
+                         add="+")
+        self.window.bind('<p>',
+                         self.prev_turn,
                          add="+")
 
     def print_test(self, event=""):
@@ -116,17 +119,21 @@ class DungeonMap():
                                      tags="entity")
 
             # testing sprites
-            if (i.get_name() == "goblin"):
-                if self.os == "win":
-                    self.sprite = ImageTk.PhotoImage(Image.open(self.res_location + "\\goblin.png"))
-                else:
-                    #sprite = ImageTk.PhotoImage(Image.open(self.res_location + "/goblin.png"))
-                    #self.sprite = tk.PhotoImage(file="resources/goblin.png")
-                    self.img = Image.open("resources/goblin.png")
-                    self.img = self.img.resize((int(self.square_size), int(self.square_size)), Image.ANTIALIAS)
-                    self.sprite = ImageTk.PhotoImage(self.img)
-                print(str(l_pos))
-                self.map.create_image(l_pos, anchor=tk.CENTER, image=self.sprite, tags="entity")
+            # if (i.get_name() == "goblin"):
+            #    if self.os == "win":
+            #         self.sprite = ImageTk.PhotoImage(Image.open(self.res_location + "\\goblin.png"))
+            #         self.img = Image.open("resources\\goblin.png")
+            #         self.img = self.img.resize((int(self.square_size), int(self.square_size)))
+            #         self.sprite = ImageTk.PhotoImage(self.img)
+
+            #     else:
+            #         #sprite = ImageTk.PhotoImage(Image.open(self.res_location + "/goblin.png"))
+            #         #self.sprite = tk.PhotoImage(file="resources/goblin.png")
+            #         self.img = Image.open("resources/goblin.png")
+            #         self.img = self.img.resize((int(self.square_size), int(self.square_size)), Image.ANTIALIAS)
+            #         self.sprite = ImageTk.PhotoImage(self.img)
+            #     print(str(l_pos))
+            #     self.map.create_image(l_pos, anchor=tk.CENTER, image=self.sprite, tags="entity")
 
             # draw outlines, if targetted outline is orange
             if (i.get_targetted() is True):
@@ -166,7 +173,7 @@ class DungeonMap():
 
     def next_turn(self, event=""):
         self.ent_to_act = self.move_order[self.next_ent_index]
-        print(self.ent_to_act.get_name())
+        print("next -- " + self.ent_to_act.get_name())
         self.update_gamescreen()
 
         # increment/loop next entity index
@@ -174,6 +181,18 @@ class DungeonMap():
             self.next_ent_index = 0
         else:
             self.next_ent_index += 1
+
+    def prev_turn(self, event=""):
+        if (self.next_ent_index == 0):
+            self.next_ent_index = (len(self.move_order) - 1)
+        else:
+            self.next_ent_index -= 1
+
+        self.ent_to_act = self.move_order[self.next_ent_index - 1]
+        self.update_gamescreen()
+        print("prev -- " + str(self.ent_to_act.get_name()))
+
+        
 
     # display methods
     def draw_start_combat_button(self):
