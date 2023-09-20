@@ -30,6 +30,8 @@ class DungeonMap():
             self.res_location = os.getcwd() + "/resources"
 
         # GUI items
+        self.sprite = None
+        self.img = None
         self.mv_frame = tk.LabelFrame()
         self.mh_frame = tk.LabelFrame()
         self.sc_frame = tk.LabelFrame(self.controller, text="")
@@ -112,13 +114,20 @@ class DungeonMap():
                                      l_pos[1] + shift_to_center,
                                      fill="red",
                                      tags="entity")
+
+            # testing sprites
             if (i.get_name() == "goblin"):
-                sprite = ImageTk.PhotoImage(Image.open(self.res_location + "\goblin.png"))
-                print(str(sprite))
-                test = tk.Label(self.map, image=sprite)
-                #test.place(x=l_pos[0], y=l_pos[1])
-                #test.pack()
-                self.map.create_image(l_pos[0], l_pos[1], image = sprite)
+                if self.os == "win":
+                    self.sprite = ImageTk.PhotoImage(Image.open(self.res_location + "\\goblin.png"))
+                else:
+                    #sprite = ImageTk.PhotoImage(Image.open(self.res_location + "/goblin.png"))
+                    #self.sprite = tk.PhotoImage(file="resources/goblin.png")
+                    self.img = Image.open("resources/goblin.png")
+                    self.img = self.img.resize((int(self.square_size), int(self.square_size)), Image.ANTIALIAS)
+                    self.sprite = ImageTk.PhotoImage(self.img)
+                print(str(l_pos))
+                self.map.create_image(l_pos, anchor=tk.CENTER, image=self.sprite, tags="entity")
+
             # draw outlines, if targetted outline is orange
             if (i.get_targetted() is True):
                 self.map.create_oval(l_pos[0] - shift_to_center,
