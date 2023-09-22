@@ -1,3 +1,29 @@
+class attack:
+    def __init__(self, name="", att_range=5, damage=""):
+        self.name = name
+        self.att_range = att_range
+        self.damage = damage
+    
+    # setter funcs
+    def set_att_name(self, new_name=""):
+        self.name = new_name
+
+    def set_att_range(self, new_range=5):
+        self.att_range = new_range
+
+    def set_att_damage(self, new_damage=""):
+        self.damage = new_damage
+
+    # getter funcs
+    def get_att_name(self):
+        return self.name
+
+    def get_att_range(self):
+        return self.att_range
+
+    def get_att_damage(self):
+        return self.damage
+
 class controllable_entity:
     def __init__(self, name="", HP=0, AC=0, grid_x=0, grid_y=0, role="player", index=-1, targetted=False):
         self.name = name
@@ -10,9 +36,9 @@ class controllable_entity:
         self.targetted = targetted
         self.id = ""
         self.move_speed = -1
+        self.attacks = []
 
     # setter funcs
-
     def add_health(self, change):
         self.HP = self.HP + change
 
@@ -36,6 +62,9 @@ class controllable_entity:
 
     def set_move_speed(self, new_speed: int):
         self.move_speed = new_speed
+    
+    def add_attack(self, new_attack: attack):
+        self.attacks.append(new_attack)
 
     # getter funcs
 

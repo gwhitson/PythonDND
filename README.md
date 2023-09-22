@@ -38,12 +38,12 @@ To-dos:
 - clean any unnecesary functions left behind
   from the original selection system              [x] clean??
 
+- build targetting systems, highlight target-
+  ted entities                                    [ ]
+
 - fix/test click function thoroughly, i 
   believe there were issues with it keeping
   flags set when they were not supposed to be     [ ]
-
-- build targetting systems, highlight target-
-  ted entities                                    [ ]
 
 - also need to make aoe to work on top of range   [ ]
     I think i want this to be a circle that moves 
