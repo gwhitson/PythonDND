@@ -230,9 +230,10 @@ class DungeonMap():
         button = tk.Button()
 
         for i in range(len(attacks)):
+            att_name = attacks[i].get_att_name()
             button = tk.Button(sel_frame,
-                               text=str(attacks[i].get_att_name()),
-                               command=lambda: print(str(attacks[i].get_att_name())),
+                               text=att_name,
+                               command=lambda: self.select_attack(sel_frame, att_name),
                                width=20)
             button.grid(row=i, column=0)
 
@@ -285,6 +286,8 @@ class DungeonMap():
         self.show_range(self.ent_to_act, self.ent_to_act.get_move_speed(), "#a8ffa8")
         self.raise_move_flag(self.ent_to_act)
 
+    def select_attack(self, att_sel_screen: tk.Tk, att_name: str):
+        print(att_name)
 
 #   def ent_mgmt_panel(self):
 
@@ -357,5 +360,6 @@ game = dm.control_scheme(ents, 50)
 test = DungeonMap(game)
 test.update_gamescreen()
 #test.update_players()
-print("init screen drawn")
+#print("init screen drawn")
+#test.select_attack(test.window, "slash")
 test.mainloop()
