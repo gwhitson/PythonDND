@@ -3,7 +3,7 @@ class attack:
         self.name = name
         self.att_range = att_range
         self.damage = damage
-    
+
     # setter funcs
     def set_att_name(self, new_name=""):
         self.name = new_name
@@ -23,6 +23,7 @@ class attack:
 
     def get_att_damage(self):
         return self.damage
+
 
 class controllable_entity:
     def __init__(self, name="", HP=0, AC=0, grid_x=0, grid_y=0, role="player", index=-1, targetted=False):
@@ -62,7 +63,7 @@ class controllable_entity:
 
     def set_move_speed(self, new_speed: int):
         self.move_speed = new_speed
-    
+
     def add_attack(self, new_attack: attack):
         self.attacks.append(new_attack)
 
@@ -94,9 +95,15 @@ class controllable_entity:
 
     def get_id(self):
         return self.id
-    
+
     def get_move_speed(self):
         return self.move_speed
+
+    def get_attacks(self):
+        return self.attacks
+
+    def get_attack_by_index(self, ind):
+        return self.attacks[ind]
 
 
 class control_scheme:
@@ -110,13 +117,12 @@ class control_scheme:
             self.entities[i].set_index(i)
             self.entities[i].set_id()
 
-
     def add_entity(self, entity_to_add: controllable_entity()):
         self.entities += entity_to_add
 
     def remove_entity(self, entity_to_remove: controllable_entity()):
         self.entities -= entity_to_remove
-    
+
     def ent_list(self):
         local_list = []
         for i in self.entities:

@@ -1,16 +1,16 @@
 import DMControls as dm
 import os
-import sys
+# import sys
 import tkinter as tk
 from tkinter import ttk
-from PIL import Image, ImageTk
+# from PIL import Image, ImageTk
+
 
 class DungeonMap():
-
     def __init__(self, control: dm.control_scheme):
         self.window = tk.Tk()
         self.window.title = "Dungeons & Dragons"
-        try: 
+        try:
             self.window.attributes("-zoomed", True)
         except:
             self.window.state('zoomed')
@@ -33,7 +33,7 @@ class DungeonMap():
         # self.sprite = None
         # self.img = None
         self.sc_frame = tk.LabelFrame(self.controller, text="")
-        self.cmbt_turn_frame =tk.Frame(self.controller)
+        self.cmbt_turn_frame = tk.Frame(self.controller)
 
         # object bound variables
         self.combat_mode = False
@@ -53,8 +53,8 @@ class DungeonMap():
                       self.click,
                       add="+")
         self.window.bind('<Return>',
-                      self.next_turn,
-                      add="+")
+                         self.next_turn,
+                         add="+")
         self.window.bind('<space>',
                          self.next_turn,
                          add="+")
@@ -77,8 +77,10 @@ class DungeonMap():
     def update_gamescreen(self):
         # create horizontal lines
         for i in range(self.control.map_size):
-            self.map.create_line(0, (i * self.square_size),
-                                 (self.get_screen_size())[0], (i * self.square_size))
+            self.map.create_line(0,
+                                 (i * self.square_size),
+                                 (self.get_screen_size())[0],
+                                 (i * self.square_size))
         # create vertical lines
         for i in range(self.control.map_size):
             self.map.create_line((i * self.square_size),
@@ -123,11 +125,12 @@ class DungeonMap():
 
         self.map.delete("entity")
         for i in self.control.entities:
-            l_pos = self.determine_pixel_pos(int(i.get_grid_x()), int(i.get_grid_y()))
+            l_pos = self.determine_pixel_pos(int(i.get_grid_x()),
+                                             int(i.get_grid_y()))
             shift_to_center = int(self.square_size / 2)
 
-            # draw colored circles, might switch the role property to be color instead
-            # shouldve done that from the start
+            # draw colored circles, might switch the role property to be color
+            # instead shouldve done that from the start
             if (i.get_role() == "player"):
                 self.map.create_oval(l_pos[0] - shift_to_center,
                                      l_pos[1] - shift_to_center,
@@ -218,6 +221,26 @@ class DungeonMap():
                                 command=self.move_entity, width=18)
         move_button.grid()
 
+    def draw_attack_select_window(self, cur_ent: dm.controllable_entity):
+        att_sel = tk.Tk()
+        att_sel.title = "Select Attack"
+        selected = tk.IntVar()
+        attacks = cur_ent.get_attacks()
+        sel_frame = tk.Frame(att_sel)
+        button = tk.Button()
+
+        for i in range(len(attacks)):
+            button = tk.Button(sel_frame,
+                               text=str(attacks[i].get_att_name()),
+                               command=lambda: print(str(attacks[i].get_att_name())),
+                               width=20)
+            button.grid(row=i, column=0)
+
+        print(str(selected.get()))
+        sel_frame.pack()
+        att_sel.mainloop()
+
+
     # control methods
     def click(self, event):
         print(str(event))
@@ -254,6 +277,7 @@ class DungeonMap():
         print(str(self.fl_move_ent) + "-" + str(self.fl_draw_target))
 
     def attack_entity(self, event=""):
+        self.draw_attack_select_window(self.ent_to_act)
         self.show_range(self.ent_to_act, self.ent_to_act.get_move_speed(), "#F6BDBD")
         self.raise_move_flag(self.ent_to_act)
 
