@@ -1,3 +1,6 @@
+import tkinter as tk
+
+
 class attack:
     def __init__(self, name="", att_range=5, damage=""):
         self.name = name
@@ -23,6 +26,9 @@ class attack:
 
     def get_att_damage(self):
         return self.damage
+
+    def get_tk_button(self, frame: tk.Frame, button_command: str):
+        return (tk.Button(frame, command=button_command, text=self.get_att_name))
 
 
 class controllable_entity:
