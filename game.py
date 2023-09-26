@@ -221,6 +221,7 @@ class DungeonMap():
                                 command=self.move_entity, width=18)
         move_button.grid()
 
+    ####
     def draw_attack_select_window(self, cur_ent: dm.controllable_entity):
         att_sel = tk.Tk()
         selected = tk.IntVar()
@@ -241,7 +242,7 @@ class DungeonMap():
         print(str(selected.get()))
         sel_frame.pack()
         att_sel.mainloop()
-
+    ####
 
     # control methods
     def click(self, event):
@@ -278,16 +279,19 @@ class DungeonMap():
         print("move-targ")
         print(str(self.fl_move_ent) + "-" + str(self.fl_draw_target))
 
+    ####
     def attack_entity(self, event=""):
         self.create_attack_button(self.window, "i")
         self.draw_attack_select_window(self.ent_to_act)
         self.show_range(self.ent_to_act, self.ent_to_act.get_move_speed(), "#F6BDBD")
         self.raise_move_flag(self.ent_to_act)
+    ####
 
     def move_entity(self, event=""):
         self.show_range(self.ent_to_act, self.ent_to_act.get_move_speed(), "#a8ffa8")
         self.raise_move_flag(self.ent_to_act)
 
+    ####
     def select_attack(self, att_sel_screen: tk.Tk, att_name: str):
         print(att_name)
 
@@ -295,6 +299,11 @@ class DungeonMap():
         print(att_name)
         for i in self.control.entities:
             print(str(i.get_name()))
+            attacks = i.get_attacks()
+            for o in attacks:
+                print(o.get_att_name())
+    ####
+
 
 #   def ent_mgmt_panel(self):
 
