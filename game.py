@@ -34,6 +34,8 @@ class DungeonMap():
         # self.img = None
         self.sc_frame = tk.LabelFrame(self.controller, text="")
         self.cmbt_turn_frame = tk.Frame(self.controller)
+        self.attack_buttons = {}
+        self.att_sel_frame = tk.Frame()
 
         # object bound variables
         self.combat_mode = False
@@ -72,6 +74,7 @@ class DungeonMap():
         self.draw_turn_buttons()
         self.draw_attack_controls()
         self.draw_move_controls()
+        self.create_attack_buttons(self.att_sel_frame)
         self.window.mainloop()
 
     def update_gamescreen(self):
@@ -223,24 +226,18 @@ class DungeonMap():
 
     ####
     def draw_attack_select_window(self, cur_ent: dm.controllable_entity):
-        att_sel = tk.Tk()
-        selected = tk.IntVar()
-        attacks = cur_ent.get_attacks()
-        sel_frame = tk.Frame(att_sel)
-        button = tk.Button()
-        row = 0
+        att_sel = tk.Toplevel()
+        self.att_sel_frame = tk.Frame(att_sel)
+        counter = 0
 
-        for i in attacks:
-            att = i
-            button = tk.Button(sel_frame,
-                               text=att.get_att_name(),
-                               command=lambda: print(att.get_att_name()),
-                               width=20)
-            button.grid(row=row, column=0)
-            row += 1
-
-        print(str(selected.get()))
-        sel_frame.pack()
+        for i in cur_ent.get_attacks():
+            self.attack_buttons[i.get_att_name()].grid(row=counter, column=0)
+            counter += 1
+            print(str(self.attack_buttons[i.get_att_name()]))
+            print(i.get_att_name())
+        self.att_sel_frame.pack()
+        test = tk.Label(att_sel, text="tester")
+        test.pack()
         att_sel.mainloop()
     ####
 
@@ -281,7 +278,6 @@ class DungeonMap():
 
     ####
     def attack_entity(self, event=""):
-        self.create_attack_button(self.window, "i")
         self.draw_attack_select_window(self.ent_to_act)
         self.show_range(self.ent_to_act, self.ent_to_act.get_move_speed(), "#F6BDBD")
         self.raise_move_flag(self.ent_to_act)
@@ -295,13 +291,16 @@ class DungeonMap():
     def select_attack(self, att_sel_screen: tk.Tk, att_name: str):
         print(att_name)
 
-    def create_attack_button(self, att_sel_screen: tk.Tk, att_name: str):
-        print(att_name)
+    def create_attack_buttons(self, att_sel_frame: tk.Frame):
         for i in self.control.entities:
             print(str(i.get_name()))
             attacks = i.get_attacks()
             for o in attacks:
-                print(o.get_att_name())
+                #print(o.get_att_name())
+                if not (o.get_att_name() in self.attack_buttons):
+                    print(o.get_att_name())
+                    button = tk.Button(att_sel_frame, text=o.get_att_name(), command=lambda: print(o.get_att_name()))
+                    self.attack_buttons[o.get_att_name()] = button
     ####
 
 
