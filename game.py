@@ -1,5 +1,6 @@
 import DMControls as dm
 import os
+import time
 # import sys
 import tkinter as tk
 from tkinter import ttk
@@ -103,6 +104,7 @@ class DungeonMap():
 
     def next_turn(self, event=""):
         self.ent_to_act = self.move_order[self.next_ent_index]
+        self.ent_to_act.lower_chose_action_flag()
         print("next -- " + self.ent_to_act.get_name())
         self.update_gamescreen()
 
@@ -226,7 +228,21 @@ class DungeonMap():
 
     ####
     def draw_attack_select_window(self, cur_ent: dm.controllable_entity):
-        att_sel =
+        att_sel = tk.Menu(tearoff=0, postcommand=self.continue_attack)
+        pos = self.determine_pixel_pos(cur_ent.get_grid_x(), cur_ent.get_grid_y())
+
+        for i in cur_ent.get_attacks():
+            i.set_active_ent(cur_ent)
+            att_sel.add_command(label=i.get_att_name(), command=i.set_current_attack)
+
+        att_sel.tk_popup(pos[0],pos[1],0)
+
+        ### finally got this working mostly, the timing of things is off. seems like i need to separate the choose attack and attack functions,
+        ### im sure theres a way to not have to manually switch that over but I havent fount it yet
+        ### would be able to switch it over with a lambda command but that is what breaks the functionality i just made. sick
+        ### i got it... tag the tk window? idk that i can do that, but maybe we just end up making the att_sel window attatched to the object.
+        ### that sounds like it would be the easiest because then in attack_ent we can try using the wait_window thing i was seeing,
+
     ####
 
     # control methods
@@ -267,7 +283,10 @@ class DungeonMap():
     ####
     def attack_entity(self, event=""):
         self.draw_attack_select_window(self.ent_to_act)
+
+    def continue_attack(self):
         self.show_range(self.ent_to_act, self.ent_to_act.get_move_speed(), "#F6BDBD")
+        print(self.ent_to_act.current_attack.get_att_name())
         self.raise_move_flag(self.ent_to_act)
     ####
 
@@ -350,11 +369,11 @@ for i in range(5):
 
 for o in ents:
     o.set_move_speed(25)
-    att = dm.attack(name="slash", att_range=10, damage="1d8")
+    att = dm.attack(name="slash", att_range=10, damage="1d8", active_ent=o)
     o.add_attack(att)
-    att = dm.attack(name="firebolt", att_range=20, damage="1d8")
+    att = dm.attack(name="firebolt", att_range=20, damage="1d8", active_ent=o)
     o.add_attack(att)
-    att = dm.attack(name="hand crossbow", att_range=40, damage="1d8")
+    att = dm.attack(name="hand crossbow", att_range=40, damage="1d8", active_ent=o)
     o.add_attack(att)
 
 game = dm.control_scheme(ents, 50)

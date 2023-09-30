@@ -2,10 +2,11 @@ import tkinter as tk
 
 
 class attack:
-    def __init__(self, name="", att_range=5, damage=""):
+    def __init__(self, name="", att_range=5, damage="", active_ent=None):
         self.name = name
         self.att_range = att_range
         self.damage = damage
+        self.active_ent = active_ent
 
     # setter funcs
     def set_att_name(self, new_name=""):
@@ -16,6 +17,13 @@ class attack:
 
     def set_att_damage(self, new_damage=""):
         self.damage = new_damage
+
+    def set_active_ent(self, new_ent):
+        self.active_ent = new_ent
+
+    def set_current_attack(self):
+        self.active_ent.set_current_attack(self)
+        self.active_ent.raise_chose_action_flag()
 
     # getter funcs
     def get_att_name(self):
@@ -28,7 +36,11 @@ class attack:
         return self.damage
 
     def get_tk_button(self, frame: tk.Frame, button_command: str):
-        return (tk.Button(frame, command=button_command, text=self.get_att_name))
+        return (tk.Button(frame, command=button_command, text=self.get_att_name()))
+
+    def get_self(self):
+        return self
+
 
 
 class controllable_entity:
@@ -44,6 +56,8 @@ class controllable_entity:
         self.id = ""
         self.move_speed = -1
         self.attacks = []
+        self.current_attack = None
+        self.fl_has_chosen_action = False
 
     # setter funcs
     def add_health(self, change):
@@ -70,8 +84,17 @@ class controllable_entity:
     def set_move_speed(self, new_speed: int):
         self.move_speed = new_speed
 
+    def set_current_attack(self, attack: attack):
+        self.current_attack = attack
+
     def add_attack(self, new_attack: attack):
         self.attacks.append(new_attack)
+
+    def raise_chose_action_flag(self):
+        self.fl_has_chosen_action = True
+
+    def lower_chose_action_flag(self):
+        self.fl_has_chosen_action = False
 
     # getter funcs
 
@@ -108,8 +131,18 @@ class controllable_entity:
     def get_attacks(self):
         return self.attacks
 
-    def get_attack_by_index(self, ind):
-        return self.attacks[ind]
+    def get_attack_by_name(self, name: str):
+        for i in self.get_attacks():
+            if name == i.get_att_name():
+                return i
+            else:
+                return None
+
+    def get_current_attack(self):
+        return self.current_attack
+
+    def get_chose_action_flag(self):
+        return self.fl_has_chosen_action
 
 
 class control_scheme:
