@@ -226,19 +226,7 @@ class DungeonMap():
 
     ####
     def draw_attack_select_window(self, cur_ent: dm.controllable_entity):
-        att_sel = tk.Toplevel()
-        self.att_sel_frame = tk.Frame(att_sel)
-        counter = 0
-
-        for i in cur_ent.get_attacks():
-            self.attack_buttons[i.get_att_name()].grid(row=counter, column=0)
-            counter += 1
-            print(str(self.attack_buttons[i.get_att_name()]))
-            print(i.get_att_name())
-        self.att_sel_frame.pack()
-        test = tk.Label(att_sel, text="tester")
-        test.pack()
-        att_sel.mainloop()
+        att_sel =
     ####
 
     # control methods
