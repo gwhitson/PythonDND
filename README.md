@@ -39,6 +39,9 @@ To-dos:
   from the original selection system              [x] clean??
 
 - built systems to select attack, may need to be cleaned up some [x]
+        easily the hardest thing to build so far, needed to make a million helper 
+        functions to make everything happen in the proper sequence. My initial ideas
+        on how to do  this were way far off but this was a good learning experience
 
 - build targetting systems, highlight target-
   ted entities                                    [ ]
