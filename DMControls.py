@@ -3,6 +3,7 @@ import tkinter as tk
 
 class attack:
     def __init__(self, name="", att_range=5, damage="", active_ent=None):
+        self.parent_window = None
         self.name = name
         self.att_range = att_range
         self.damage = damage
@@ -24,6 +25,10 @@ class attack:
     def set_current_attack(self):
         self.active_ent.set_current_attack(self)
         self.active_ent.raise_chose_action_flag()
+        self.parent_window.destroy()
+    
+    def set_parent_window(self, window: tk.Tk):
+        self.parent_window = window
 
     # getter funcs
     def get_att_name(self):

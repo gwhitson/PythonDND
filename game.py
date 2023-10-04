@@ -48,7 +48,7 @@ class DungeonMap():
 
         self.map = tk.Canvas(self.window,
                              width=(self.get_screen_size()[0]),
-                             height=self.get_screen_size()[1])
+                             height=(self.get_screen_size()[1]))
         self.map.pack(side=tk.LEFT)
         self.map.bind('<Button-1>',
                       self.click,
@@ -226,36 +226,18 @@ class DungeonMap():
 
     ####
     def draw_attack_select_window(self, cur_ent: dm.controllable_entity):
-        # att_sel = tk.Menu(tearoff=0, postcommand=self.continue_attack)
-        self.att_sel = tk.Tk()
+        self.att_sel = tk.Tk("select")
         pos = self.determine_pixel_pos(cur_ent.get_grid_x(), cur_ent.get_grid_y())
         frame = tk.Frame(self.att_sel)
         count = 0
 
         for i in cur_ent.get_attacks():
+            i.set_parent_window(self.att_sel)
             i.set_active_ent(cur_ent)
             button = tk.Button(frame, text=i.get_att_name(), command=i.set_current_attack)
-           #frame.bind('<Button-1>',
-           #           self.continue_attack,
-           #           add="+")
             button.grid(row=count, column=0)
-            # att_sel.add_command(label=i.get_att_name(), command=i.set_current_attack)
             count += 1
-
-        tk.Label(frame, text="----------").grid(row=count, column=0)
-        count += 1
-        tk.Button(frame, text="Select", command=self.continue_attack).grid(row=count, column=0)
-        # att_sel.tk_popup(pos[0],pos[1],0)
         frame.pack()
-
-
-        ### finally got this working mostly, the timing of things is off. seems like i need to separate the choose attack and attack functions,
-        ### im sure theres a way to not have to manually switch that over but I havent fount it yet
-        ### would be able to switch it over with a lambda command but that is what breaks the functionality i just made. sick
-        ### i got it... tag the tk window? idk that i can do that, but maybe we just end up making the att_sel window attatched to the object.
-        ### that sounds like it would be the easiest because then in attack_ent we can try using the wait_window thing i was seeing,
-
-    ####
 
     # control methods
     def click(self, event):
@@ -295,11 +277,13 @@ class DungeonMap():
     ####
     def attack_entity(self, event=""):
         self.draw_attack_select_window(self.ent_to_act)
+        self.att_sel.wait_window()
+        print("testertesttertestertestet")
+        self.continue_attack()
 
     def continue_attack(self, event=""):
-        self.att_sel.destroy()
-        #self.show_range(self.ent_to_act, self.ent_to_act.get_move_speed(), "#F6BDBD")
         print(self.ent_to_act.current_attack.get_att_name())
+        self.show_range(self.ent_to_act, self.ent_to_act.get_current_attack().get_att_range(), "#F6BDBD")
         #self.raise_move_flag(self.ent_to_act)
     ####
 
@@ -344,7 +328,7 @@ class DungeonMap():
 
     # player interactive methods
     def show_range(self, cur_ent: dm.controllable_entity, radius: float, color: str):
-        self.map.delete("range")
+        #self.map.delete("range")
         shift = int(self.square_size / 2)
         l_pos = self.determine_pixel_pos(int(cur_ent.get_grid_x()), int(cur_ent.get_grid_y()))
         self.map.create_oval(l_pos[0] - (int((radius / 5) * self.square_size) + shift),
@@ -354,7 +338,7 @@ class DungeonMap():
                              width=3,
                              outline=color,
                              fill=color,
-                             stipple="gray50",
+                             #stipple="gray50",
                              tags="range")
         self.update_gamescreen()
         print("show range")
