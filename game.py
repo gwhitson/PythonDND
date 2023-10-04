@@ -36,7 +36,7 @@ class DungeonMap():
         self.sc_frame = tk.LabelFrame(self.controller, text="")
         self.cmbt_turn_frame = tk.Frame(self.controller)
         self.attack_buttons = {}
-        self.att_sel_frame = tk.Frame()
+        self.att_sel = tk.Tk()
 
         # object bound variables
         self.combat_mode = False
@@ -75,7 +75,7 @@ class DungeonMap():
         self.draw_turn_buttons()
         self.draw_attack_controls()
         self.draw_move_controls()
-        self.create_attack_buttons(self.att_sel_frame)
+        #self.create_attack_buttons(self.att_sel_frame)
         self.window.mainloop()
 
     def update_gamescreen(self):
@@ -228,14 +228,22 @@ class DungeonMap():
 
     ####
     def draw_attack_select_window(self, cur_ent: dm.controllable_entity):
-        att_sel = tk.Menu(tearoff=0, postcommand=self.continue_attack)
+        #att_sel = tk.Menu(tearoff=0, postcommand=self.continue_attack)
+        att_sel = tk.Tk()
         pos = self.determine_pixel_pos(cur_ent.get_grid_x(), cur_ent.get_grid_y())
+        frame = tk.Frame(att_sel)
+        count = 0
 
         for i in cur_ent.get_attacks():
             i.set_active_ent(cur_ent)
-            att_sel.add_command(label=i.get_att_name(), command=i.set_current_attack)
+            button = tk.Button(frame, text=i.get_att_name(), command=i.set_current_attack)
+            button.grid(row=count, column=0)
+            #att_sel.add_command(label=i.get_att_name(), command=i.set_current_attack)
+            count += 1
 
-        att_sel.tk_popup(pos[0],pos[1],0)
+        #att_sel.tk_popup(pos[0],pos[1],0)
+        frame.pack()
+
 
         ### finally got this working mostly, the timing of things is off. seems like i need to separate the choose attack and attack functions,
         ### im sure theres a way to not have to manually switch that over but I havent fount it yet
