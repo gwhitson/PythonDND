@@ -1,7 +1,5 @@
 import DMControls as dm
 import os
-import time
-# import sys
 import tkinter as tk
 from tkinter import ttk
 # from PIL import Image, ImageTk
@@ -36,7 +34,7 @@ class DungeonMap():
         self.sc_frame = tk.LabelFrame(self.controller, text="")
         self.cmbt_turn_frame = tk.Frame(self.controller)
         self.attack_buttons = {}
-        self.att_sel = tk.Tk()
+        self.att_sel = None
 
         # object bound variables
         self.combat_mode = False
@@ -75,7 +73,7 @@ class DungeonMap():
         self.draw_turn_buttons()
         self.draw_attack_controls()
         self.draw_move_controls()
-        #self.create_attack_buttons(self.att_sel_frame)
+        # self.create_attack_buttons(self.att_sel_frame)
         self.window.mainloop()
 
     def update_gamescreen(self):
@@ -228,20 +226,26 @@ class DungeonMap():
 
     ####
     def draw_attack_select_window(self, cur_ent: dm.controllable_entity):
-        #att_sel = tk.Menu(tearoff=0, postcommand=self.continue_attack)
-        att_sel = tk.Tk()
+        # att_sel = tk.Menu(tearoff=0, postcommand=self.continue_attack)
+        self.att_sel = tk.Tk()
         pos = self.determine_pixel_pos(cur_ent.get_grid_x(), cur_ent.get_grid_y())
-        frame = tk.Frame(att_sel)
+        frame = tk.Frame(self.att_sel)
         count = 0
 
         for i in cur_ent.get_attacks():
             i.set_active_ent(cur_ent)
             button = tk.Button(frame, text=i.get_att_name(), command=i.set_current_attack)
+           #frame.bind('<Button-1>',
+           #           self.continue_attack,
+           #           add="+")
             button.grid(row=count, column=0)
-            #att_sel.add_command(label=i.get_att_name(), command=i.set_current_attack)
+            # att_sel.add_command(label=i.get_att_name(), command=i.set_current_attack)
             count += 1
 
-        #att_sel.tk_popup(pos[0],pos[1],0)
+        tk.Label(frame, text="----------").grid(row=count, column=0)
+        count += 1
+        tk.Button(frame, text="Select", command=self.continue_attack).grid(row=count, column=0)
+        # att_sel.tk_popup(pos[0],pos[1],0)
         frame.pack()
 
 
@@ -292,10 +296,11 @@ class DungeonMap():
     def attack_entity(self, event=""):
         self.draw_attack_select_window(self.ent_to_act)
 
-    def continue_attack(self):
-        self.show_range(self.ent_to_act, self.ent_to_act.get_move_speed(), "#F6BDBD")
+    def continue_attack(self, event=""):
+        self.att_sel.destroy()
+        #self.show_range(self.ent_to_act, self.ent_to_act.get_move_speed(), "#F6BDBD")
         print(self.ent_to_act.current_attack.get_att_name())
-        self.raise_move_flag(self.ent_to_act)
+        #self.raise_move_flag(self.ent_to_act)
     ####
 
     def move_entity(self, event=""):
