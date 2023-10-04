@@ -38,6 +38,8 @@ To-dos:
 - clean any unnecesary functions left behind
   from the original selection system              [x] clean??
 
+- built systems to select attack, may need to be cleaned up some [x]
+
 - build targetting systems, highlight target-
   ted entities                                    [ ]
 
