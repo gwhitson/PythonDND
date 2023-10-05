@@ -68,12 +68,10 @@ class DungeonMap():
 
     # main render functions
     def mainloop(self):
-        # self.draw_entity_select()
         self.draw_start_combat_button()
         self.draw_turn_buttons()
         self.draw_attack_controls()
         self.draw_move_controls()
-        # self.create_attack_buttons(self.att_sel_frame)
         self.window.mainloop()
 
     def update_gamescreen(self):
@@ -90,39 +88,8 @@ class DungeonMap():
                                  (i * self.square_size),
                                  (self.get_screen_size())[1])
         self.update_players()
-
-    def start_combat(self):
-        # get initiative list
-        self.combat_mode = True
-        self.move_order = self.control.entities
-        self.ent_to_act = self.move_order[0]
-        self.next_turn()
-        self.sc_frame.grid_remove()
-        self.cmbt_turn_frame.grid(row=9, column=0)
-
-    def next_turn(self, event=""):
-        self.ent_to_act = self.move_order[self.next_ent_index]
-        self.ent_to_act.lower_chose_action_flag()
-        print("next -- " + self.ent_to_act.get_name())
-        self.update_gamescreen()
-
-        # increment/loop next entity index
-        if (self.next_ent_index == len(self.move_order) - 1):
-            self.next_ent_index = 0
-        else:
-            self.next_ent_index += 1
-
-    def prev_turn(self, event=""):
-        if (self.next_ent_index == 0):
-            self.next_ent_index = (len(self.move_order) - 1)
-        else:
-            self.next_ent_index -= 1
-
-        self.ent_to_act = self.move_order[self.next_ent_index - 1]
-        self.update_gamescreen()
-        print("prev -- " + str(self.ent_to_act.get_name()))
-
-    # display methods
+        
+        # display methods
     def update_players(self):
         l_font = ('sans serif', int(self.square_size / 4), "bold")
 
@@ -224,7 +191,6 @@ class DungeonMap():
                                 command=self.move_entity, width=18)
         move_button.grid()
 
-    ####
     def draw_attack_select_window(self, cur_ent: dm.controllable_entity):
         self.att_sel = tk.Tk()
         self.att_sel.title = "Select Attack"
@@ -241,6 +207,88 @@ class DungeonMap():
         frame.pack()
 
     # control methods
+    def attack_entity(self, event=""):
+        self.clear_status()
+        self.draw_attack_select_window(self.ent_to_act)
+        self.att_sel.wait_window()
+        self.continue_attack()
+
+    def continue_attack(self, event=""):
+        print(self.ent_to_act.current_attack.get_att_name())
+        self.show_range(self.ent_to_act, self.ent_to_act.get_current_attack().get_att_range(), "#F6BDBD")
+        self.raise_draw_target_flag()
+
+    def move_entity(self, event=""):
+        self.clear_status()
+        self.show_range(self.ent_to_act, self.ent_to_act.get_move_speed(), "#a8ffa8")
+        self.raise_move_flag()
+
+    def create_attack_buttons(self, att_sel_frame: tk.Frame):
+        for i in self.control.entities:
+            print(str(i.get_name()))
+            attacks = i.get_attacks()
+            for o in attacks:
+                if not (o.get_att_name() in self.attack_buttons):
+                    print(o.get_att_name())
+                    button = tk.Button(att_sel_frame, text=o.get_att_name(), command=lambda: print(o.get_att_name()))
+                    self.attack_buttons[o.get_att_name()] = button
+
+    def start_combat(self):
+        # get initiative list
+        self.combat_mode = True
+        self.move_order = self.control.entities
+        self.ent_to_act = self.move_order[0]
+        self.next_turn()
+        self.sc_frame.grid_remove()
+        self.cmbt_turn_frame.grid(row=9, column=0)
+
+    def next_turn(self, event=""):
+        self.ent_to_act = self.move_order[self.next_ent_index]
+        self.ent_to_act.lower_chose_action_flag()
+        print("next -- " + self.ent_to_act.get_name())
+        self.update_gamescreen()
+
+        if (self.next_ent_index == len(self.move_order) - 1):
+            self.next_ent_index = 0
+        else:
+            self.next_ent_index += 1
+
+    def prev_turn(self, event=""):
+        if (self.next_ent_index == 0):
+            self.next_ent_index = (len(self.move_order) - 1)
+        else:
+            self.next_ent_index -= 1
+
+        self.ent_to_act = self.move_order[self.next_ent_index - 1]
+        self.update_gamescreen()
+        print("prev -- " + str(self.ent_to_act.get_name()))
+
+    def get_screen_size(self):
+        return [self.window.winfo_screenwidth(), self.window.winfo_screenheight()]
+
+    def raise_draw_target_flag(self):
+        self.fl_draw_target = True
+
+    def raise_move_flag(self):
+        self.fl_move_ent = True
+
+    def clear_status(self):
+        self.fl_move_ent = False
+        self.fl_draw_target = False
+
+        try:
+            self.map.delete("range")
+        except:
+            None
+
+    # info gathering methods
+    def determine_grid_pos(self, x: int, y: int) -> list[int,int]:
+        return [int(x / self.square_size), int(y / self.square_size)]
+
+    def determine_pixel_pos(self, x: int, y: int) -> list[int, int]:
+        return [int((x * self.square_size) + (self.square_size / 2)), int((y * self.square_size) + (self.square_size / 2))]
+
+    # player interactive methods
     def click(self, event):
         print(str(event))
         self.map.delete("target")
@@ -275,58 +323,6 @@ class DungeonMap():
         print("move-targ")
         print(str(self.fl_move_ent) + "-" + str(self.fl_draw_target))
 
-    def attack_entity(self, event=""):
-        self.clear_status()
-        self.draw_attack_select_window(self.ent_to_act)
-        self.att_sel.wait_window()
-        self.continue_attack()
-
-    def continue_attack(self, event=""):
-        print(self.ent_to_act.current_attack.get_att_name())
-        self.show_range(self.ent_to_act, self.ent_to_act.get_current_attack().get_att_range(), "#F6BDBD")
-        self.raise_draw_target_flag()
-
-    def move_entity(self, event=""):
-        self.clear_status()
-        self.show_range(self.ent_to_act, self.ent_to_act.get_move_speed(), "#a8ffa8")
-        self.raise_move_flag()
-
-    def create_attack_buttons(self, att_sel_frame: tk.Frame):
-        for i in self.control.entities:
-            print(str(i.get_name()))
-            attacks = i.get_attacks()
-            for o in attacks:
-                if not (o.get_att_name() in self.attack_buttons):
-                    print(o.get_att_name())
-                    button = tk.Button(att_sel_frame, text=o.get_att_name(), command=lambda: print(o.get_att_name()))
-                    self.attack_buttons[o.get_att_name()] = button
-
-    # info gathering methods
-    def determine_grid_pos(self, x: int, y: int) -> list[int,int]:
-        return [int(x / self.square_size), int(y / self.square_size)]
-
-    def determine_pixel_pos(self, x: int, y: int) -> list[int, int]:
-        return [int((x * self.square_size) + (self.square_size / 2)), int((y * self.square_size) + (self.square_size / 2))]
-
-    def get_screen_size(self):
-        return [self.window.winfo_screenwidth(), self.window.winfo_screenheight()]
-
-    def raise_draw_target_flag(self):
-        self.fl_draw_target = True
-
-    def raise_move_flag(self):
-        self.fl_move_ent = True
-
-    def clear_status(self):
-        self.fl_move_ent = False
-        self.fl_draw_target = False
-
-        try:
-            self.map.delete("range")
-        except:
-            None
-
-    # player interactive methods
     def show_range(self, cur_ent: dm.controllable_entity, radius: float, color: str):
         shift = int(self.square_size / 2)
         l_pos = self.determine_pixel_pos(int(cur_ent.get_grid_x()), int(cur_ent.get_grid_y()))
@@ -377,7 +373,4 @@ game = dm.control_scheme(ents, 50)
 
 test = DungeonMap(game)
 test.update_gamescreen()
-#test.update_players()
-#print("init screen drawn")
-#test.select_attack(test.window, "slash")
 test.mainloop()
