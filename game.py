@@ -248,7 +248,7 @@ class DungeonMap():
         event_grid = self.determine_grid_pos(event.x, event.y)
 
         if (self.fl_move_ent is True):
-            if (self.ent_in_radius(cur_ent, int(cur_ent.get_move_speed() / 5)  + 0.5, [event.x, event.y])):
+            if (self.ent_in_radius(cur_ent, int(cur_ent.get_move_speed() / 5) + 0.5, [event.x, event.y])):
                 new_pos = self.determine_grid_pos(event.x, event.y)
                 cur_ent.set_x(new_pos[0])
                 cur_ent.set_y(new_pos[1])
@@ -284,22 +284,18 @@ class DungeonMap():
     def continue_attack(self, event=""):
         print(self.ent_to_act.current_attack.get_att_name())
         self.show_range(self.ent_to_act, self.ent_to_act.get_current_attack().get_att_range(), "#F6BDBD")
-        #self.raise_move_flag(self.ent_to_act)
+        self.raise_draw_target_flag()
 
     def move_entity(self, event=""):
         self.clear_status()
         self.show_range(self.ent_to_act, self.ent_to_act.get_move_speed(), "#a8ffa8")
-        self.raise_move_flag(self.ent_to_act)
-
-    def select_attack(self, att_sel_screen: tk.Tk, att_name: str):
-        print(att_name)
+        self.raise_move_flag()
 
     def create_attack_buttons(self, att_sel_frame: tk.Frame):
         for i in self.control.entities:
             print(str(i.get_name()))
             attacks = i.get_attacks()
             for o in attacks:
-                #print(o.get_att_name())
                 if not (o.get_att_name() in self.attack_buttons):
                     print(o.get_att_name())
                     button = tk.Button(att_sel_frame, text=o.get_att_name(), command=lambda: print(o.get_att_name()))
@@ -318,7 +314,7 @@ class DungeonMap():
     def raise_draw_target_flag(self):
         self.fl_draw_target = True
 
-    def raise_move_flag(self, cur_ent: dm.controllable_entity):
+    def raise_move_flag(self):
         self.fl_move_ent = True
 
     def clear_status(self):
