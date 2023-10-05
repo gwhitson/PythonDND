@@ -226,7 +226,8 @@ class DungeonMap():
 
     ####
     def draw_attack_select_window(self, cur_ent: dm.controllable_entity):
-        self.att_sel = tk.Tk("select")
+        self.att_sel = tk.Tk()
+        self.att_sel.title = "Select Attack"
         pos = self.determine_pixel_pos(cur_ent.get_grid_x(), cur_ent.get_grid_y())
         frame = tk.Frame(self.att_sel)
         count = 0
@@ -234,7 +235,7 @@ class DungeonMap():
         for i in cur_ent.get_attacks():
             i.set_parent_window(self.att_sel)
             i.set_active_ent(cur_ent)
-            button = tk.Button(frame, text=i.get_att_name(), command=i.set_current_attack)
+            button = tk.Button(frame, text=i.get_att_name(), command=i.set_current_attack, width=15)
             button.grid(row=count, column=0)
             count += 1
         frame.pack()
@@ -274,24 +275,22 @@ class DungeonMap():
         print("move-targ")
         print(str(self.fl_move_ent) + "-" + str(self.fl_draw_target))
 
-    ####
     def attack_entity(self, event=""):
+        self.clear_status()
         self.draw_attack_select_window(self.ent_to_act)
         self.att_sel.wait_window()
-        print("testertesttertestertestet")
         self.continue_attack()
 
     def continue_attack(self, event=""):
         print(self.ent_to_act.current_attack.get_att_name())
         self.show_range(self.ent_to_act, self.ent_to_act.get_current_attack().get_att_range(), "#F6BDBD")
         #self.raise_move_flag(self.ent_to_act)
-    ####
 
     def move_entity(self, event=""):
+        self.clear_status()
         self.show_range(self.ent_to_act, self.ent_to_act.get_move_speed(), "#a8ffa8")
         self.raise_move_flag(self.ent_to_act)
 
-    ####
     def select_attack(self, att_sel_screen: tk.Tk, att_name: str):
         print(att_name)
 
@@ -305,10 +304,6 @@ class DungeonMap():
                     print(o.get_att_name())
                     button = tk.Button(att_sel_frame, text=o.get_att_name(), command=lambda: print(o.get_att_name()))
                     self.attack_buttons[o.get_att_name()] = button
-    ####
-
-
-#   def ent_mgmt_panel(self):
 
     # info gathering methods
     def determine_grid_pos(self, x: int, y: int) -> list[int,int]:
@@ -326,9 +321,17 @@ class DungeonMap():
     def raise_move_flag(self, cur_ent: dm.controllable_entity):
         self.fl_move_ent = True
 
+    def clear_status(self):
+        self.fl_move_ent = False
+        self.fl_draw_target = False
+
+        try:
+            self.map.delete("range")
+        except:
+            None
+
     # player interactive methods
     def show_range(self, cur_ent: dm.controllable_entity, radius: float, color: str):
-        #self.map.delete("range")
         shift = int(self.square_size / 2)
         l_pos = self.determine_pixel_pos(int(cur_ent.get_grid_x()), int(cur_ent.get_grid_y()))
         self.map.create_oval(l_pos[0] - (int((radius / 5) * self.square_size) + shift),
