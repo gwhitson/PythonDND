@@ -341,24 +341,29 @@ class DungeonMap():
                                  tags="aoe")
             self.draw_target = False
             self.map.delete("range")
+            self.clear_status()
         else:
             if (self.combat_mode is False):
                 for i in self.control.entities:
                     if (event_grid[1] == i.get_grid_y()):
                         if (event_grid[0] == i.get_grid_x()):
                             self.ent_to_act = i
-                            self.raise_move_flag(self.ent_to_act)
+                            self.raise_move_flag()
 
                 if self.fl_move_ent is True:
                     self.show_range(self.ent_to_act, self.ent_to_act.get_move_speed(), "#a8ffa8")
             else:
-                try:
-                    print(self.ent_in_square([event.x, event.y]).get_name())
-                except:
-                    print("no ent in click")
+                self.ent_to_act = self.ent_in_square([event.x, event.y])
+                if (self.ent_to_act != None):
+                    self.raise_move_flag()
+                    print("test")
+                # try:
+                #    print(self.ent_in_square([event.x, event.y]).get_name())
+                # except:
+                #    print("no ent in click")
 
         self.update_gamescreen()
-        self.clear_status()
+        # self.clear_status()
         # print("move-" + str(self.fl_move_ent) + "  -  attk-" + str(self.fl_draw_target))
 
     def show_range(self, cur_ent: dm.controllable_entity, radius: float, color: str):
