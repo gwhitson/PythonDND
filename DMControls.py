@@ -2,10 +2,11 @@ import tkinter as tk
 
 
 class attack:
-    def __init__(self, name="", att_range=5, damage="", active_ent=None):
+    def __init__(self, name="", att_range=5, damage="", aoe=5, active_ent=None):
         self.parent_window = None
         self.name = name
         self.att_range = att_range
+        self.aoe = aoe
         self.damage = damage
         self.active_ent = active_ent
 
@@ -18,6 +19,9 @@ class attack:
 
     def set_att_damage(self, new_damage=""):
         self.damage = new_damage
+
+    def set_att_aoe(self, new_aoe=""):
+        self.aoe = new_aoe
 
     def set_active_ent(self, new_ent):
         self.active_ent = new_ent
@@ -39,6 +43,9 @@ class attack:
 
     def get_att_damage(self):
         return self.damage
+
+    def get_att_aoe(self):
+        return self.aoe
 
     def get_tk_button(self, frame: tk.Frame, button_command: str):
         return (tk.Button(frame, command=button_command, text=self.get_att_name()))
@@ -101,8 +108,14 @@ class controllable_entity:
     def lower_chose_action_flag(self):
         self.fl_has_chosen_action = False
 
-    # getter funcs
+    def raise_targetted_flag(self):
+        self.targetted = True
 
+    def lower_targetted_flag(self):
+        self.targetted = False
+
+
+    # getter funcs
     def get_name(self):
         return self.name
 

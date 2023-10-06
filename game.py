@@ -88,13 +88,14 @@ class DungeonMap():
                                  (i * self.square_size),
                                  (self.get_screen_size())[1])
         self.update_players()
-        
+
         # display methods
     def update_players(self):
         l_font = ('sans serif', int(self.square_size / 4), "bold")
 
         self.map.delete("entity")
         for i in self.control.entities:
+            print(i.get_name() + " -- targetted: " + str(i.get_targetted()))
             l_pos = self.determine_pixel_pos(int(i.get_grid_x()),
                                              int(i.get_grid_y()))
             shift_to_center = int(self.square_size / 2)
@@ -290,7 +291,7 @@ class DungeonMap():
 
     # player interactive methods
     def click(self, event):
-        print(str(event))
+        print("click" + str(event))
         self.map.delete("target")
         cur_ent = self.ent_to_act
         event_grid = self.determine_grid_pos(event.x, event.y)
@@ -304,15 +305,18 @@ class DungeonMap():
                 self.map.delete("range")
 
         elif (self.fl_draw_target is True):
+            print("attack--------------------------")
+            print(str(self.ent_to_act.get_current_attack().get_att_name()))
+            for i in self.list_ents_in_radius(self.ent_to_act.get_current_attack().get_att_aoe(), [event.x, event.y]):
+                i.raise_targetted_flag()
+                print("       --click: " + i.get_name())
             self.draw_target = False
             self.map.delete("range")
         else:
             if (self.combat_mode is False):
                 for i in self.control.entities:
                     if (event_grid[1] == i.get_grid_y()):
-                        print("y is right")
                         if (event_grid[0] == i.get_grid_x()):
-                            print(str(i.get_name()) + " selected")
                             self.ent_to_act = i
                             self.raise_move_flag(self.ent_to_act)
 
@@ -320,8 +324,7 @@ class DungeonMap():
                     self.show_range(self.ent_to_act, self.ent_to_act.get_move_speed(), "#a8ffa8")
 
         self.update_gamescreen()
-        print("move-targ")
-        print(str(self.fl_move_ent) + "-" + str(self.fl_draw_target))
+        print("move-" + str(self.fl_move_ent) + "  -  attk-" + str(self.fl_draw_target))
 
     def show_range(self, cur_ent: dm.controllable_entity, radius: float, color: str):
         shift = int(self.square_size / 2)
@@ -339,12 +342,20 @@ class DungeonMap():
         print("show range")
 
     def ent_in_radius(self, cur_ent: dm.controllable_entity, radius: float, center: list[int,int]) -> bool:
+        print("--radius")
         ent_pos = self.determine_pixel_pos(cur_ent.get_grid_x(), cur_ent.get_grid_y())
         if (((ent_pos[0] - center[0]) ** 2) + ((ent_pos[1] - center[1]) ** 2) <= (radius * self.square_size) ** 2):
             return True
         else:
             return False
 
+    def list_ents_in_radius(self, radius: float, center: list[int, int]):
+        print("-list")
+        entities = []
+        for i in self.control.entities:
+            if self.ent_in_radius(i, radius, center) is True:
+                entities.append(i)
+        return entities
 
 
 #### test code
