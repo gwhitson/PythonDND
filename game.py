@@ -95,7 +95,7 @@ class DungeonMap():
 
         self.map.delete("entity")
         for i in self.control.entities:
-            print(i.get_name() + " -- targetted: " + str(i.get_targetted()))
+            # print(i.get_name() + " -- targetted: " + str(i.get_targetted()))
             l_pos = self.determine_pixel_pos(int(i.get_grid_x()),
                                              int(i.get_grid_y()))
             shift_to_center = int(self.square_size / 2)
@@ -210,6 +210,7 @@ class DungeonMap():
     # control methods
     def attack_entity(self, event=""):
         self.clear_status()
+        self.clear_targets()
         self.draw_attack_select_window(self.ent_to_act)
         self.att_sel.wait_window()
         self.continue_attack()
@@ -273,6 +274,16 @@ class DungeonMap():
     def raise_move_flag(self):
         self.fl_move_ent = True
 
+    def clear_targets(self):
+        try:
+            self.map.delete("aoe")
+        except:
+            None
+
+        for i in self.control.entities:
+            i.lower_targetted_flag()
+
+
     def clear_status(self):
         self.fl_move_ent = False
         self.fl_draw_target = False
@@ -282,6 +293,11 @@ class DungeonMap():
         except:
             None
 
+    def deal_attack(self):
+        self.map.delete("aoe")
+        for i in self.control.entities:
+            i.lower_targetted_flag()
+
     # info gathering methods
     def determine_grid_pos(self, x: int, y: int) -> list[int,int]:
         return [int(x / self.square_size), int(y / self.square_size)]
@@ -289,9 +305,17 @@ class DungeonMap():
     def determine_pixel_pos(self, x: int, y: int) -> list[int, int]:
         return [int((x * self.square_size) + (self.square_size / 2)), int((y * self.square_size) + (self.square_size / 2))]
 
+    def ent_in_square(self, pos: list[int, int]):
+        l_pos = self.determine_grid_pos(pos[0], pos[1])
+        for i in self.control.entities:
+            if i.get_grid_x() == l_pos[0]:
+                if i.get_grid_y() == l_pos[1]:
+                    return i
+        return None
+
     # player interactive methods
     def click(self, event):
-        print("click" + str(event))
+        # print("click" + str(event))
         self.map.delete("target")
         cur_ent = self.ent_to_act
         event_grid = self.determine_grid_pos(event.x, event.y)
@@ -305,11 +329,16 @@ class DungeonMap():
                 self.map.delete("range")
 
         elif (self.fl_draw_target is True):
-            print("attack--------------------------")
-            print(str(self.ent_to_act.get_current_attack().get_att_name()))
+            # print("attack--------------------------")
+            # print(str(self.ent_to_act.get_current_attack().get_att_name()))
             for i in self.list_ents_in_radius(self.ent_to_act.get_current_attack().get_att_aoe(), [event.x, event.y]):
                 i.raise_targetted_flag()
-                print("       --click: " + i.get_name())
+                # print("       --click: " + i.get_name())
+            self.map.create_oval((event.x - ((self.ent_to_act.get_current_attack().get_att_aoe() / 2) * self.square_size)),
+                                 (event.y - ((self.ent_to_act.get_current_attack().get_att_aoe() / 2) * self.square_size)),
+                                 (event.x + ((self.ent_to_act.get_current_attack().get_att_aoe() / 2) * self.square_size)),
+                                 (event.y + ((self.ent_to_act.get_current_attack().get_att_aoe() / 2) * self.square_size)),
+                                 tags="aoe")
             self.draw_target = False
             self.map.delete("range")
         else:
@@ -322,9 +351,15 @@ class DungeonMap():
 
                 if self.fl_move_ent is True:
                     self.show_range(self.ent_to_act, self.ent_to_act.get_move_speed(), "#a8ffa8")
+            else:
+                try:
+                    print(self.ent_in_square([event.x, event.y]).get_name())
+                except:
+                    print("no ent in click")
 
         self.update_gamescreen()
-        print("move-" + str(self.fl_move_ent) + "  -  attk-" + str(self.fl_draw_target))
+        self.clear_status()
+        # print("move-" + str(self.fl_move_ent) + "  -  attk-" + str(self.fl_draw_target))
 
     def show_range(self, cur_ent: dm.controllable_entity, radius: float, color: str):
         shift = int(self.square_size / 2)
@@ -343,8 +378,12 @@ class DungeonMap():
 
     def ent_in_radius(self, cur_ent: dm.controllable_entity, radius: float, center: list[int,int]) -> bool:
         print("--radius")
+        if (radius == 0):
+            comparison_rad = 10
+        else:
+            comparison_rad = (radius * self.square_size)
         ent_pos = self.determine_pixel_pos(cur_ent.get_grid_x(), cur_ent.get_grid_y())
-        if (((ent_pos[0] - center[0]) ** 2) + ((ent_pos[1] - center[1]) ** 2) <= (radius * self.square_size) ** 2):
+        if (((ent_pos[0] - center[0]) ** 2) + ((ent_pos[1] - center[1]) ** 2) <= comparison_rad ** 2):
             return True
         else:
             return False
@@ -372,11 +411,11 @@ for i in range(5):
 
 for o in ents:
     o.set_move_speed(25)
-    att = dm.attack(name="slash", att_range=10, damage="1d8", active_ent=o)
+    att = dm.attack(name="slash", att_range=10, aoe=0, damage="1d8", active_ent=o)
     o.add_attack(att)
-    att = dm.attack(name="firebolt", att_range=20, damage="1d8", active_ent=o)
+    att = dm.attack(name="firebolt", att_range=20, aoe=0, damage="1d8", active_ent=o)
     o.add_attack(att)
-    att = dm.attack(name="hand crossbow", att_range=40, damage="1d8", active_ent=o)
+    att = dm.attack(name="hand crossbow", att_range=40, aoe=1, damage="1d8", active_ent=o)
     o.add_attack(att)
 
 game = dm.control_scheme(ents, 50)
