@@ -9,10 +9,6 @@ class DungeonMap():
     def __init__(self, control: dm.control_scheme):
         self.window = tk.Tk()
         self.window.title = "Dungeons & Dragons"
-        try:
-            self.window.attributes("-zoomed", True)
-        except:
-            self.window.state('zoomed')
 
         self.control = control
         self.controller = tk.LabelFrame(self.window,
@@ -24,16 +20,17 @@ class DungeonMap():
         if (os.name == "nt"):
             self.os = "win"
             self.res_location = os.getcwd() + "\\resources"
+            self.window.state('zoomed')
         else:
             self.os = "lin"
             self.res_location = os.getcwd() + "/resources"
+            self.window.attributes("-zoomed", True)
 
         # GUI items
         # self.sprite = None
         # self.img = None
         self.sc_frame = tk.LabelFrame(self.controller, text="")
         self.cmbt_turn_frame = tk.Frame(self.controller)
-        self.attack_buttons = {}
         self.att_sel = None
         self.background_color = 'grey'
         self.text_color = 'white'
@@ -217,22 +214,16 @@ class DungeonMap():
 
     def draw_attack_select_window(self, cur_ent: dm.controllable_entity):
         self.att_sel = tk.Menu(tearoff=0, bg=self.background_color, fg=self.text_color)
-        # self.att_sel = tk.Tk()
-        # self.att_sel.title = "Select Attack"
         pos = self.determine_pixel_pos(cur_ent.get_grid_x(), cur_ent.get_grid_y())
-        frame = tk.Frame(self.att_sel)
-        count = 0
-
         for i in cur_ent.get_attacks():
             i.set_parent_window(self.att_sel)
             i.set_active_ent(cur_ent)
-            #button = tk.Button(frame, text=i.get_att_name(), command=i.set_current_attack, width=15)
-            #button.grid(row=count, column=0)
             self.att_sel.add_command(label=i.get_att_name(), command=i.set_current_attack)
 
-            count += 1
-        # frame.pack()
         self.att_sel.tk_popup(pos[0],pos[1])
+
+    def draw_entity_management(self):
+        None
 
     # control methods
     def attack_entity(self, event=None):
