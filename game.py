@@ -141,6 +141,13 @@ class DungeonMap():
             #     self.map.create_image(l_pos, anchor=tk.CENTER, image=self.sprite, tags="entity")
 
             # draw outlines, if targetted outline is orange
+            self.map.create_oval(l_pos[0] - shift_to_center,
+                                 l_pos[1] - shift_to_center,
+                                 l_pos[0] + shift_to_center,
+                                 l_pos[1] + shift_to_center,
+                                 width=3,
+                                 tags="entity")
+            self.map.create_text(l_pos[0], l_pos[1], text=(i.get_index()), fill="white", tags="entity", font=l_font)
             if (i.get_targetted() is True):
                 self.map.create_line(l_pos[0] - shift_to_center,
                                      l_pos[1] - shift_to_center,
@@ -170,13 +177,6 @@ class DungeonMap():
                                      width=3,
                                      fill='red',
                                      tags="entity")
-            self.map.create_oval(l_pos[0] - shift_to_center,
-                                 l_pos[1] - shift_to_center,
-                                 l_pos[0] + shift_to_center,
-                                 l_pos[1] + shift_to_center,
-                                 width=3,
-                                 tags="entity")
-            self.map.create_text(l_pos[0], l_pos[1], text=(i.get_index()), fill="white", tags="entity", font=l_font)
 
         if self.combat_mode is True:
             l_pos = self.determine_pixel_pos(int(self.ent_to_act.get_grid_x()), int(self.ent_to_act.get_grid_y()))
@@ -232,16 +232,22 @@ class DungeonMap():
 
     # control methods
     def attack_entity(self, event=None):
-        self.clear_status()
-        self.clear_targets()
-        self.draw_attack_select_window(self.ent_to_act)
-        self.att_sel.wait_window()
-        self.continue_attack()
+        if (self.combat_mode is True):
+            self.clear_status()
+            self.clear_targets()
+            self.draw_attack_select_window(self.ent_to_act)
+            self.att_sel.wait_window()
+            self.continue_attack()
+        else:
+            None
 
     def continue_attack(self, event=None):
-        print(self.ent_to_act.current_attack.get_att_name())
-        self.show_range(self.ent_to_act, self.ent_to_act.get_current_attack().get_att_range(), "#F6BDBD")
-        self.raise_draw_target_flag()
+        try:
+            print(self.ent_to_act.current_attack.get_att_name())
+            self.show_range(self.ent_to_act, self.ent_to_act.get_current_attack().get_att_range(), "#db0000")
+            self.raise_draw_target_flag()
+        except AttributeError:
+            None
 
     def move_entity(self, event=None):
         self.clear_status()
@@ -259,10 +265,11 @@ class DungeonMap():
             for i in self.list_ents_in_radius(attack.get_att_aoe(), [event.x, event.y]):
                 i.raise_targetted_flag()
                 # print("       --click: " + i.get_name())
-            self.map.create_oval((event.x - ((self.ent_to_act.get_current_attack().get_att_aoe() / 2) * self.square_size)),
-                                 (event.y - ((self.ent_to_act.get_current_attack().get_att_aoe() / 2) * self.square_size)),
-                                 (event.x + ((self.ent_to_act.get_current_attack().get_att_aoe() / 2) * self.square_size)),
-                                 (event.y + ((self.ent_to_act.get_current_attack().get_att_aoe() / 2) * self.square_size)),
+            self.map.create_oval((event.x - (self.ent_to_act.get_current_attack().get_att_aoe() * self.square_size)),
+                                 (event.y - (self.ent_to_act.get_current_attack().get_att_aoe() * self.square_size)),
+                                 (event.x + (self.ent_to_act.get_current_attack().get_att_aoe() * self.square_size)),
+                                 (event.y + (self.ent_to_act.get_current_attack().get_att_aoe() * self.square_size)),
+                                 outline='#db0000', width=3, fill= '#db0000', stipple='gray50',
                                  tags="aoe")
         self.draw_target = False
         self.map.delete("range")
@@ -435,9 +442,9 @@ for o in ents:
     o.set_move_speed(25)
     att = dm.attack(name="slash", att_range=10, aoe=0, damage="1d8", active_ent=o)
     o.add_attack(att)
-    att = dm.attack(name="firebolt", att_range=20, aoe=0, damage="1d8", active_ent=o)
+    att = dm.attack(name="fireball", att_range=20, aoe=5, damage="5d8", active_ent=o)
     o.add_attack(att)
-    att = dm.attack(name="hand crossbow", att_range=40, aoe=1, damage="1d8", active_ent=o)
+    att = dm.attack(name="hand crossbow", att_range=40, aoe=0, damage="1d8", active_ent=o)
     o.add_attack(att)
 
 game = dm.control_scheme(ents, 50)

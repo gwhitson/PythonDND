@@ -44,16 +44,26 @@ To-dos:
         on how to do  this were way far off but this was a good learning experience
 
 - build targetting systems, highlight target-
-  ted entities                                    [ ]
+  ted entities                                    [x] 
+        targetting system is working, built in aoe with it to adjust for how it
+        was selecting entities. If the aoe is 0, the target will be whatever entity
+        is in the square clicked on. This does mean that you only technically need enough
+        range on an attack to reach the very corner of the square to make the attack, 
+        however that seems reasonable enough to me.
 
 - fix/test click function thoroughly, i 
   believe there were issues with it keeping
-  flags set when they were not supposed to be     [ ]
+  flags set when they were not supposed to be     [x]
+        this issue has been taken care of. Flags were indeed staying when they should
+        not have been but I built a separate function for setting everything back to 
+        clear. This just makes sure that at every stage we have all the right flags set
 
-- also need to make aoe to work on top of range   [ ]
+- also need to make aoe to work on top of range   [x]
     I think i want this to be a circle that moves 
     with the mouse and shows what the aoe would be
     where you click
+        this should not have been a separate item on the list. Built in with targetting
+        logic
 
 - adding and removing entities                    [ ]
 
