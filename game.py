@@ -9,14 +9,12 @@ class DungeonMap():
     def __init__(self, control: dm.control_scheme):
         self.window = tk.Tk()
         self.window.title = "Dungeons & Dragons"
-
         self.control = control
         self.controller = tk.LabelFrame(self.window,
                                         text="controls",
                                         width=200,
                                         height=self.get_screen_size()[1])
         self.controller.pack(side=tk.RIGHT, fill=tk.BOTH)
-        # self.screensize = self.get_screen_size()
         if (os.name == "nt"):
             self.os = "win"
             self.res_location = os.getcwd() + "\\resources"
@@ -34,6 +32,7 @@ class DungeonMap():
         self.att_sel = None
         self.background_color = 'grey'
         self.text_color = 'white'
+        self.ent_mgmt = None
 
         # object bound variables
         self.combat_mode = False
@@ -45,6 +44,7 @@ class DungeonMap():
         self.fl_move_ent = False
         self.fl_draw_target = False
 
+        # map element and keybinds
         self.map = tk.Canvas(self.window,
                              width=(self.get_screen_size()[0]),
                              height=(self.get_screen_size()[1]))
@@ -75,6 +75,7 @@ class DungeonMap():
         self.draw_turn_buttons()
         self.draw_attack_controls()
         self.draw_move_controls()
+        self.draw_ent_mgmt_button()
         self.window.mainloop()
 
     def update_gamescreen(self):
@@ -144,7 +145,8 @@ class DungeonMap():
                                  l_pos[1] + shift_to_center,
                                  width=3,
                                  tags="entity")
-            self.map.create_text(l_pos[0], l_pos[1], text=(i.get_index()), fill="white", tags="entity", font=l_font)
+            self.map.create_text(l_pos[0], l_pos[1], text=(i.get_index()),
+                                 fill="white", tags="entity", font=l_font)
             if (i.get_targetted() is True):
                 self.map.create_line(l_pos[0] - shift_to_center,
                                      l_pos[1] - shift_to_center,
@@ -176,7 +178,8 @@ class DungeonMap():
                                      tags="entity")
 
         if self.combat_mode is True:
-            l_pos = self.determine_pixel_pos(int(self.ent_to_act.get_grid_x()), int(self.ent_to_act.get_grid_y()))
+            l_pos = self.determine_pixel_pos(int(self.ent_to_act.get_grid_x()),
+                                             int(self.ent_to_act.get_grid_y()))
             self.map.create_oval(l_pos[0] - shift_to_center,
                                  l_pos[1] - shift_to_center,
                                  l_pos[0] + shift_to_center,
@@ -186,44 +189,83 @@ class DungeonMap():
                                  tags="entity")
 
     def draw_start_combat_button(self):
-        start_combat_b = tk.Button(self.sc_frame, text="Start Combat", command=self.start_combat, bg=self.background_color, fg=self.text_color)
+        start_combat_b = tk.Button(self.sc_frame, text="Start Combat",
+                                   command=self.start_combat,
+                                   bg=self.background_color, fg=self.text_color
+                                   )
         self.sc_frame.grid(row=0, column=0)
         start_combat_b.grid(row=0, column=0)
 
     def draw_turn_buttons(self):
-        next_turn_b = tk.Button(self.cmbt_turn_frame, text="Next Turn", command=lambda: self.next_turn(), bg=self.background_color, fg=self.text_color)
+        next_turn_b = tk.Button(self.cmbt_turn_frame, text="Next Turn",
+                                command=lambda: self.next_turn(),
+                                bg=self.background_color, fg=self.text_color)
         next_turn_b.grid(row=0, column=1)
 
-        prev_turn_b = tk.Button(self.cmbt_turn_frame, text="Prev Turn", command=lambda: self.prev_turn(), bg=self.background_color, fg=self.text_color)
+        prev_turn_b = tk.Button(self.cmbt_turn_frame, text="Prev Turn",
+                                command=lambda: self.prev_turn(),
+                                bg=self.background_color, fg=self.text_color)
         prev_turn_b.grid(row=0, column=0)
 
     def draw_attack_controls(self):
-        attack_controls_frame = tk.LabelFrame(self.controller, text="Attack", bg=self.background_color, fg=self.text_color)
+        attack_controls_frame = tk.LabelFrame(self.controller, text="Attack",
+                                              bg=self.background_color,
+                                              fg=self.text_color)
         attack_controls_frame.grid(row=2, column=0)
 
-        attack_button = tk.Button(attack_controls_frame, text="Attack!", command=self.attack_entity, width=18, bg=self.background_color, fg=self.text_color)
+        attack_button = tk.Button(attack_controls_frame, text="Attack!",
+                                  command=self.attack_entity, width=18,
+                                  bg=self.background_color, fg=self.text_color)
         attack_button.grid()
 
     def draw_move_controls(self):
-        move_controls_frame = tk.LabelFrame(self.controller, text="Movement", bg=self.background_color, fg=self.text_color)
+        move_controls_frame = tk.LabelFrame(self.controller, text="Movement",
+                                            bg=self.background_color,
+                                            fg=self.text_color)
         move_controls_frame.grid(row=1, column=0)
 
         move_button = tk.Button(move_controls_frame, text="Move",
-                                command=self.move_entity, width=18, bg=self.background_color, fg=self.text_color)
+                                command=self.move_entity, width=18,
+                                bg=self.background_color, fg=self.text_color)
         move_button.grid()
 
     def draw_attack_select_window(self, cur_ent: dm.controllable_entity):
-        self.att_sel = tk.Menu(tearoff=0, bg=self.background_color, fg=self.text_color)
-        pos = self.determine_pixel_pos(cur_ent.get_grid_x(), cur_ent.get_grid_y())
+        self.att_sel = tk.Menu(tearoff=0,
+                               bg=self.background_color, fg=self.text_color)
+        pos = self.determine_pixel_pos(cur_ent.get_grid_x(),
+                                       cur_ent.get_grid_y())
         for i in cur_ent.get_attacks():
             i.set_parent_window(self.att_sel)
             i.set_active_ent(cur_ent)
-            self.att_sel.add_command(label=i.get_att_name(), command=i.set_current_attack)
+            self.att_sel.add_command(label=i.get_att_name(),
+                                     command=i.set_current_attack)
 
-        self.att_sel.tk_popup(pos[0],pos[1])
+        self.att_sel.tk_popup(pos[0], pos[1])
+
+    def draw_ent_mgmt_button(self):
+        ent_mgmt_button_frame = tk.Frame(self.controller)
+        ent_mgmt_button_frame.grid(row=9, column=0)
+
+        ent_mgmt_button = tk.Button(ent_mgmt_button_frame,
+                                    text="Manage Entities",
+                                    width=18,
+                                    command=self.draw_entity_management,
+                                    bg=self.background_color,
+                                    fg=self.text_color)
+        ent_mgmt_button.pack()
 
     def draw_entity_management(self):
-        None
+        selected_ent = tk.StringVar(value=self.control.entities[0].get_name())
+        values_list = []
+        for i in self.control.entities:
+            values_list.append(i.get_name())
+        self.ent_mgmt = tk.Tk()
+        frame = tk.Frame(self.ent_mgmt)
+        ent_select = ttk.Combobox(frame, textvariable=selected_ent)
+        ent_select['values'] = values_list
+        ent_select.pack()
+        frame.pack()
+        self.ent_mgmt.mainloop()
 
     # control methods
     def attack_entity(self, event=None):
@@ -239,7 +281,9 @@ class DungeonMap():
     def continue_attack(self, event=None):
         try:
             print(self.ent_to_act.current_attack.get_att_name())
-            self.show_range(self.ent_to_act, self.ent_to_act.get_current_attack().get_att_range(), "#db0000")
+            self.show_range(self.ent_to_act,
+                            self.ent_to_act.get_curr_atk().get_att_range(),
+                            "#db0000")
             self.raise_draw_target_flag()
         except AttributeError:
             None
@@ -252,7 +296,7 @@ class DungeonMap():
 
     def select_target(self, event=None):
         print("select target")
-        attack = self.ent_to_act.get_current_attack()
+        attack = self.ent_to_act.get_curr_atk()
         if attack.get_att_aoe() == 0:
             ent = self.ent_in_square([event.x, event.y])
             if ent is not None:
@@ -260,11 +304,12 @@ class DungeonMap():
         else:
             for i in self.list_ents_in_radius(attack.get_att_aoe(), [event.x, event.y]):
                 i.raise_targetted_flag()
-            self.map.create_oval((event.x - (self.ent_to_act.get_current_attack().get_att_aoe() * self.square_size)),
-                                 (event.y - (self.ent_to_act.get_current_attack().get_att_aoe() * self.square_size)),
-                                 (event.x + (self.ent_to_act.get_current_attack().get_att_aoe() * self.square_size)),
-                                 (event.y + (self.ent_to_act.get_current_attack().get_att_aoe() * self.square_size)),
-                                 outline='#db0000', width=3, fill= '#db0000', stipple='gray50',
+            self.map.create_oval(event.x - (self.ent_to_act.get_curr_atk().get_att_aoe() * self.square_size),
+                                 event.y - (self.ent_to_act.get_curr_atk().get_att_aoe() * self.square_size),
+                                 event.x + (self.ent_to_act.get_curr_atk().get_att_aoe() * self.square_size),
+                                 event.y + (self.ent_to_act.get_curr_atk().get_att_aoe() * self.square_size),
+                                 outline='#db0000', width=3,
+                                 fill='#db0000', stipple='gray50',
                                  tags="aoe")
         self.draw_target = False
         self.map.delete("range")
@@ -312,7 +357,7 @@ class DungeonMap():
     def clear_targets(self):
         try:
             self.map.delete("aoe")
-        except:
+        except tk._tkinter.TclError:
             None
 
         for i in self.control.entities:
@@ -448,3 +493,4 @@ game = dm.control_scheme(ents, 50)
 test = DungeonMap(game)
 test.update_gamescreen()
 test.mainloop()
+test.clear_targets()

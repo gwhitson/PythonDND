@@ -156,7 +156,7 @@ class controllable_entity:
             else:
                 return None
 
-    def get_current_attack(self):
+    def get_curr_atk(self):
         return self.current_attack
 
     def get_chose_action_flag(self):
@@ -186,3 +186,9 @@ class control_scheme:
             local_list.append(i.get_id())
 
         return local_list
+
+    def get_ent_by_name(self, name: str):
+        for i in self.entities:
+            if name == i.get_name():
+                return i
+        return None
