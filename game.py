@@ -255,6 +255,7 @@ class DungeonMap():
 
     def move_entity(self, event=None):
         self.clear_status()
+        self.clear_targets()
         self.show_range(self.ent_to_act, self.ent_to_act.get_move_speed(), "#87d987")
         self.raise_move_flag()
 
