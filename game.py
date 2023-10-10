@@ -263,7 +263,11 @@ class DungeonMap():
         frame = tk.Frame(self.ent_mgmt)
         ent_select = ttk.Combobox(frame, textvariable=selected_ent)
         ent_select['values'] = values_list
-        ent_select.pack()
+        ent_select.grid(row=0, column=0)
+
+        new_ent_button = tk.Button(frame, text="New Entity", command=self.add_ent)
+        new_ent_button.grid(row=1, column=0)
+
         frame.pack()
         self.ent_mgmt.mainloop()
 
@@ -363,14 +367,13 @@ class DungeonMap():
         for i in self.control.entities:
             i.lower_targetted_flag()
 
-
     def clear_status(self):
         self.fl_move_ent = False
         self.fl_draw_target = False
 
         try:
             self.map.delete("range")
-        except:
+        except tk._tkinter.TclError:
             None
 
     def deal_attack(self):
@@ -413,14 +416,14 @@ class DungeonMap():
         else:
             if (self.combat_mode is False):
                 self.ent_to_act = self.ent_in_square([event.x, event.y])
-                if (self.ent_to_act != None):
+                if (self.ent_to_act is None):
                     self.move_entity()
                     print("test")
             else:
                 try:
-                   print(self.ent_in_square([event.x, event.y]).get_name())
-                except:
-                   print("no ent in click")
+                    print(self.ent_in_square([event.x, event.y]).get_name())
+                except AttributeError:
+                    print("no ent in click")
 
         self.update_gamescreen()
         # self.clear_status()
