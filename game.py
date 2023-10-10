@@ -35,6 +35,8 @@ class DungeonMap():
         self.cmbt_turn_frame = tk.Frame(self.controller)
         self.attack_buttons = {}
         self.att_sel = None
+        self.background_color = 'grey'
+        self.text_color = 'white'
 
         # object bound variables
         self.combat_mode = False
@@ -62,6 +64,9 @@ class DungeonMap():
         self.window.bind('<m>',
                          self.move_entity,
                          add="+")
+        self.window.bind('<n>',
+                         self.attack_entity,
+                         add="+")
         self.window.bind('<p>',
                          self.prev_turn,
                          add="+")
@@ -72,6 +77,7 @@ class DungeonMap():
         self.draw_turn_buttons()
         self.draw_attack_controls()
         self.draw_move_controls()
+        self.set_color_mode('grey', 'white')
         self.window.mainloop()
 
     def update_gamescreen(self):
@@ -136,20 +142,40 @@ class DungeonMap():
 
             # draw outlines, if targetted outline is orange
             if (i.get_targetted() is True):
-                self.map.create_oval(l_pos[0] - shift_to_center,
+                self.map.create_line(l_pos[0] - shift_to_center,
                                      l_pos[1] - shift_to_center,
                                      l_pos[0] + shift_to_center,
                                      l_pos[1] + shift_to_center,
-                                     width=3,
-                                     outline="orange",
+                                     width=8,
+                                     fill='black',
                                      tags="entity")
-            elif (i.get_targetted() is False):
-                self.map.create_oval(l_pos[0] - shift_to_center,
+                self.map.create_line(l_pos[0] + shift_to_center,
                                      l_pos[1] - shift_to_center,
-                                     l_pos[0] + shift_to_center,
+                                     l_pos[0] - shift_to_center,
                                      l_pos[1] + shift_to_center,
-                                     width=3,
+                                     width=8,
+                                     fill='black',
                                      tags="entity")
+                self.map.create_line(l_pos[0] - (shift_to_center - 2),
+                                     l_pos[1] - (shift_to_center - 2),
+                                     l_pos[0] + (shift_to_center - 2),
+                                     l_pos[1] + (shift_to_center - 2),
+                                     width=3,
+                                     fill='red',
+                                     tags="entity")
+                self.map.create_line(l_pos[0] + (shift_to_center - 2),
+                                     l_pos[1] - (shift_to_center - 2),
+                                     l_pos[0] - (shift_to_center - 2),
+                                     l_pos[1] + (shift_to_center - 2),
+                                     width=3,
+                                     fill='red',
+                                     tags="entity")
+            self.map.create_oval(l_pos[0] - shift_to_center,
+                                 l_pos[1] - shift_to_center,
+                                 l_pos[0] + shift_to_center,
+                                 l_pos[1] + shift_to_center,
+                                 width=3,
+                                 tags="entity")
             self.map.create_text(l_pos[0], l_pos[1], text=(i.get_index()), fill="white", tags="entity", font=l_font)
 
         if self.combat_mode is True:
@@ -163,33 +189,30 @@ class DungeonMap():
                                  tags="entity")
 
     def draw_start_combat_button(self):
-        start_combat_b = tk.Button(self.sc_frame, text="Start Combat", command=self.start_combat)
+        start_combat_b = tk.Button(self.sc_frame, text="Start Combat", command=self.start_combat, background=self.background_color)
         self.sc_frame.grid(row=0, column=0)
         start_combat_b.grid(row=0, column=0)
 
     def draw_turn_buttons(self):
-        next_turn_b = tk.Button(self.cmbt_turn_frame, text="Next Turn", command=lambda: self.next_turn())
+        next_turn_b = tk.Button(self.cmbt_turn_frame, text="Next Turn", command=lambda: self.next_turn(), background=self.background_color)
         next_turn_b.grid(row=0, column=1)
 
-        prev_turn_b = tk.Button(self.cmbt_turn_frame, text="Prev Turn", command=lambda: self.prev_turn())
+        prev_turn_b = tk.Button(self.cmbt_turn_frame, text="Prev Turn", command=lambda: self.prev_turn(), background=self.background_color)
         prev_turn_b.grid(row=0, column=0)
 
     def draw_attack_controls(self):
-        attack_controls_frame = tk.LabelFrame(self.controller, text="Attack")
+        attack_controls_frame = tk.LabelFrame(self.controller, text="Attack", background=self.background_color)
         attack_controls_frame.grid(row=2, column=0)
 
-        attack_button = tk.Button(attack_controls_frame, text="Attack!", command=self.attack_entity, width=18)
+        attack_button = tk.Button(attack_controls_frame, text="Attack!", command=self.attack_entity, width=18, background=self.background_color)
         attack_button.grid()
 
-        att_range = ttk.Entry(attack_controls_frame, textvariable=self.mh_radius)
-        att_range.grid(row=1, column=0)
-
     def draw_move_controls(self):
-        move_controls_frame = tk.LabelFrame(self.controller, text="Movement")
+        move_controls_frame = tk.LabelFrame(self.controller, text="Movement", background=self.background_color)
         move_controls_frame.grid(row=1, column=0)
 
         move_button = tk.Button(move_controls_frame, text="Move",
-                                command=self.move_entity, width=18)
+                                command=self.move_entity, width=18, background=self.background_color)
         move_button.grid()
 
     def draw_attack_select_window(self, cur_ent: dm.controllable_entity):
@@ -208,32 +231,42 @@ class DungeonMap():
         frame.pack()
 
     # control methods
-    def attack_entity(self, event=""):
+    def attack_entity(self, event=None):
         self.clear_status()
         self.clear_targets()
         self.draw_attack_select_window(self.ent_to_act)
         self.att_sel.wait_window()
         self.continue_attack()
 
-    def continue_attack(self, event=""):
+    def continue_attack(self, event=None):
         print(self.ent_to_act.current_attack.get_att_name())
         self.show_range(self.ent_to_act, self.ent_to_act.get_current_attack().get_att_range(), "#F6BDBD")
         self.raise_draw_target_flag()
 
-    def move_entity(self, event=""):
+    def move_entity(self, event=None):
         self.clear_status()
-        self.show_range(self.ent_to_act, self.ent_to_act.get_move_speed(), "#a8ffa8")
+        self.show_range(self.ent_to_act, self.ent_to_act.get_move_speed(), "#87d987")
         self.raise_move_flag()
 
-    def create_attack_buttons(self, att_sel_frame: tk.Frame):
-        for i in self.control.entities:
-            print(str(i.get_name()))
-            attacks = i.get_attacks()
-            for o in attacks:
-                if not (o.get_att_name() in self.attack_buttons):
-                    print(o.get_att_name())
-                    button = tk.Button(att_sel_frame, text=o.get_att_name(), command=lambda: print(o.get_att_name()))
-                    self.attack_buttons[o.get_att_name()] = button
+    def select_target(self, event=None):
+        print("select target")
+        attack = self.ent_to_act.get_current_attack()
+        if attack.get_att_aoe() == 0:
+            ent = self.ent_in_square([event.x, event.y])
+            if ent is not None:
+                ent.raise_targetted_flag()
+        else:
+            for i in self.list_ents_in_radius(attack.get_att_aoe(), [event.x, event.y]):
+                i.raise_targetted_flag()
+                # print("       --click: " + i.get_name())
+            self.map.create_oval((event.x - ((self.ent_to_act.get_current_attack().get_att_aoe() / 2) * self.square_size)),
+                                 (event.y - ((self.ent_to_act.get_current_attack().get_att_aoe() / 2) * self.square_size)),
+                                 (event.x + ((self.ent_to_act.get_current_attack().get_att_aoe() / 2) * self.square_size)),
+                                 (event.y + ((self.ent_to_act.get_current_attack().get_att_aoe() / 2) * self.square_size)),
+                                 tags="aoe")
+        self.draw_target = False
+        self.map.delete("range")
+        self.clear_status()
 
     def start_combat(self):
         # get initiative list
@@ -244,7 +277,7 @@ class DungeonMap():
         self.sc_frame.grid_remove()
         self.cmbt_turn_frame.grid(row=9, column=0)
 
-    def next_turn(self, event=""):
+    def next_turn(self, event=None):
         self.ent_to_act = self.move_order[self.next_ent_index]
         self.ent_to_act.lower_chose_action_flag()
         print("next -- " + self.ent_to_act.get_name())
@@ -255,7 +288,7 @@ class DungeonMap():
         else:
             self.next_ent_index += 1
 
-    def prev_turn(self, event=""):
+    def prev_turn(self, event=None):
         if (self.next_ent_index == 0):
             self.next_ent_index = (len(self.move_order) - 1)
         else:
@@ -329,38 +362,18 @@ class DungeonMap():
                 self.map.delete("range")
 
         elif (self.fl_draw_target is True):
-            # print("attack--------------------------")
-            # print(str(self.ent_to_act.get_current_attack().get_att_name()))
-            for i in self.list_ents_in_radius(self.ent_to_act.get_current_attack().get_att_aoe(), [event.x, event.y]):
-                i.raise_targetted_flag()
-                # print("       --click: " + i.get_name())
-            self.map.create_oval((event.x - ((self.ent_to_act.get_current_attack().get_att_aoe() / 2) * self.square_size)),
-                                 (event.y - ((self.ent_to_act.get_current_attack().get_att_aoe() / 2) * self.square_size)),
-                                 (event.x + ((self.ent_to_act.get_current_attack().get_att_aoe() / 2) * self.square_size)),
-                                 (event.y + ((self.ent_to_act.get_current_attack().get_att_aoe() / 2) * self.square_size)),
-                                 tags="aoe")
-            self.draw_target = False
-            self.map.delete("range")
-            self.clear_status()
+            self.select_target(event)
         else:
             if (self.combat_mode is False):
-                for i in self.control.entities:
-                    if (event_grid[1] == i.get_grid_y()):
-                        if (event_grid[0] == i.get_grid_x()):
-                            self.ent_to_act = i
-                            self.raise_move_flag()
-
-                if self.fl_move_ent is True:
-                    self.show_range(self.ent_to_act, self.ent_to_act.get_move_speed(), "#a8ffa8")
-            else:
                 self.ent_to_act = self.ent_in_square([event.x, event.y])
                 if (self.ent_to_act != None):
-                    self.raise_move_flag()
+                    self.move_entity()
                     print("test")
-                # try:
-                #    print(self.ent_in_square([event.x, event.y]).get_name())
-                # except:
-                #    print("no ent in click")
+            else:
+                try:
+                   print(self.ent_in_square([event.x, event.y]).get_name())
+                except:
+                   print("no ent in click")
 
         self.update_gamescreen()
         # self.clear_status()
@@ -376,12 +389,12 @@ class DungeonMap():
                              width=3,
                              outline=color,
                              fill=color,
-                             #stipple="gray50",
+                             stipple="gray50",
                              tags="range")
         self.update_gamescreen()
         print("show range")
 
-    def ent_in_radius(self, cur_ent: dm.controllable_entity, radius: float, center: list[int,int]) -> bool:
+    def ent_in_radius(self, cur_ent: dm.controllable_entity, radius: float, center: list[int, int]) -> bool:
         print("--radius")
         if (radius == 0):
             comparison_rad = 10
@@ -400,6 +413,10 @@ class DungeonMap():
             if self.ent_in_radius(i, radius, center) is True:
                 entities.append(i)
         return entities
+
+    def set_color_mode(self, background: str, text: str):
+        self.controller.configure(background=background)
+        self.map.configure(background=background)
 
 
 #### test code
