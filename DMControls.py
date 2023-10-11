@@ -78,6 +78,9 @@ class controllable_entity:
     def rem_health(self, change):
         self.HP = self.HP - change
 
+    def set_name(self, new_name):
+        self.name = new_name
+
     def set_x(self, new_x):
         self.grid_x = new_x
 
@@ -87,8 +90,14 @@ class controllable_entity:
     def set_index(self,  new_index):
         self.index = new_index
 
-    def set_ac(self, new_ac):
+    def set_HP(self, new_hp):
+        self.HP = new_hp
+
+    def set_AC(self, new_ac):
         self.AC = new_ac
+
+    def set_role(self, new_role):
+        self.role = new_role
 
     def set_id(self):
         self.id = str(self.get_index()) + ":" + str(self.get_name())
@@ -113,7 +122,6 @@ class controllable_entity:
 
     def lower_targetted_flag(self):
         self.targetted = False
-
 
     # getter funcs
     def get_name(self):
@@ -175,7 +183,7 @@ class control_scheme:
             self.entities[i].set_id()
 
     def add_entity(self, entity_to_add: controllable_entity()):
-        self.entities += entity_to_add
+        self.entities.append(entity_to_add)
 
     def remove_entity(self, entity_to_remove: controllable_entity()):
         self.entities -= entity_to_remove

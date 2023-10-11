@@ -27,7 +27,16 @@ class DungeonMap():
         # GUI items
         # self.sprite = None
         # self.img = None
+        self.ent_select = None
         self.sc_frame = tk.LabelFrame(self.controller, text="")
+        self.selected_ent = tk.StringVar()
+        self.new_ent_name = tk.StringVar(value="")
+        self.new_ent_HP = tk.IntVar(value=0)
+        self.new_ent_AC = tk.IntVar(value=0)
+        self.new_ent_x = tk.IntVar(value=0)
+        self.new_ent_y = tk.IntVar(value=0)
+        self.new_ent_role = tk.StringVar(value="")
+        self.new_ent_movespd = tk.IntVar(value=0)
         self.cmbt_turn_frame = tk.Frame(self.controller)
         self.att_sel = None
         self.background_color = 'grey'
@@ -255,20 +264,21 @@ class DungeonMap():
         ent_mgmt_button.pack()
 
     def draw_entity_management(self):
-        selected_ent = tk.StringVar(value=self.control.entities[0].get_name())
         values_list = []
         for i in self.control.entities:
             values_list.append(i.get_name())
         self.ent_mgmt = tk.Tk()
         frame = tk.Frame(self.ent_mgmt)
-        ent_select = ttk.Combobox(frame, textvariable=selected_ent)
-        ent_select['values'] = values_list
-        ent_select.grid(row=0, column=0)
+        self.ent_select = ttk.Combobox(frame, width=27)
+        self.ent_select['values'] = values_list
+        self.ent_select.current(0)
+        print(self.ent_select.get())
+        self.ent_select.grid(row=0, column=0)
 
-        new_ent_button = tk.Button(frame, text="New Entity", command=self.add_ent)
+        new_ent_button = tk.Button(frame, text="New Entity", command=self.add_ent, width=27)
         new_ent_button.grid(row=1, column=0)
 
-        frame.pack()
+        frame.grid(row=0, column=0)
         self.ent_mgmt.mainloop()
 
     # control methods
@@ -381,6 +391,85 @@ class DungeonMap():
         for i in self.control.entities:
             i.lower_targetted_flag()
 
+    def add_ent(self):
+        new_ent = dm.controllable_entity(name="new entity")
+        self.control.add_entity(new_ent)
+        self.ent_select['values'] += (new_ent.get_name(),)
+        self.ent_select.current(len(self.ent_select['values']) - 1)
+        self.prompt_ent_update()
+
+    def prompt_ent_update(self):
+        ent = self.control.get_ent_by_name(self.ent_select.get())
+        self.new_ent_name.set(ent.get_name())
+        self.new_ent_HP.set(ent.get_HP())
+        self.new_ent_AC.set(ent.get_AC())
+        self.new_ent_x.set(ent.get_grid_x())
+        self.new_ent_y.set(ent.get_grid_y())
+        self.new_ent_role.set(ent.get_role())
+        self.new_ent_movespd.set(ent.get_move_speed())
+
+        edit_frame = tk.Frame(self.ent_mgmt)
+        edit_frame.grid(row=1, column=0)
+
+        edit_name = tk.Label(edit_frame, text="Name:", width=9)
+        edit_name.grid(row=0, column=0)
+        edit_name = tk.Entry(edit_frame, textvariable=self.new_ent_name, width=18)
+        edit_name.insert(0, self.ent_select.get())
+        edit_name.grid(row=0, column=1)
+
+        edit_HP = tk.Label(edit_frame, text="HP:", width=9)
+        edit_HP.grid(row=1, column=0)
+        edit_HP = tk.Entry(edit_frame, textvariable=self.new_ent_HP, width=18)
+        edit_HP.insert(0, self.new_ent_HP.get())
+        edit_HP.grid(row=1, column=1)
+
+        edit_movespd = tk.Label(edit_frame, text="Move Speed:", width=9)
+        edit_movespd.grid(row=2, column=0)
+        edit_movespd = tk.Entry(edit_frame, textvariable=self.new_ent_movespd, width=18)
+        edit_movespd.insert(0, self.new_ent_movespd.get())
+        edit_movespd.grid(row=2, column=1)
+
+        edit_AC = tk.Label(edit_frame, text="AC:", width=9)
+        edit_AC.grid(row=3, column=0)
+        edit_AC = tk.Entry(edit_frame, textvariable=self.new_ent_AC, width=18)
+        edit_AC.insert(0, self.new_ent_AC.get())
+        edit_AC.grid(row=3, column=1)
+
+        edit_x = tk.Label(edit_frame, text="x:", width=9)
+        edit_x.grid(row=4, column=0)
+        edit_x = tk.Entry(edit_frame, textvariable=self.new_ent_x, width=18)
+        edit_x.insert(0, self.new_ent_x.get())
+        edit_x.grid(row=4, column=1)
+
+        edit_y = tk.Label(edit_frame, text="y:", width=9)
+        edit_y.grid(row=5, column=0)
+        edit_y = tk.Entry(edit_frame, textvariable=self.new_ent_y, width=18)
+        edit_y.insert(0, self.new_ent_y.get())
+        edit_y.grid(row=5, column=1)
+
+        edit_role = tk.Label(edit_frame, text="Role:", width=9)
+        edit_role.grid(row=6, column=0)
+        edit_role = tk.Entry(edit_frame, textvariable=self.new_ent_role, width=18)
+        edit_role.insert(0, self.new_ent_role.get())
+        edit_role.grid(row=6, column=1)
+
+        edit_ent_button = tk.Button(edit_frame, text="Edit Entity", width=27, command=self.update_ent)
+        edit_ent_button.grid(row=6, column=0, columnspan=2)
+
+    def update_ent(self):
+        edit_ent = self.control.get_ent_by_name(self.ent_select.get())
+        edit_ent.set_name(self.new_ent_name.get())
+        edit_ent.set_HP(self.new_ent_HP.get())
+        edit_ent.set_AC(self.new_ent_AC.get())
+        edit_ent.set_x(self.new_ent_x.get())
+        edit_ent.set_y(self.new_ent_y.get())
+        edit_ent.set_role(self.new_ent_role.get())
+        edit_ent.set_move_speed(self.new_ent_movespd.get())
+        edit_ent.set_index(len(self.control.entities) - 1)
+        self.control.add_entity(edit_ent)
+        self.ent_mgmt.destroy()
+        self.update_gamescreen()
+
     # info gathering methods
     def determine_grid_pos(self, x: int, y: int) -> list[int,int]:
         return [int(x / self.square_size), int(y / self.square_size)]
@@ -415,10 +504,15 @@ class DungeonMap():
             self.select_target(event)
         else:
             if (self.combat_mode is False):
-                self.ent_to_act = self.ent_in_square([event.x, event.y])
-                if (self.ent_to_act is None):
+                ent = self.ent_in_square([event.x, event.y])
+                if ent is not None:
+                    print('testertester')
+                    self.ent_to_act = ent
                     self.move_entity()
-                    print("test")
+                # self.ent_to_act = self.ent_in_square([event.x, event.y])
+                # if (self.ent_to_act is not None):
+                #     self.move_entity()
+                #     print("test")
             else:
                 try:
                     print(self.ent_in_square([event.x, event.y]).get_name())
