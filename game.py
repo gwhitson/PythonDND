@@ -469,6 +469,8 @@ class DungeonMap():
         self.control.add_entity(edit_ent)
         self.ent_mgmt.destroy()
         self.update_gamescreen()
+        for i in self.control.entities:
+            print(i.get_name() + " -- " + str(i.get_move_speed()))
 
     # info gathering methods
     def determine_grid_pos(self, x: int, y: int) -> list[int,int]:
