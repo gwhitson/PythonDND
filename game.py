@@ -272,7 +272,7 @@ class DungeonMap():
         self.ent_select = ttk.Combobox(frame, width=27)
         self.ent_select['values'] = values_list
         self.ent_select.current(0)
-        print(self.ent_select.get())
+        # print(self.ent_select.get())
         self.ent_select.grid(row=0, column=0)
 
         new_ent_button = tk.Button(frame, text="New Entity", command=self.add_ent, width=27)
@@ -294,7 +294,7 @@ class DungeonMap():
 
     def continue_attack(self, event=None):
         try:
-            print(self.ent_to_act.current_attack.get_att_name())
+            # print(self.ent_to_act.current_attack.get_att_name())
             self.show_range(self.ent_to_act,
                             self.ent_to_act.get_curr_atk().get_att_range(),
                             "#db0000")
@@ -309,7 +309,7 @@ class DungeonMap():
         self.raise_move_flag()
 
     def select_target(self, event=None):
-        print("select target")
+        # print("select target")
         attack = self.ent_to_act.get_curr_atk()
         if attack.get_att_aoe() == 0:
             ent = self.ent_in_square([event.x, event.y])
@@ -341,7 +341,7 @@ class DungeonMap():
     def next_turn(self, event=None):
         self.ent_to_act = self.move_order[self.next_ent_index]
         self.ent_to_act.lower_chose_action_flag()
-        print("next -- " + self.ent_to_act.get_name())
+        # print("next -- " + self.ent_to_act.get_name())
         self.update_gamescreen()
 
         if (self.next_ent_index == len(self.move_order) - 1):
@@ -357,7 +357,7 @@ class DungeonMap():
 
         self.ent_to_act = self.move_order[self.next_ent_index - 1]
         self.update_gamescreen()
-        print("prev -- " + str(self.ent_to_act.get_name()))
+        # print("prev -- " + str(self.ent_to_act.get_name()))
 
     def get_screen_size(self):
         return [self.window.winfo_screenwidth(), self.window.winfo_screenheight()]
@@ -393,6 +393,7 @@ class DungeonMap():
 
     def add_ent(self):
         new_ent = dm.controllable_entity(name="new entity")
+        new_ent.set_index(len(self.control.entities))
         self.control.add_entity(new_ent)
         self.ent_select['values'] += (new_ent.get_name(),)
         self.ent_select.current(len(self.ent_select['values']) - 1)
@@ -453,24 +454,21 @@ class DungeonMap():
         edit_role.insert(0, self.new_ent_role.get())
         edit_role.grid(row=6, column=1)
 
-        edit_ent_button = tk.Button(edit_frame, text="Edit Entity", width=27, command=self.update_ent)
+        edit_ent_button = tk.Button(edit_frame, text="Edit Entity", width=27, command=lambda: self.update_ent(ent.get_index(), edit_name.get(), edit_HP.get(), edit_AC.get(), edit_x.get(), edit_y.get(), edit_role.get(), edit_movespd.get()))
         edit_ent_button.grid(row=6, column=0, columnspan=2)
 
-    def update_ent(self):
-        edit_ent = self.control.get_ent_by_name(self.ent_select.get())
-        edit_ent.set_name(self.new_ent_name.get())
-        edit_ent.set_HP(self.new_ent_HP.get())
-        edit_ent.set_AC(self.new_ent_AC.get())
-        edit_ent.set_x(self.new_ent_x.get())
-        edit_ent.set_y(self.new_ent_y.get())
-        edit_ent.set_role(self.new_ent_role.get())
-        edit_ent.set_move_speed(self.new_ent_movespd.get())
-        edit_ent.set_index(len(self.control.entities) - 1)
-        self.control.add_entity(edit_ent)
+    def update_ent(self, index: int, name: str, HP: int, AC: int, x: int, y: int, role: str, movespd: int):
+        ent_ind = self.control.get_ent_by_name(self.ent_select.get()).get_index()
+        # print(str(ent_ind))
+        self.control.entities[index].set_name(str(name))
+        self.control.entities[index].set_HP(int(HP))
+        self.control.entities[index].set_AC(int(AC))
+        self.control.entities[index].set_x(int(x))
+        self.control.entities[index].set_y(int(y))
+        self.control.entities[index].set_role(str(role))
+        self.control.entities[index].set_move_speed(int(movespd))
         self.ent_mgmt.destroy()
         self.update_gamescreen()
-        for i in self.control.entities:
-            print(i.get_name() + " -- " + str(i.get_move_speed()))
 
     # info gathering methods
     def determine_grid_pos(self, x: int, y: int) -> list[int,int]:
@@ -481,10 +479,13 @@ class DungeonMap():
 
     def ent_in_square(self, pos: list[int, int]):
         l_pos = self.determine_grid_pos(pos[0], pos[1])
+        # print("ent in square--" + str(l_pos[0]) + "," + str(l_pos[1]))
         for i in self.control.entities:
-            if i.get_grid_x() == l_pos[0]:
-                if i.get_grid_y() == l_pos[1]:
+            # print(i.get_name() + "--" + str(i.get_grid_y()) + "--" + str(i.get_grid_x()))
+            if (int(i.get_grid_x()) == l_pos[0]):
+                if (int(i.get_grid_y()) == l_pos[1]):
                     return i
+            # print("    x: " + str(int(i.get_grid_x())==l_pos[0]) + " y: " + str(int(i.get_grid_y())==l_pos[1]))
         return None
 
     # player interactive methods
@@ -508,18 +509,20 @@ class DungeonMap():
             if (self.combat_mode is False):
                 ent = self.ent_in_square([event.x, event.y])
                 if ent is not None:
-                    print('testertester')
+                    # print('testertester')
                     self.ent_to_act = ent
                     self.move_entity()
+                else:
+                    print("ent is None")
                 # self.ent_to_act = self.ent_in_square([event.x, event.y])
                 # if (self.ent_to_act is not None):
                 #     self.move_entity()
                 #     print("test")
             else:
                 try:
-                    print(self.ent_in_square([event.x, event.y]).get_name())
+                    # print(self.ent_in_square([event.x, event.y]).get_name())
                 except AttributeError:
-                    print("no ent in click")
+                    # print("no ent in click")
 
         self.update_gamescreen()
         # self.clear_status()
@@ -538,10 +541,10 @@ class DungeonMap():
                              stipple="gray50",
                              tags="range")
         self.update_gamescreen()
-        print("show range")
+        # print("show range")
 
     def ent_in_radius(self, cur_ent: dm.controllable_entity, radius: float, center: list[int, int]) -> bool:
-        print("--radius")
+        # print("--radius")
         if (radius == 0):
             comparison_rad = 10
         else:
@@ -553,7 +556,7 @@ class DungeonMap():
             return False
 
     def list_ents_in_radius(self, radius: float, center: list[int, int]):
-        print("-list")
+        # print("-list")
         entities = []
         for i in self.control.entities:
             if self.ent_in_radius(i, radius, center) is True:
