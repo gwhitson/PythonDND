@@ -5,7 +5,6 @@ from tkinter import ttk
 # from PIL import Image, ImageTk
 
 
-
 class DungeonMap():
     def __init__(self, control: dm.control_scheme):
         self.window = tk.Tk()
