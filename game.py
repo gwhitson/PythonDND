@@ -207,12 +207,12 @@ class DungeonMap():
 
     def draw_turn_buttons(self):
         next_turn_b = tk.Button(self.cmbt_turn_frame, text="Next Turn",
-                                command=lambda: self.next_turn(),
+                                command=self.next_turn,
                                 bg=self.background_color, fg=self.text_color)
         next_turn_b.grid(row=0, column=1)
 
         prev_turn_b = tk.Button(self.cmbt_turn_frame, text="Prev Turn",
-                                command=lambda: self.prev_turn(),
+                                command=self.prev_turn,
                                 bg=self.background_color, fg=self.text_color)
         prev_turn_b.grid(row=0, column=0)
 
@@ -275,131 +275,16 @@ class DungeonMap():
         # print(self.ent_select.get())
         self.ent_select.grid(row=0, column=0)
 
-        new_ent_button = tk.Button(frame, text="New Entity", command=self.add_ent, width=27)
+        new_ent_button = tk.Button(frame, text="New Entity", command=self.add_ent, width=13)
         new_ent_button.grid(row=1, column=0)
+
+        mod_ent_button = tk.Button(frame, text="Modify Entity", command=self.add_ent, width=13)
+        mod_ent_button.grid(row=1, column=1)
 
         frame.grid(row=0, column=0)
         self.ent_mgmt.mainloop()
 
-    # control methods
-    def attack_entity(self, event=None):
-        if (self.combat_mode is True):
-            self.clear_status()
-            self.clear_targets()
-            self.draw_attack_select_window(self.ent_to_act)
-            self.att_sel.wait_window()
-            self.continue_attack()
-        else:
-            None
-
-    def continue_attack(self, event=None):
-        try:
-            # print(self.ent_to_act.current_attack.get_att_name())
-            self.show_range(self.ent_to_act,
-                            self.ent_to_act.get_curr_atk().get_att_range(),
-                            "#db0000")
-            self.raise_draw_target_flag()
-        except AttributeError:
-            None
-
-    def move_entity(self, event=None):
-        self.clear_status()
-        self.clear_targets()
-        self.show_range(self.ent_to_act, self.ent_to_act.get_move_speed(), "#87d987")
-        self.raise_move_flag()
-
-    def select_target(self, event=None):
-        # print("select target")
-        attack = self.ent_to_act.get_curr_atk()
-        if attack.get_att_aoe() == 0:
-            ent = self.ent_in_square([event.x, event.y])
-            if ent is not None:
-                ent.raise_targetted_flag()
-        else:
-            for i in self.list_ents_in_radius(attack.get_att_aoe(), [event.x, event.y]):
-                i.raise_targetted_flag()
-            self.map.create_oval(event.x - (self.ent_to_act.get_curr_atk().get_att_aoe() * self.square_size),
-                                 event.y - (self.ent_to_act.get_curr_atk().get_att_aoe() * self.square_size),
-                                 event.x + (self.ent_to_act.get_curr_atk().get_att_aoe() * self.square_size),
-                                 event.y + (self.ent_to_act.get_curr_atk().get_att_aoe() * self.square_size),
-                                 outline='#db0000', width=3,
-                                 fill='#db0000', stipple='gray50',
-                                 tags="aoe")
-        self.draw_target = False
-        self.map.delete("range")
-        self.clear_status()
-
-    def start_combat(self):
-        # get initiative list
-        self.combat_mode = True
-        self.move_order = self.control.entities
-        self.ent_to_act = self.move_order[0]
-        self.next_turn()
-        self.sc_frame.grid_remove()
-        self.cmbt_turn_frame.grid(row=9, column=0)
-
-    def next_turn(self, event=None):
-        self.ent_to_act = self.move_order[self.next_ent_index]
-        self.ent_to_act.lower_chose_action_flag()
-        # print("next -- " + self.ent_to_act.get_name())
-        self.update_gamescreen()
-
-        if (self.next_ent_index == len(self.move_order) - 1):
-            self.next_ent_index = 0
-        else:
-            self.next_ent_index += 1
-
-    def prev_turn(self, event=None):
-        if (self.next_ent_index == 0):
-            self.next_ent_index = (len(self.move_order) - 1)
-        else:
-            self.next_ent_index -= 1
-
-        self.ent_to_act = self.move_order[self.next_ent_index - 1]
-        self.update_gamescreen()
-        # print("prev -- " + str(self.ent_to_act.get_name()))
-
-    def get_screen_size(self):
-        return [self.window.winfo_screenwidth(), self.window.winfo_screenheight()]
-
-    def raise_draw_target_flag(self):
-        self.fl_draw_target = True
-
-    def raise_move_flag(self):
-        self.fl_move_ent = True
-
-    def clear_targets(self):
-        try:
-            self.map.delete("aoe")
-        except tk._tkinter.TclError:
-            None
-
-        for i in self.control.entities:
-            i.lower_targetted_flag()
-
-    def clear_status(self):
-        self.fl_move_ent = False
-        self.fl_draw_target = False
-
-        try:
-            self.map.delete("range")
-        except tk._tkinter.TclError:
-            None
-
-    def deal_attack(self):
-        self.map.delete("aoe")
-        for i in self.control.entities:
-            i.lower_targetted_flag()
-
-    def add_ent(self):
-        new_ent = dm.controllable_entity(name="new entity")
-        new_ent.set_index(len(self.control.entities))
-        self.control.add_entity(new_ent)
-        self.ent_select['values'] += (new_ent.get_name(),)
-        self.ent_select.current(len(self.ent_select['values']) - 1)
-        self.prompt_ent_update()
-
-    def prompt_ent_update(self):
+    def draw_ent_update(self):
         ent = self.control.get_ent_by_name(self.ent_select.get())
         self.new_ent_name.set(ent.get_name())
         self.new_ent_HP.set(ent.get_HP())
@@ -456,6 +341,125 @@ class DungeonMap():
 
         edit_ent_button = tk.Button(edit_frame, text="Edit Entity", width=27, command=lambda: self.update_ent(ent.get_index(), edit_name.get(), edit_HP.get(), edit_AC.get(), edit_x.get(), edit_y.get(), edit_role.get(), edit_movespd.get()))
         edit_ent_button.grid(row=6, column=0, columnspan=2)
+
+    # control methods
+    def attack_entity(self, event=None):
+        if (self.combat_mode is True):
+            self.clear_status()
+            self.clear_targets()
+            self.draw_attack_select_window(self.ent_to_act)
+            self.att_sel.wait_window()
+            self.continue_attack()
+        else:
+            None
+
+    def continue_attack(self, event=None):
+        try:
+            # print(self.ent_to_act.current_attack.get_att_name())
+            self.show_range(self.ent_to_act,
+                            self.ent_to_act.get_curr_atk().get_att_range(),
+                            "#db0000")
+            self.raise_draw_target_flag()
+        except AttributeError:
+            None
+
+    def move_entity(self, event=None):
+        self.clear_status()
+        self.clear_targets()
+        self.show_range(self.ent_to_act, self.ent_to_act.get_move_speed(), "#87d987")
+        self.raise_move_flag()
+
+    def select_target(self, event=None):
+        # print("select target")
+        attack = self.ent_to_act.get_curr_atk()
+        if attack.get_att_aoe() == 0:
+            ent = self.ent_in_square([event.x, event.y])
+            if ent is not None:
+                ent.raise_targetted_flag()
+        else:
+            for i in self.list_ents_in_radius(attack.get_att_aoe(), [event.x, event.y]):
+                i.raise_targetted_flag()
+            self.map.create_oval(event.x - (self.ent_to_act.get_curr_atk().get_att_aoe() * self.square_size),
+                                 event.y - (self.ent_to_act.get_curr_atk().get_att_aoe() * self.square_size),
+                                 event.x + (self.ent_to_act.get_curr_atk().get_att_aoe() * self.square_size),
+                                 event.y + (self.ent_to_act.get_curr_atk().get_att_aoe() * self.square_size),
+                                 outline='#db0000', width=3,
+                                 fill='#db0000', stipple='gray50',
+                                 tags="aoe")
+        self.draw_target = False
+        self.map.delete("range")
+        self.clear_status()
+
+    def start_combat(self):
+        # get initiative list
+        self.combat_mode = True
+        self.move_order = self.control.entities
+        self.ent_to_act = self.move_order[0]
+        self.next_turn()
+        self.sc_frame.grid_remove()
+        self.cmbt_turn_frame.grid(row=8, column=0)
+
+    def next_turn(self, event=None):
+        self.clear_status()
+        self.clear_targets()
+        self.ent_to_act = self.move_order[self.next_ent_index]
+        self.ent_to_act.lower_chose_action_flag()
+        if (self.next_ent_index == len(self.move_order) - 1):
+            self.next_ent_index = 0
+        else:
+            self.next_ent_index += 1
+        self.update_gamescreen()
+
+    def prev_turn(self, event=None):
+        self.clear_status()
+        self.clear_targets()
+        self.ent_to_act = self.move_order[self.next_ent_index - 1]
+        self.ent_to_act.lower_chose_action_flag()
+        if (self.next_ent_index == 0):
+            self.next_ent_index = (len(self.move_order) - 1)
+        else:
+            self.next_ent_index -= 1
+        self.update_gamescreen()
+
+    def get_screen_size(self):
+        return [self.window.winfo_screenwidth(), self.window.winfo_screenheight()]
+
+    def raise_draw_target_flag(self):
+        self.fl_draw_target = True
+
+    def raise_move_flag(self):
+        self.fl_move_ent = True
+
+    def clear_targets(self):
+        try:
+            self.map.delete("aoe")
+        except tk._tkinter.TclError:
+            None
+
+        for i in self.control.entities:
+            i.lower_targetted_flag()
+
+    def clear_status(self):
+        self.fl_move_ent = False
+        self.fl_draw_target = False
+
+        try:
+            self.map.delete("range")
+        except tk._tkinter.TclError:
+            None
+
+    def deal_attack(self):
+        self.map.delete("aoe")
+        for i in self.control.entities:
+            i.lower_targetted_flag()
+
+    def add_ent(self):
+        new_ent = dm.controllable_entity(name="new entity")
+        new_ent.set_index(len(self.control.entities))
+        self.control.add_entity(new_ent)
+        self.ent_select['values'] += (new_ent.get_name(),)
+        self.ent_select.current(len(self.ent_select['values']) - 1)
+        self.draw_ent_update()
 
     def update_ent(self, index: int, name: str, HP: int, AC: int, x: int, y: int, role: str, movespd: int):
         ent_ind = self.control.get_ent_by_name(self.ent_select.get()).get_index()
@@ -518,10 +522,10 @@ class DungeonMap():
                 # if (self.ent_to_act is not None):
                 #     self.move_entity()
                 #     print("test")
-            else:
-                try:
+            #else:
+                #try:
                     # print(self.ent_in_square([event.x, event.y]).get_name())
-                except AttributeError:
+                #except AttributeError:
                     # print("no ent in click")
 
         self.update_gamescreen()
