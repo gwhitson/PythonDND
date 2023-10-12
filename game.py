@@ -28,6 +28,8 @@ class DungeonMap():
         # self.sprite = None
         # self.img = None
         self.ent_select = None
+        self.edit_frame = None
+        self.ent_sel_button_frame = None
         self.sc_frame = tk.LabelFrame(self.controller, text="")
         self.selected_ent = tk.StringVar()
         self.new_ent_name = tk.StringVar(value="")
@@ -268,23 +270,24 @@ class DungeonMap():
         for i in self.control.entities:
             values_list.append(i.get_name())
         self.ent_mgmt = tk.Tk()
-        frame = tk.Frame(self.ent_mgmt)
-        self.ent_select = ttk.Combobox(frame, width=27)
+        self.ent_sel_button_frame = tk.Frame(self.ent_mgmt)
+        self.ent_select = ttk.Combobox(self.ent_sel_button_frame, width=27)
         self.ent_select['values'] = values_list
         self.ent_select.current(0)
         # print(self.ent_select.get())
-        self.ent_select.grid(row=0, column=0)
+        self.ent_select.grid(row=0, column=0, columnspan=2)
 
-        new_ent_button = tk.Button(frame, text="New Entity", command=self.add_ent, width=13)
+        new_ent_button = tk.Button(self.ent_sel_button_frame, text="New Entity", command=self.add_ent, width=13)
         new_ent_button.grid(row=1, column=0)
 
-        mod_ent_button = tk.Button(frame, text="Modify Entity", command=self.add_ent, width=13)
+        mod_ent_button = tk.Button(self.ent_sel_button_frame, text="Modify Entity", command=self.draw_ent_update, width=13)
         mod_ent_button.grid(row=1, column=1)
 
-        frame.grid(row=0, column=0)
+        self.ent_sel_button_frame.grid(row=0, column=0)
         self.ent_mgmt.mainloop()
 
     def draw_ent_update(self):
+        self.ent_sel_button_frame.grid_remove()
         ent = self.control.get_ent_by_name(self.ent_select.get())
         self.new_ent_name.set(ent.get_name())
         self.new_ent_HP.set(ent.get_HP())
@@ -294,52 +297,59 @@ class DungeonMap():
         self.new_ent_role.set(ent.get_role())
         self.new_ent_movespd.set(ent.get_move_speed())
 
-        edit_frame = tk.Frame(self.ent_mgmt)
-        edit_frame.grid(row=1, column=0)
+        self.edit_frame = tk.Frame(self.ent_mgmt)
+        self.edit_frame.grid(row=1, column=0)
 
-        edit_name = tk.Label(edit_frame, text="Name:", width=9)
+        edit_name = tk.Label(self.edit_frame, text="Name:", width=9)
         edit_name.grid(row=0, column=0)
-        edit_name = tk.Entry(edit_frame, textvariable=self.new_ent_name, width=18)
+        edit_name = tk.Entry(self.edit_frame, textvariable=self.new_ent_name, width=18)
+        edit_name.delete(0, len(edit_name.get()))
         edit_name.insert(0, self.ent_select.get())
         edit_name.grid(row=0, column=1)
 
-        edit_HP = tk.Label(edit_frame, text="HP:", width=9)
+        edit_HP = tk.Label(self.edit_frame, text="HP:", width=9)
         edit_HP.grid(row=1, column=0)
-        edit_HP = tk.Entry(edit_frame, textvariable=self.new_ent_HP, width=18)
+        edit_HP = tk.Entry(self.edit_frame, textvariable=self.new_ent_HP, width=18)
+        edit_HP.delete(0, len(edit_HP.get()))
         edit_HP.insert(0, self.new_ent_HP.get())
         edit_HP.grid(row=1, column=1)
 
-        edit_movespd = tk.Label(edit_frame, text="Move Speed:", width=9)
+        edit_movespd = tk.Label(self.edit_frame, text="Move Speed:", width=9)
         edit_movespd.grid(row=2, column=0)
-        edit_movespd = tk.Entry(edit_frame, textvariable=self.new_ent_movespd, width=18)
+        edit_movespd = tk.Entry(self.edit_frame, textvariable=self.new_ent_movespd, width=18)
+        edit_movespd.delete(0, len(edit_movespd.get()))
         edit_movespd.insert(0, self.new_ent_movespd.get())
         edit_movespd.grid(row=2, column=1)
 
-        edit_AC = tk.Label(edit_frame, text="AC:", width=9)
+        edit_AC = tk.Label(self.edit_frame, text="AC:", width=9)
         edit_AC.grid(row=3, column=0)
-        edit_AC = tk.Entry(edit_frame, textvariable=self.new_ent_AC, width=18)
+        edit_AC = tk.Entry(self.edit_frame, textvariable=self.new_ent_AC, width=18)
+        edit_AC.delete(0, len(edit_AC.get()))
         edit_AC.insert(0, self.new_ent_AC.get())
         edit_AC.grid(row=3, column=1)
 
-        edit_x = tk.Label(edit_frame, text="x:", width=9)
+        edit_x = tk.Label(self.edit_frame, text="x:", width=9)
         edit_x.grid(row=4, column=0)
-        edit_x = tk.Entry(edit_frame, textvariable=self.new_ent_x, width=18)
+        edit_x = tk.Entry(self.edit_frame, textvariable=self.new_ent_x, width=18)
+        edit_x.delete(0, len(edit_x.get()))
         edit_x.insert(0, self.new_ent_x.get())
         edit_x.grid(row=4, column=1)
 
-        edit_y = tk.Label(edit_frame, text="y:", width=9)
+        edit_y = tk.Label(self.edit_frame, text="y:", width=9)
         edit_y.grid(row=5, column=0)
-        edit_y = tk.Entry(edit_frame, textvariable=self.new_ent_y, width=18)
+        edit_y = tk.Entry(self.edit_frame, textvariable=self.new_ent_y, width=18)
+        edit_y.delete(0, len(edit_y.get()))
         edit_y.insert(0, self.new_ent_y.get())
         edit_y.grid(row=5, column=1)
 
-        edit_role = tk.Label(edit_frame, text="Role:", width=9)
+        edit_role = tk.Label(self.edit_frame, text="Role:", width=9)
         edit_role.grid(row=6, column=0)
-        edit_role = tk.Entry(edit_frame, textvariable=self.new_ent_role, width=18)
+        edit_role = tk.Entry(self.edit_frame, textvariable=self.new_ent_role, width=18)
+        edit_role.delete(0, len(edit_role.get()))
         edit_role.insert(0, self.new_ent_role.get())
         edit_role.grid(row=6, column=1)
 
-        edit_ent_button = tk.Button(edit_frame, text="Edit Entity", width=27, command=lambda: self.update_ent(ent.get_index(), edit_name.get(), edit_HP.get(), edit_AC.get(), edit_x.get(), edit_y.get(), edit_role.get(), edit_movespd.get()))
+        edit_ent_button = tk.Button(self.edit_frame, text="Edit Entity", width=27, command=lambda: self.update_ent(ent.get_index(), edit_name.get(), edit_HP.get(), edit_AC.get(), edit_x.get(), edit_y.get(), edit_role.get(), edit_movespd.get()))
         edit_ent_button.grid(row=6, column=0, columnspan=2)
 
     # control methods
