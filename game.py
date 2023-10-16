@@ -213,7 +213,6 @@ class DungeonMap():
                                 command=self.next_turn,
                                 bg=self.background_color, fg=self.text_color)
         next_turn_b.grid(row=0, column=1)
-
         prev_turn_b = tk.Button(self.cmbt_turn_frame, text="Prev Turn",
                                 command=self.prev_turn,
                                 bg=self.background_color, fg=self.text_color)
@@ -224,7 +223,6 @@ class DungeonMap():
                                               bg=self.background_color,
                                               fg=self.text_color)
         attack_controls_frame.grid(row=2, column=0)
-
         attack_button = tk.Button(attack_controls_frame, text="Attack!",
                                   command=self.attack_entity, width=18,
                                   bg=self.background_color, fg=self.text_color)
@@ -235,7 +233,6 @@ class DungeonMap():
                                             bg=self.background_color,
                                             fg=self.text_color)
         move_controls_frame.grid(row=1, column=0)
-
         move_button = tk.Button(move_controls_frame, text="Move",
                                 command=self.move_entity, width=18,
                                 bg=self.background_color, fg=self.text_color)
@@ -251,13 +248,11 @@ class DungeonMap():
             #i.set_active_ent(cur_ent)
             self.att_sel.add_command(label=i.get_att_name(),
                                      command=i.set_current_attack)
-
         self.att_sel.tk_popup(pos[0], pos[1])
 
     def draw_ent_mgmt_button(self):
         ent_mgmt_button_frame = tk.Frame(self.controller)
         ent_mgmt_button_frame.grid(row=9, column=0)
-
         ent_mgmt_button = tk.Button(ent_mgmt_button_frame,
                                     text="Manage Entities",
                                     width=18,
@@ -290,6 +285,7 @@ class DungeonMap():
         self.att_frame = tk.Frame(self.edit_frame)
         self.att_frame.grid(row=7, column=0, columnspan=2)
         tk.Label(self.att_frame, text='tester').pack()
+        print(self.control.get_attack_list())
 
     def draw_ent_update(self):
         self.ent_sel_button_frame.grid_remove()

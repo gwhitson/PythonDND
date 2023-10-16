@@ -176,15 +176,17 @@ class control_scheme:
     def remove_entity(self, entity_to_remove: controllable_entity()):
         self.entities -= entity_to_remove
 
-    def ent_list(self):
-        local_list = []
-        for i in self.entities:
-            local_list.append(i.get_id())
-
-        return local_list
-
     def get_ent_by_name(self, name: str):
         for i in self.entities:
             if name == i.get_name():
                 return i
         return None
+
+    def get_attack_list(self) -> list:
+        local_list = []
+        for i in self.entities:
+            for o in i.get_attacks():
+                if (o.get_att_name() not in local_list):
+                    local_list.append(o.get_att_name())
+
+        return local_list
