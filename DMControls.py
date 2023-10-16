@@ -30,7 +30,7 @@ class attack:
         self.active_ent.set_current_attack(self)
         self.active_ent.raise_chose_action_flag()
         self.parent_window.destroy()
-    
+
     def set_parent_window(self, window: tk.Tk):
         self.parent_window = window
 
@@ -47,12 +47,8 @@ class attack:
     def get_att_aoe(self):
         return self.aoe
 
-    def get_tk_button(self, frame: tk.Frame, button_command: str):
-        return (tk.Button(frame, command=button_command, text=self.get_att_name()))
-
     def get_self(self):
         return self
-
 
 
 class controllable_entity:
@@ -65,7 +61,6 @@ class controllable_entity:
         self.role = role
         self.index = index
         self.targetted = targetted
-        self.id = ""
         self.move_speed = -1
         self.attacks = []
         self.current_attack = None
@@ -98,9 +93,6 @@ class controllable_entity:
 
     def set_role(self, new_role):
         self.role = new_role
-
-    def set_id(self):
-        self.id = str(self.get_index()) + ":" + str(self.get_name())
 
     def set_move_speed(self, new_speed: int):
         self.move_speed = new_speed
@@ -148,9 +140,6 @@ class controllable_entity:
     def get_targetted(self):
         return self.targetted
 
-    def get_id(self):
-        return self.id
-
     def get_move_speed(self):
         return self.move_speed
 
@@ -180,7 +169,6 @@ class control_scheme:
     def update_ents(self):
         for i in range(len(self.entities)):
             self.entities[i].set_index(i)
-            self.entities[i].set_id()
 
     def add_entity(self, entity_to_add: controllable_entity()):
         self.entities.append(entity_to_add)

@@ -29,6 +29,7 @@ class DungeonMap():
         # self.img = None
         self.ent_select = None
         self.edit_frame = None
+        self.att_frame = None
         self.ent_sel_button_frame = None
         self.sc_frame = tk.LabelFrame(self.controller, text="")
         self.selected_ent = tk.StringVar()
@@ -247,7 +248,7 @@ class DungeonMap():
                                        cur_ent.get_grid_y())
         for i in cur_ent.get_attacks():
             i.set_parent_window(self.att_sel)
-            i.set_active_ent(cur_ent)
+            #i.set_active_ent(cur_ent)
             self.att_sel.add_command(label=i.get_att_name(),
                                      command=i.set_current_attack)
 
@@ -274,7 +275,6 @@ class DungeonMap():
         self.ent_select = ttk.Combobox(self.ent_sel_button_frame, width=27)
         self.ent_select['values'] = values_list
         self.ent_select.current(0)
-        # print(self.ent_select.get())
         self.ent_select.grid(row=0, column=0, columnspan=2)
 
         new_ent_button = tk.Button(self.ent_sel_button_frame, text="New Entity", command=self.add_ent, width=13)
@@ -285,6 +285,11 @@ class DungeonMap():
 
         self.ent_sel_button_frame.grid(row=0, column=0)
         self.ent_mgmt.mainloop()
+
+    def draw_attack_mgmt(self):
+        self.att_frame = tk.Frame(self.edit_frame)
+        self.att_frame.grid(row=7, column=0, columnspan=2)
+        tk.Label(self.att_frame, text='tester').pack()
 
     def draw_ent_update(self):
         self.ent_sel_button_frame.grid_remove()
@@ -349,8 +354,11 @@ class DungeonMap():
         edit_role.insert(0, self.new_ent_role.get())
         edit_role.grid(row=6, column=1)
 
+        edit_attacks = tk.Button(self.edit_frame, text="Change Attacks", width=27, command= self.draw_attack_mgmt)
+        edit_attacks.grid(row=8, column=0, columnspan=2)
+
         edit_ent_button = tk.Button(self.edit_frame, text="Edit Entity", width=27, command=lambda: self.update_ent(ent.get_index(), edit_name.get(), edit_HP.get(), edit_AC.get(), edit_x.get(), edit_y.get(), edit_role.get(), edit_movespd.get()))
-        edit_ent_button.grid(row=6, column=0, columnspan=2)
+        edit_ent_button.grid(row=9, column=0, columnspan=2)
 
     # control methods
     def attack_entity(self, event=None):
