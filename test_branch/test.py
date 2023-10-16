@@ -82,6 +82,7 @@ class DungeonMap():
 
     # main render functions
     def mainloop(self):
+        self.test()
         self.set_color_mode('gray', 'white')
         self.draw_start_combat_button()
         self.draw_turn_buttons()
@@ -105,7 +106,7 @@ class DungeonMap():
                                  (self.get_screen_size())[1])
         self.update_players()
 
-        # display methods
+    # display methods
     def update_players(self):
         l_font = ('sans serif', int(self.square_size / 4), "bold")
 
@@ -239,13 +240,15 @@ class DungeonMap():
         move_button.grid()
 
     def draw_attack_select_window(self, cur_ent: dm.controllable_entity):
+        print("att_sel")
+        print(cur_ent.get_attacks())
         self.att_sel = tk.Menu(tearoff=0,
                                bg=self.background_color, fg=self.text_color)
         pos = self.determine_pixel_pos(cur_ent.get_grid_x(),
-                                       cur_ent.get_grid_y())
+                                       cur_ent.get_grid_y() + 1)
         for i in cur_ent.get_attacks():
             i.set_parent_window(self.att_sel)
-            #i.set_active_ent(cur_ent)
+            i.set_active_ent(cur_ent)
             self.att_sel.add_command(label=i.get_att_name(),
                                      command=i.set_current_attack)
         self.att_sel.tk_popup(pos[0], pos[1])
@@ -366,6 +369,7 @@ class DungeonMap():
             self.continue_attack()
         else:
             None
+            print("fail in attack entity")
 
     def continue_attack(self, event=None):
         try:
@@ -376,6 +380,7 @@ class DungeonMap():
             self.raise_draw_target_flag()
         except AttributeError:
             None
+            print("fail in continue attack")
 
     def move_entity(self, event=None):
         self.clear_status()
@@ -585,6 +590,18 @@ class DungeonMap():
         self.controller.configure(background=background)
         self.map.configure(background=background)
 
+    def test(self):
+        att = dm.attack(name="hand crossbow", att_range=40, aoe=0, damage="1d8")
+        self.control.add_attack(att)
+        att1 = dm.attack(name="slash", att_range=5, aoe=0, damage="1d8")
+        self.control.add_attack(att1)
+        for i in self.control.entities:
+            i.add_attack(self.control.get_attack_by_name("hand crossbow"))
+            i.add_attack(self.control.get_attack_by_name("slash"))
+        self.control.print_attacks()
+        print(self.control.entities[0].get_attacks())
+        print("test ran")
+
 
 #### test code
 player1 = dm.controllable_entity(name="player1", HP=5, AC=8, grid_x=1, grid_y=9, role="player")
@@ -603,13 +620,6 @@ for o in ents:
 
 
 game = dm.control_scheme(ents, 50)
-
-att = dm.attack(name="slash", att_range=10, aoe=0, damage="1d8")
-game.add_attack(att)
-att = dm.attack(name="fireball", att_range=20, aoe=5, damage="5d8")
-game.add_attack(att)
-att = dm.attack(name="hand crossbow", att_range=40, aoe=0, damage="1d8")
-game.add_attack(att)
 
 test = DungeonMap(game)
 test.update_gamescreen()

@@ -195,8 +195,7 @@ class control_scheme:
         for i in self.get_attacks():
             if name == i.get_att_name():
                 return i
-            else:
-                return None
+        return None
 
     def print_attacks(self):
         for i in self.get_attacks():
