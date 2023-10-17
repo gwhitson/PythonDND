@@ -26,6 +26,18 @@ class attack:
     def set_active_ent(self, new_ent):
         self.active_ent = new_ent
 
+    def add_attack_on_active_ent(self):
+        try:
+            self.active_ent.add_attack(self)
+        except AttributeError:
+            None
+
+    def remove_attack_on_active_ent(self):
+        try:
+            self.active_ent.remove_attack(self)
+        except AttributeError:
+            None
+
     def set_current_attack(self):
         self.active_ent.set_current_attack(self)
         self.active_ent.raise_chose_action_flag()
@@ -102,6 +114,9 @@ class controllable_entity:
 
     def add_attack(self, new_attack: attack):
         self.attacks.append(new_attack)
+
+    def remove_attack(self, attack: attack):
+        self.attacks.remove(attack)
 
     def raise_chose_action_flag(self):
         self.fl_has_chosen_action = True

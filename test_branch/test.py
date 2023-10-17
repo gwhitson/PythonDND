@@ -285,6 +285,9 @@ class DungeonMap():
         self.ent_mgmt.mainloop()
 
     def draw_attack_mgmt(self):
+        ent = self.control.get_ent_by_name(self.ent_select.get())
+        count1 = 0
+        count2 = 0
         self.att_frame = tk.Frame(self.edit_frame)
         self.att_frame.grid(row=7, column=0, columnspan=2)
         have_frame = tk.LabelFrame(self.att_frame, text="Current", width="13")
@@ -293,7 +296,17 @@ class DungeonMap():
         avail_frame.grid(row=0, column=1)
 
         for i in self.control.get_attacks():
-            if i 
+            i.set_active_ent(ent)
+            if i in ent.get_attacks():
+                tk.Button(have_frame, text=i.get_att_name(), command=i.remove_attack_on_active_ent()).grid(row=count1, column=0)
+                count1 += 1
+            else:
+                tk.Button(avail_frame, text=i.get_att_name(), command=i.add_attack_on_active_ent()).grid(row=count2, column=0)
+                count2 += 1
+
+        print("----------------")
+        for i in ent.get_attacks():
+            print(i.get_att_name())
 
     def draw_ent_update(self):
         self.ent_sel_button_frame.grid_remove()
@@ -358,7 +371,7 @@ class DungeonMap():
         edit_role.insert(0, self.new_ent_role.get())
         edit_role.grid(row=6, column=1)
 
-        edit_attacks = tk.Button(self.edit_frame, text="Change Attacks", width=27, command= self.control.print_attacks)
+        edit_attacks = tk.Button(self.edit_frame, text="Change Attacks", width=27, command= self.draw_attack_mgmt)
         edit_attacks.grid(row=8, column=0, columnspan=2)
 
         edit_ent_button = tk.Button(self.edit_frame, text="Edit Entity", width=27, command=lambda: self.update_ent(ent.get_index(), edit_name.get(), edit_HP.get(), edit_AC.get(), edit_x.get(), edit_y.get(), edit_role.get(), edit_movespd.get()))
@@ -599,6 +612,8 @@ class DungeonMap():
         att = dm.attack(name="hand crossbow", att_range=40, aoe=0, damage="1d8")
         self.control.add_attack(att)
         att1 = dm.attack(name="slash", att_range=5, aoe=0, damage="1d8")
+        self.control.add_attack(att1)
+        att1 = dm.attack(name="fireball", att_range=9, aoe=0, damage="1d8")
         self.control.add_attack(att1)
         for i in self.control.entities:
             i.add_attack(self.control.get_attack_by_name("hand crossbow"))
