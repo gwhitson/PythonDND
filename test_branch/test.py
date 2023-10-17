@@ -287,8 +287,10 @@ class DungeonMap():
     def draw_attack_mgmt(self):
         self.att_frame = tk.Frame(self.edit_frame)
         self.att_frame.grid(row=7, column=0, columnspan=2)
-        tk.Label(self.att_frame, text='tester').pack()
-        print(self.control.get_attack_list())
+        have_frame = tk.LabelFrame(self.att_frame, text="Current", width="13")
+        have_frame.grid(row=0, column=0)
+        avail_frame = tk.LabelFrame(self.att_frame, text="Available", width="13")
+        avail_frame.grid(row=0, column=1)
 
     def draw_ent_update(self):
         self.ent_sel_button_frame.grid_remove()
