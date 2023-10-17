@@ -292,6 +292,9 @@ class DungeonMap():
         avail_frame = tk.LabelFrame(self.att_frame, text="Available", width="13")
         avail_frame.grid(row=0, column=1)
 
+        for i in self.control.get_attacks():
+            if i 
+
     def draw_ent_update(self):
         self.ent_sel_button_frame.grid_remove()
         ent = self.control.get_ent_by_name(self.ent_select.get())
