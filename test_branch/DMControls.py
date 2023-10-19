@@ -9,6 +9,7 @@ class attack:
         self.aoe = aoe
         self.damage = damage
         self.active_ent = None
+        self.refresh_func = None
 
     # setter funcs
     def set_att_name(self, new_name=""):
@@ -26,17 +27,26 @@ class attack:
     def set_active_ent(self, new_ent):
         self.active_ent = new_ent
 
+    def window_refresh_func(self, callback: classmethod):
+        self.refresh_func = callback
+
     def add_attack_on_active_ent(self):
         try:
-            self.active_ent.add_attack(self)
+            if (self not in self.active_ent.get_attacks()):
+                self.active_ent.add_attack(self)
+            else:
+                print("ent currently has attack")
         except AttributeError:
             None
+            print("error")
+        self.refresh_func()
 
     def remove_attack_on_active_ent(self):
         try:
             self.active_ent.remove_attack(self)
         except AttributeError:
             None
+        self.refresh_func()
 
     def set_current_attack(self):
         self.active_ent.set_current_attack(self)

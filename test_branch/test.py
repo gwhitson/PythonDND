@@ -285,6 +285,10 @@ class DungeonMap():
         self.ent_mgmt.mainloop()
 
     def draw_attack_mgmt(self):
+        try:
+            self.att_frame.destroy()
+        except (tk._tkinter.TclError, AttributeError):
+            None
         ent = self.control.get_ent_by_name(self.ent_select.get())
         count1 = 0
         count2 = 0
@@ -297,16 +301,26 @@ class DungeonMap():
 
         for i in self.control.get_attacks():
             i.set_active_ent(ent)
+            i.window_refresh_func(self.refresh_attack_mgmt)
             if i in ent.get_attacks():
-                tk.Button(have_frame, text=i.get_att_name(), command=i.remove_attack_on_active_ent()).grid(row=count1, column=0)
+                temp = tk.Button(have_frame, text=i.get_att_name(), command=i.remove_attack_on_active_ent)
+                temp.grid(row=count1, column=0)
                 count1 += 1
             else:
-                tk.Button(avail_frame, text=i.get_att_name(), command=i.add_attack_on_active_ent()).grid(row=count2, column=0)
+                temp = tk.Button(avail_frame, text=i.get_att_name(), command=i.add_attack_on_active_ent)
+                temp.grid(row=count2, column=0)
                 count2 += 1
 
         print("----------------")
         for i in ent.get_attacks():
             print(i.get_att_name())
+
+    def refresh_attack_mgmt(self, event=None):
+        try:
+            self.att_frame.destroy()
+        except (tk._tkinter.TclError, AttributeError):
+            None
+        self.draw_attack_mgmt()
 
     def draw_ent_update(self):
         self.ent_sel_button_frame.grid_remove()
@@ -376,6 +390,11 @@ class DungeonMap():
 
         edit_ent_button = tk.Button(self.edit_frame, text="Edit Entity", width=27, command=lambda: self.update_ent(ent.get_index(), edit_name.get(), edit_HP.get(), edit_AC.get(), edit_x.get(), edit_y.get(), edit_role.get(), edit_movespd.get()))
         edit_ent_button.grid(row=9, column=0, columnspan=2)
+
+        try:
+            self.att_frame.update()
+        except (tk._tkinter.TclError, AttributeError):
+            None
 
     # control methods
     def attack_entity(self, event=None):
