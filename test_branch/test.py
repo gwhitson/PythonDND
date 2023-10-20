@@ -311,10 +311,24 @@ class DungeonMap():
                 temp.grid(row=count2, column=0)
                 count2 += 1
 
+        add_attack_button = tk.Button(self.att_frame, text="Add Attack", width="27", command=self.draw_add_attack)
+        add_attack_button.grid(row=1, column=0, columnspan=2)
         print("----------------")
         for i in ent.get_attacks():
             print(i.get_att_name())
 
+    def draw_add_attack(self):
+        self.att_frame.destroy()
+        new_att_frame = tk.Frame(self.edit_frame)
+        new_att_frame.grid(row=7, column=0, columnspan=2)
+        # name, range, damage, aoe
+        name = tk.Label(new_att_frame, text="name:", width=9)
+        name.grid(row=0, column=0)
+        name = tk.Entry(new_att_frame, width=18)
+        name.grid(row=0, column=1)
+
+        (tk.Button(new_att_frame, text='test', command=lambda:print(name.get()))).grid(row=1)
+        
     def refresh_attack_mgmt(self, event=None):
         try:
             self.att_frame.destroy()
