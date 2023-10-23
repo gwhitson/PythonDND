@@ -5,8 +5,8 @@ class attack:
     def __init__(self, name="", att_range=5, damage="", aoe=5):
         self.parent_window = None
         self.name = name
-        self.att_range = att_range
-        self.aoe = aoe
+        self.att_range = int(att_range)
+        self.aoe = int(aoe)
         self.damage = damage
         self.active_ent = None
         self.refresh_func = None
@@ -16,13 +16,13 @@ class attack:
         self.name = new_name
 
     def set_att_range(self, new_range=5):
-        self.att_range = new_range
+        self.att_range = int(new_range)
 
     def set_att_damage(self, new_damage=""):
         self.damage = new_damage
 
     def set_att_aoe(self, new_aoe=""):
-        self.aoe = new_aoe
+        self.aoe = int(new_aoe)
 
     def set_active_ent(self, new_ent):
         self.active_ent = new_ent
@@ -38,7 +38,7 @@ class attack:
                 print("ent currently has attack")
         except AttributeError:
             None
-            print("error")
+            print("error in add attack on active ent")
         self.refresh_func()
 
     def remove_attack_on_active_ent(self):
