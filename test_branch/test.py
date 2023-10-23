@@ -325,7 +325,7 @@ class DungeonMap():
         (tk.Button(self.new_att_frame, text='Add Attack', width=27,
                    command=lambda:self.add_attack(dm.attack(name=name.get(), att_range=att_range.get(), damage=damage.get(), aoe=aoe.get())),
                    bg=self.background_color, fg=self.text_color)).grid(row=4, columnspan=2)
-        
+
     def refresh_ent_mgmt(self, event=None):
         try:
             self.edit_frame.destroy()
