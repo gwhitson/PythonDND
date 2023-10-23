@@ -101,6 +101,10 @@ To-dos:
 
 - action tracking?                                [ ]
 
-- add attacks to class                            [ ]
+- add attacks to class                            [x]
+    attacks have been added, they now exist on the 'control_scheme' object from the 
+    DMControls.py file. On turns, the attacks have their 'active_entity' property set to
+    the entity from the 'control_scheme' that is chosen to modify or is acting to be used.
+    This cuts down on memory as previously each object had attack objects creatd as well
 
 - more.....
