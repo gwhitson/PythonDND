@@ -281,10 +281,15 @@ class DungeonMap():
                                     fg=self.text_color)
         new_ent_button.grid(row=1, column=0)
 
-        mod_ent_button = tk.Button(self.ent_sel_button_frame, text="Modify Selected", command=self.draw_ent_update, width=13,
+        mod_ent_button = tk.Button(self.ent_sel_button_frame, text="Modify Selected", command=self.draw_ent_update, width=27,
                                     bg=self.background_color,
                                     fg=self.text_color)
-        mod_ent_button.grid(row=1, column=1)
+        mod_ent_button.grid(row=2, column=0, columnspan=2)
+
+        rem_ent_button = tk.Button(self.ent_sel_button_frame, text="Remove Selected", command=self.draw_ent_update, width=13,
+                                    bg=self.background_color,
+                                    fg=self.text_color)
+        rem_ent_button.grid(row=1, column=1)
 
         self.ent_sel_button_frame.grid(row=0, column=0)
         self.ent_mgmt.mainloop()
@@ -688,8 +693,8 @@ class DungeonMap():
                              l_pos[1] - (int((radius / 5) * self.square_size) + shift),
                              l_pos[0] + (int((radius / 5) * self.square_size) + shift),
                              l_pos[1] + (int((radius / 5) * self.square_size) + shift),
-                             width=3,
                              outline=color,
+                             width=3,
                              fill=color,
                              stipple="gray50",
                              tags="range")
