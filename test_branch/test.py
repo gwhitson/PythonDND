@@ -286,7 +286,7 @@ class DungeonMap():
                                     fg=self.text_color)
         mod_ent_button.grid(row=2, column=0, columnspan=2)
 
-        rem_ent_button = tk.Button(self.ent_sel_button_frame, text="Remove Selected", command=self.draw_ent_update, width=13,
+        rem_ent_button = tk.Button(self.ent_sel_button_frame, text="Remove Selected", command=self.rem_selected_ent, width=13,
                                     bg=self.background_color,
                                     fg=self.text_color)
         rem_ent_button.grid(row=1, column=1)
@@ -615,8 +615,15 @@ class DungeonMap():
         self.ent_select.current(len(self.ent_select['values']) - 1)
         self.draw_ent_update()
 
+    def rem_selected_ent(self):
+        ent_ind = self.ent_select.current()
+        print(self.control.entities[ent_ind].get_name())
+        self.control.entities.remove(self.control.entities[ent_ind])
+        self.ent_mgmt.destroy()
+        self.update_gamescreen()
+
     def update_ent(self, index: int, name: str, HP: int, AC: int, x: int, y: int, role: str, movespd: int):
-        ent_ind = self.control.get_ent_by_name(self.ent_select.get()).get_index()
+        #ent_ind = self.control.get_ent_by_name(self.ent_select.get()).get_index()
         # print(str(ent_ind))
         self.control.entities[index].set_name(str(name))
         self.control.entities[index].set_HP(int(HP))
