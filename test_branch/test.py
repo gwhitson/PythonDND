@@ -474,10 +474,6 @@ class DungeonMap():
                                     bg=self.background_color,
                                     fg=self.text_color)
         add_attack_button.grid(row=1, column=0, columnspan=2)
-       # edit_attacks = tk.Button(self.edit_frame, text="Change Attacks", width=27, command= self.draw_attack_mgmt,
-       #                             bg=self.background_color,
-       #                             fg=self.text_color)
-       # edit_attacks.grid(row=8, column=0, columnspan=2)
 
         edit_ent_button = tk.Button(self.edit_frame, text="Save", width=27, command=lambda: self.update_ent(ent.get_index(), edit_name.get(), edit_HP.get(), edit_AC.get(), edit_x.get(), edit_y.get(), edit_role.get(), edit_movespd.get()),
                                     bg=self.background_color,
@@ -503,7 +499,6 @@ class DungeonMap():
 
     def continue_attack(self, event=None):
         try:
-            # print(self.ent_to_act.current_attack.get_att_name())
             self.show_range(self.ent_to_act,
                             self.ent_to_act.get_curr_atk().get_att_range(),
                             "#db0000")
@@ -521,23 +516,26 @@ class DungeonMap():
     def select_target(self, event=None):
         # print("select target")
         attack = self.ent_to_act.get_curr_atk()
-        if attack.get_att_aoe() == 0:
-            ent = self.ent_in_square([event.x, event.y])
-            if ent is not None:
-                ent.raise_targetted_flag()
+        if (self.pos_in_radius([event.x, event.y], attack.get_att_range(), self.determine_pixel_pos(self.ent_to_act.get_grid_x(), self.ent_to_act.get_grid_y()))):
+            if attack.get_att_aoe() <= 1:
+                ent = self.ent_in_square([event.x, event.y])
+                if ent is not None:
+                    ent.raise_targetted_flag()
+            else:
+                for i in self.list_ents_in_radius(attack.get_att_aoe() / 2, [event.x, event.y]):
+                    i.raise_targetted_flag()
+                self.map.create_oval(event.x - ((self.ent_to_act.get_curr_atk().get_att_aoe() / 5) * self.square_size) / 2,
+                                     event.y - ((self.ent_to_act.get_curr_atk().get_att_aoe() / 5) * self.square_size) / 2,
+                                     event.x + ((self.ent_to_act.get_curr_atk().get_att_aoe() / 5) * self.square_size) / 2,
+                                     event.y + ((self.ent_to_act.get_curr_atk().get_att_aoe() / 5) * self.square_size) / 2, 
+                                     outline='#db0000', width=3,
+                                     fill='#db0000', stipple='gray50',
+                                     tags="aoe")
+            self.draw_target = False
+            self.map.delete("range")
+            self.clear_status()
         else:
-            for i in self.list_ents_in_radius(attack.get_att_aoe(), [event.x, event.y]):
-                i.raise_targetted_flag()
-            self.map.create_oval(event.x - (self.ent_to_act.get_curr_atk().get_att_aoe() * self.square_size),
-                                 event.y - (self.ent_to_act.get_curr_atk().get_att_aoe() * self.square_size),
-                                 event.x + (self.ent_to_act.get_curr_atk().get_att_aoe() * self.square_size),
-                                 event.y + (self.ent_to_act.get_curr_atk().get_att_aoe() * self.square_size),
-                                 outline='#db0000', width=3,
-                                 fill='#db0000', stipple='gray50',
-                                 tags="aoe")
-        self.draw_target = False
-        self.map.delete("range")
-        self.clear_status()
+            print("event out of range")
 
     def start_combat(self):
         # get initiative list
@@ -644,24 +642,21 @@ class DungeonMap():
 
     def ent_in_square(self, pos: list[int, int]):
         l_pos = self.determine_grid_pos(pos[0], pos[1])
-        # print("ent in square--" + str(l_pos[0]) + "," + str(l_pos[1]))
         for i in self.control.entities:
-            # print(i.get_name() + "--" + str(i.get_grid_y()) + "--" + str(i.get_grid_x()))
             if (int(i.get_grid_x()) == l_pos[0]):
                 if (int(i.get_grid_y()) == l_pos[1]):
                     return i
-            # print("    x: " + str(int(i.get_grid_x())==l_pos[0]) + " y: " + str(int(i.get_grid_y())==l_pos[1]))
         return None
 
     # player interactive methods
     def click(self, event):
-        # print("click" + str(event))
         self.map.delete("target")
         cur_ent = self.ent_to_act
         event_grid = self.determine_grid_pos(event.x, event.y)
 
         if (self.fl_move_ent is True):
-            if (self.ent_in_radius(cur_ent, int(cur_ent.get_move_speed() / 5) + 0.5, [event.x, event.y])):
+            ent_pos = self.determine_pixel_pos(cur_ent.get_grid_x(), cur_ent.get_grid_y())
+            if (self.pos_in_radius(ent_pos, cur_ent.get_move_speed(), [event.x, event.y])):
                 new_pos = self.determine_grid_pos(event.x, event.y)
                 cur_ent.set_x(new_pos[0])
                 cur_ent.set_y(new_pos[1])
@@ -674,24 +669,12 @@ class DungeonMap():
             if (self.combat_mode is False):
                 ent = self.ent_in_square([event.x, event.y])
                 if ent is not None:
-                    # print('testertester')
                     self.ent_to_act = ent
                     self.move_entity()
                 else:
                     print("ent is None")
-                # self.ent_to_act = self.ent_in_square([event.x, event.y])
-                # if (self.ent_to_act is not None):
-                #     self.move_entity()
-                #     print("test")
-            #else:
-                #try:
-                    # print(self.ent_in_square([event.x, event.y]).get_name())
-                #except AttributeError:
-                    # print("no ent in click")
 
         self.update_gamescreen()
-        # self.clear_status()
-        # print("move-" + str(self.fl_move_ent) + "  -  attk-" + str(self.fl_draw_target))
 
     def show_range(self, cur_ent: dm.controllable_entity, radius: float, color: str):
         shift = int(self.square_size / 2)
@@ -706,10 +689,9 @@ class DungeonMap():
                              stipple="gray50",
                              tags="range")
         self.update_gamescreen()
-        # print("show range")
 
+    # pos_in_radius
     def ent_in_radius(self, cur_ent: dm.controllable_entity, radius: float, center: list[int, int]) -> bool:
-        # print("--radius")
         if (radius == 0):
             comparison_rad = 10
         else:
@@ -720,11 +702,21 @@ class DungeonMap():
         else:
             return False
 
+    def pos_in_radius(self, pos: list[int, int], radius: float, center: list[int, int]) -> bool:
+        #comparison_rad = ((radius / 5) * self.square_size) + (self.square_size / 2)
+        comparison_rad = (radius / 5) * self.square_size
+        print(comparison_rad)
+        if (((pos[0] - center[0]) ** 2) + ((pos[1] - center[1]) ** 2) <= comparison_rad ** 2):
+            return True
+        else:
+            return False
+
     def list_ents_in_radius(self, radius: float, center: list[int, int]):
         # print("-list")
         entities = []
         for i in self.control.entities:
-            if self.ent_in_radius(i, radius, center) is True:
+            ent_pos = self.determine_pixel_pos(i.get_grid_x(), i.get_grid_y())
+            if (self.pos_in_radius(ent_pos, radius, center) is True):
                 entities.append(i)
         return entities
 
@@ -737,11 +729,12 @@ class DungeonMap():
         self.control.add_attack(att)
         att1 = dm.attack(name="slash", att_range=5, aoe=0, damage="1d8")
         self.control.add_attack(att1)
-        att1 = dm.attack(name="fireball", att_range=9, aoe=0, damage="1d8")
+        att1 = dm.attack(name="fireball", att_range=50, aoe=10, damage="1d8")
         self.control.add_attack(att1)
         for i in self.control.entities:
             i.add_attack(self.control.get_attack_by_name("hand crossbow"))
             i.add_attack(self.control.get_attack_by_name("slash"))
+            i.add_attack(self.control.get_attack_by_name("fireball"))
         self.control.print_attacks()
         print(self.control.entities[0].get_attacks())
         print("test ran")

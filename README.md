@@ -65,7 +65,10 @@ To-dos:
         this should not have been a separate item on the list. Built in with targetting
         logic
 
-- adding and removing entities                    [ ]
+- adding and removing entities                    [x]
+
+    - I realized before the next option I have to decide how to 
+      run the attack and modifyy entity hp
 
 - tracking damage and removing entities when hp=0 [ ]
 
