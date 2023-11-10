@@ -103,4 +103,8 @@ To-dos:
 
 - add attacks to class                            [ ]
 
+- change add entity features                      [ ]
+    make pre set enemies, have add entity able to create a type of enemy
+    and be able to increase/decrease the number currently on the map
+  
 - more.....
