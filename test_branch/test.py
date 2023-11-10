@@ -30,6 +30,7 @@ class DungeonMap():
         self.ent_select = None
         self.edit_frame = None
         self.att_frame = None
+        self.new_att_frame = None
         self.ent_sel_button_frame = None
         self.sc_frame = tk.LabelFrame(self.controller, text="")
         self.selected_ent = tk.StringVar()
@@ -269,44 +270,73 @@ class DungeonMap():
         for i in self.control.entities:
             values_list.append(i.get_name())
         self.ent_mgmt = tk.Tk()
-        self.ent_sel_button_frame = tk.Frame(self.ent_mgmt)
+        self.ent_sel_button_frame = tk.Frame(self.ent_mgmt, bg=self.background_color)
         self.ent_select = ttk.Combobox(self.ent_sel_button_frame, width=27)
         self.ent_select['values'] = values_list
         self.ent_select.current(0)
         self.ent_select.grid(row=0, column=0, columnspan=2)
 
-        new_ent_button = tk.Button(self.ent_sel_button_frame, text="New Entity", command=self.add_ent, width=13)
+        new_ent_button = tk.Button(self.ent_sel_button_frame, text="New Entity", command=self.add_ent, width=13,
+                                    bg=self.background_color,
+                                    fg=self.text_color)
         new_ent_button.grid(row=1, column=0)
 
-        mod_ent_button = tk.Button(self.ent_sel_button_frame, text="Modify Entity", command=self.draw_ent_update, width=13)
-        mod_ent_button.grid(row=1, column=1)
+        mod_ent_button = tk.Button(self.ent_sel_button_frame, text="Modify Selected", command=self.draw_ent_update, width=27,
+                                    bg=self.background_color,
+                                    fg=self.text_color)
+        mod_ent_button.grid(row=2, column=0, columnspan=2)
+
+        rem_ent_button = tk.Button(self.ent_sel_button_frame, text="Remove Selected", command=self.rem_selected_ent, width=13,
+                                    bg=self.background_color,
+                                    fg=self.text_color)
+        rem_ent_button.grid(row=1, column=1)
 
         self.ent_sel_button_frame.grid(row=0, column=0)
         self.ent_mgmt.mainloop()
 
-    def draw_attack_mgmt(self):
-        ent = self.control.get_ent_by_name(self.ent_select.get())
-        count1 = 0
-        count2 = 0
-        self.att_frame = tk.Frame(self.edit_frame)
-        self.att_frame.grid(row=7, column=0, columnspan=2)
-        have_frame = tk.LabelFrame(self.att_frame, text="Current", width="13")
-        have_frame.grid(row=0, column=0)
-        avail_frame = tk.LabelFrame(self.att_frame, text="Available", width="13")
-        avail_frame.grid(row=0, column=1)
+    def draw_add_attack(self):
+        try:
+            self.edit_frame.destroy()
+        except (tk._tkinter.TclError, AttributeError):
+            print("called outside of ent_management")
+        self.new_att_frame = tk.Frame(self.ent_mgmt, bg=self.background_color)
+        self.new_att_frame.grid(row=7, column=0, columnspan=2)
+        # name, range, damage, aoe
+        name = tk.Label(self.new_att_frame, text="name:", width=9,
+                                    bg=self.background_color,
+                                    fg=self.text_color)
+        name.grid(row=0, column=0)
+        name = tk.Entry(self.new_att_frame, width=18)
+        name.grid(row=0, column=1)
+        att_range = tk.Label(self.new_att_frame, text="att_range:", width=9,
+                                    bg=self.background_color,
+                                    fg=self.text_color)
+        att_range.grid(row=1, column=0)
+        att_range = tk.Entry(self.new_att_frame, width=18)
+        att_range.grid(row=1, column=1)
+        damage = tk.Label(self.new_att_frame, text="damage:", width=9,
+                                    bg=self.background_color,
+                                    fg=self.text_color)
+        damage.grid(row=2, column=0)
+        damage = tk.Entry(self.new_att_frame, width=18)
+        damage.grid(row=2, column=1)
+        aoe = tk.Label(self.new_att_frame, text="aoe:", width=9,
+                                    bg=self.background_color,
+                                    fg=self.text_color)
+        aoe.grid(row=3, column=0)
+        aoe = tk.Entry(self.new_att_frame, width=18)
+        aoe.grid(row=3, column=1)
 
-        for i in self.control.get_attacks():
-            i.set_active_ent(ent)
-            if i in ent.get_attacks():
-                tk.Button(have_frame, text=i.get_att_name(), command=i.remove_attack_on_active_ent()).grid(row=count1, column=0)
-                count1 += 1
-            else:
-                tk.Button(avail_frame, text=i.get_att_name(), command=i.add_attack_on_active_ent()).grid(row=count2, column=0)
-                count2 += 1
+        (tk.Button(self.new_att_frame, text='Add Attack', width=27,
+                   command=lambda:self.add_attack(dm.attack(name=name.get(), att_range=att_range.get(), damage=damage.get(), aoe=aoe.get())),
+                   bg=self.background_color, fg=self.text_color)).grid(row=4, columnspan=2)
 
-        print("----------------")
-        for i in ent.get_attacks():
-            print(i.get_att_name())
+    def refresh_ent_mgmt(self, event=None):
+        try:
+            self.edit_frame.destroy()
+        except (tk._tkinter.TclError, AttributeError):
+            None
+        self.draw_ent_update()
 
     def draw_ent_update(self):
         self.ent_sel_button_frame.grid_remove()
@@ -319,63 +349,141 @@ class DungeonMap():
         self.new_ent_role.set(ent.get_role())
         self.new_ent_movespd.set(ent.get_move_speed())
 
-        self.edit_frame = tk.Frame(self.ent_mgmt)
+        self.edit_frame = tk.Frame(self.ent_mgmt,
+                                   bg=self.background_color)
         self.edit_frame.grid(row=1, column=0)
 
-        edit_name = tk.Label(self.edit_frame, text="Name:", width=9)
+        edit_name = tk.Label(self.edit_frame, text="Name:", width=9,
+                                    bg=self.background_color,
+                                    fg=self.text_color)
         edit_name.grid(row=0, column=0)
-        edit_name = tk.Entry(self.edit_frame, textvariable=self.new_ent_name, width=18)
+        edit_name = tk.Entry(self.edit_frame, textvariable=self.new_ent_name, width=18,
+                                    bg=self.background_color,
+                                    fg=self.text_color)
         edit_name.delete(0, len(edit_name.get()))
         edit_name.insert(0, self.ent_select.get())
         edit_name.grid(row=0, column=1)
 
-        edit_HP = tk.Label(self.edit_frame, text="HP:", width=9)
+        edit_HP = tk.Label(self.edit_frame, text="HP:", width=9,
+                                    bg=self.background_color,
+                                    fg=self.text_color)
         edit_HP.grid(row=1, column=0)
-        edit_HP = tk.Entry(self.edit_frame, textvariable=self.new_ent_HP, width=18)
+        edit_HP = tk.Entry(self.edit_frame, textvariable=self.new_ent_HP, width=18,
+                                    bg=self.background_color,
+                                    fg=self.text_color)
         edit_HP.delete(0, len(edit_HP.get()))
         edit_HP.insert(0, self.new_ent_HP.get())
         edit_HP.grid(row=1, column=1)
 
-        edit_movespd = tk.Label(self.edit_frame, text="Move Speed:", width=9)
+        edit_movespd = tk.Label(self.edit_frame, text="Move Speed:", width=9,
+                                    bg=self.background_color,
+                                    fg=self.text_color)
         edit_movespd.grid(row=2, column=0)
-        edit_movespd = tk.Entry(self.edit_frame, textvariable=self.new_ent_movespd, width=18)
+        edit_movespd = tk.Entry(self.edit_frame, textvariable=self.new_ent_movespd, width=18,
+                                    bg=self.background_color,
+                                    fg=self.text_color)
         edit_movespd.delete(0, len(edit_movespd.get()))
         edit_movespd.insert(0, self.new_ent_movespd.get())
         edit_movespd.grid(row=2, column=1)
 
-        edit_AC = tk.Label(self.edit_frame, text="AC:", width=9)
+        edit_AC = tk.Label(self.edit_frame, text="AC:", width=9,
+                                    bg=self.background_color,
+                                    fg=self.text_color)
         edit_AC.grid(row=3, column=0)
-        edit_AC = tk.Entry(self.edit_frame, textvariable=self.new_ent_AC, width=18)
+        edit_AC = tk.Entry(self.edit_frame, textvariable=self.new_ent_AC, width=18,
+                                    bg=self.background_color,
+                                    fg=self.text_color)
         edit_AC.delete(0, len(edit_AC.get()))
         edit_AC.insert(0, self.new_ent_AC.get())
         edit_AC.grid(row=3, column=1)
 
-        edit_x = tk.Label(self.edit_frame, text="x:", width=9)
+        edit_x = tk.Label(self.edit_frame, text="x:", width=9,
+                                    bg=self.background_color,
+                                    fg=self.text_color)
         edit_x.grid(row=4, column=0)
-        edit_x = tk.Entry(self.edit_frame, textvariable=self.new_ent_x, width=18)
+        edit_x = tk.Entry(self.edit_frame, textvariable=self.new_ent_x, width=18,
+                                    bg=self.background_color,
+                                    fg=self.text_color)
         edit_x.delete(0, len(edit_x.get()))
         edit_x.insert(0, self.new_ent_x.get())
         edit_x.grid(row=4, column=1)
 
-        edit_y = tk.Label(self.edit_frame, text="y:", width=9)
+        edit_y = tk.Label(self.edit_frame, text="y:", width=9,
+                                    bg=self.background_color,
+                                    fg=self.text_color)
         edit_y.grid(row=5, column=0)
-        edit_y = tk.Entry(self.edit_frame, textvariable=self.new_ent_y, width=18)
+        edit_y = tk.Entry(self.edit_frame, textvariable=self.new_ent_y, width=18,
+                                    bg=self.background_color,
+                                    fg=self.text_color)
         edit_y.delete(0, len(edit_y.get()))
         edit_y.insert(0, self.new_ent_y.get())
         edit_y.grid(row=5, column=1)
 
-        edit_role = tk.Label(self.edit_frame, text="Role:", width=9)
+        edit_role = tk.Label(self.edit_frame, text="Role:", width=9,
+                                    bg=self.background_color,
+                                    fg=self.text_color)
         edit_role.grid(row=6, column=0)
-        edit_role = tk.Entry(self.edit_frame, textvariable=self.new_ent_role, width=18)
+        edit_role = tk.Entry(self.edit_frame, textvariable=self.new_ent_role, width=18,
+                                    bg=self.background_color,
+                                    fg=self.text_color)
         edit_role.delete(0, len(edit_role.get()))
         edit_role.insert(0, self.new_ent_role.get())
         edit_role.grid(row=6, column=1)
 
-        edit_attacks = tk.Button(self.edit_frame, text="Change Attacks", width=27, command= self.draw_attack_mgmt)
-        edit_attacks.grid(row=8, column=0, columnspan=2)
+        try:
+            self.att_frame.destroy()
+        except (tk._tkinter.TclError, AttributeError):
+            None
+        ent = self.control.get_ent_by_name(self.ent_select.get())
+        count1 = 0
+        count2 = 0
+        self.att_frame = tk.Frame(self.edit_frame, bg=self.background_color)
+        self.att_frame.grid(row=7, column=0, columnspan=2)
+        have_frame = tk.LabelFrame(self.att_frame, text="Current", width="13",
+                                    bg=self.background_color,
+                                    fg=self.text_color)
+        have_frame.grid(row=0, column=0, sticky="nsew")
+        avail_frame = tk.LabelFrame(self.att_frame, text="Available", width="13",
+                                    bg=self.background_color,
+                                    fg=self.text_color)
+        avail_frame.grid(row=0, column=1, sticky="nsew")
 
-        edit_ent_button = tk.Button(self.edit_frame, text="Edit Entity", width=27, command=lambda: self.update_ent(ent.get_index(), edit_name.get(), edit_HP.get(), edit_AC.get(), edit_x.get(), edit_y.get(), edit_role.get(), edit_movespd.get()))
+        for i in self.control.get_attacks():
+            i.set_active_ent(ent)
+            i.window_refresh_func(self.refresh_ent_mgmt)
+            if i in ent.get_attacks():
+                temp = tk.Button(have_frame, text=i.get_att_name(), command=i.remove_attack_on_active_ent,
+                                    bg=self.background_color,
+                                    fg=self.text_color,
+                                    width=13)
+                temp.grid(row=count1, column=0)
+                count1 += 1
+            else:
+                temp = tk.Button(avail_frame, text=i.get_att_name(), command=i.add_attack_on_active_ent,
+                                    bg=self.background_color,
+                                    fg=self.text_color,
+                                    width=13)
+                temp.grid(row=count2, column=0)
+                count2 += 1
+        if (count1 == 0):
+            (tk.Button(have_frame, text="None", bg=self.background_color, fg=self.text_color, width=13)).grid(row=count1, column=0)
+        if (count2 == 0):
+            (tk.Button(avail_frame, text="None", bg=self.background_color, fg=self.text_color, width=13)).grid(row=count2, column=0)
+
+        add_attack_button = tk.Button(self.att_frame, text="Add Attack", width="27", command=self.draw_add_attack,
+                                    bg=self.background_color,
+                                    fg=self.text_color)
+        add_attack_button.grid(row=1, column=0, columnspan=2)
+
+        edit_ent_button = tk.Button(self.edit_frame, text="Save", width=27, command=lambda: self.update_ent(ent.get_index(), edit_name.get(), edit_HP.get(), edit_AC.get(), edit_x.get(), edit_y.get(), edit_role.get(), edit_movespd.get()),
+                                    bg=self.background_color,
+                                    fg=self.text_color)
         edit_ent_button.grid(row=9, column=0, columnspan=2)
+
+        try:
+            self.att_frame.update()
+        except (tk._tkinter.TclError, AttributeError):
+            None
 
     # control methods
     def attack_entity(self, event=None):
@@ -391,7 +499,6 @@ class DungeonMap():
 
     def continue_attack(self, event=None):
         try:
-            # print(self.ent_to_act.current_attack.get_att_name())
             self.show_range(self.ent_to_act,
                             self.ent_to_act.get_curr_atk().get_att_range(),
                             "#db0000")
@@ -409,23 +516,26 @@ class DungeonMap():
     def select_target(self, event=None):
         # print("select target")
         attack = self.ent_to_act.get_curr_atk()
-        if attack.get_att_aoe() == 0:
-            ent = self.ent_in_square([event.x, event.y])
-            if ent is not None:
-                ent.raise_targetted_flag()
+        if (self.pos_in_radius([event.x, event.y], attack.get_att_range(), self.determine_pixel_pos(self.ent_to_act.get_grid_x(), self.ent_to_act.get_grid_y()))):
+            if attack.get_att_aoe() <= 1:
+                ent = self.ent_in_square([event.x, event.y])
+                if ent is not None:
+                    ent.raise_targetted_flag()
+            else:
+                for i in self.list_ents_in_radius(attack.get_att_aoe() / 2, [event.x, event.y]):
+                    i.raise_targetted_flag()
+                self.map.create_oval(event.x - ((self.ent_to_act.get_curr_atk().get_att_aoe() / 5) * self.square_size) / 2,
+                                     event.y - ((self.ent_to_act.get_curr_atk().get_att_aoe() / 5) * self.square_size) / 2,
+                                     event.x + ((self.ent_to_act.get_curr_atk().get_att_aoe() / 5) * self.square_size) / 2,
+                                     event.y + ((self.ent_to_act.get_curr_atk().get_att_aoe() / 5) * self.square_size) / 2, 
+                                     outline='#db0000', width=3,
+                                     fill='#db0000', stipple='gray50',
+                                     tags="aoe")
+            self.draw_target = False
+            self.map.delete("range")
+            self.clear_status()
         else:
-            for i in self.list_ents_in_radius(attack.get_att_aoe(), [event.x, event.y]):
-                i.raise_targetted_flag()
-            self.map.create_oval(event.x - (self.ent_to_act.get_curr_atk().get_att_aoe() * self.square_size),
-                                 event.y - (self.ent_to_act.get_curr_atk().get_att_aoe() * self.square_size),
-                                 event.x + (self.ent_to_act.get_curr_atk().get_att_aoe() * self.square_size),
-                                 event.y + (self.ent_to_act.get_curr_atk().get_att_aoe() * self.square_size),
-                                 outline='#db0000', width=3,
-                                 fill='#db0000', stipple='gray50',
-                                 tags="aoe")
-        self.draw_target = False
-        self.map.delete("range")
-        self.clear_status()
+            print("event out of range")
 
     def start_combat(self):
         # get initiative list
@@ -490,6 +600,11 @@ class DungeonMap():
         for i in self.control.entities:
             i.lower_targetted_flag()
 
+    def add_attack(self, attack: dm.attack):
+        self.control.add_attack(attack)
+        self.refresh_ent_mgmt()
+        self.new_att_frame.destroy()
+
     def add_ent(self):
         new_ent = dm.controllable_entity(name="new entity")
         new_ent.set_index(len(self.control.entities))
@@ -498,8 +613,15 @@ class DungeonMap():
         self.ent_select.current(len(self.ent_select['values']) - 1)
         self.draw_ent_update()
 
+    def rem_selected_ent(self):
+        ent_ind = self.ent_select.current()
+        print(self.control.entities[ent_ind].get_name())
+        self.control.entities.remove(self.control.entities[ent_ind])
+        self.ent_mgmt.destroy()
+        self.update_gamescreen()
+
     def update_ent(self, index: int, name: str, HP: int, AC: int, x: int, y: int, role: str, movespd: int):
-        ent_ind = self.control.get_ent_by_name(self.ent_select.get()).get_index()
+        #ent_ind = self.control.get_ent_by_name(self.ent_select.get()).get_index()
         # print(str(ent_ind))
         self.control.entities[index].set_name(str(name))
         self.control.entities[index].set_HP(int(HP))
@@ -520,24 +642,21 @@ class DungeonMap():
 
     def ent_in_square(self, pos: list[int, int]):
         l_pos = self.determine_grid_pos(pos[0], pos[1])
-        # print("ent in square--" + str(l_pos[0]) + "," + str(l_pos[1]))
         for i in self.control.entities:
-            # print(i.get_name() + "--" + str(i.get_grid_y()) + "--" + str(i.get_grid_x()))
             if (int(i.get_grid_x()) == l_pos[0]):
                 if (int(i.get_grid_y()) == l_pos[1]):
                     return i
-            # print("    x: " + str(int(i.get_grid_x())==l_pos[0]) + " y: " + str(int(i.get_grid_y())==l_pos[1]))
         return None
 
     # player interactive methods
     def click(self, event):
-        # print("click" + str(event))
         self.map.delete("target")
         cur_ent = self.ent_to_act
         event_grid = self.determine_grid_pos(event.x, event.y)
 
         if (self.fl_move_ent is True):
-            if (self.ent_in_radius(cur_ent, int(cur_ent.get_move_speed() / 5) + 0.5, [event.x, event.y])):
+            ent_pos = self.determine_pixel_pos(cur_ent.get_grid_x(), cur_ent.get_grid_y())
+            if (self.pos_in_radius(ent_pos, cur_ent.get_move_speed(), [event.x, event.y])):
                 new_pos = self.determine_grid_pos(event.x, event.y)
                 cur_ent.set_x(new_pos[0])
                 cur_ent.set_y(new_pos[1])
@@ -550,24 +669,12 @@ class DungeonMap():
             if (self.combat_mode is False):
                 ent = self.ent_in_square([event.x, event.y])
                 if ent is not None:
-                    # print('testertester')
                     self.ent_to_act = ent
                     self.move_entity()
                 else:
                     print("ent is None")
-                # self.ent_to_act = self.ent_in_square([event.x, event.y])
-                # if (self.ent_to_act is not None):
-                #     self.move_entity()
-                #     print("test")
-            #else:
-                #try:
-                    # print(self.ent_in_square([event.x, event.y]).get_name())
-                #except AttributeError:
-                    # print("no ent in click")
 
         self.update_gamescreen()
-        # self.clear_status()
-        # print("move-" + str(self.fl_move_ent) + "  -  attk-" + str(self.fl_draw_target))
 
     def show_range(self, cur_ent: dm.controllable_entity, radius: float, color: str):
         shift = int(self.square_size / 2)
@@ -576,16 +683,15 @@ class DungeonMap():
                              l_pos[1] - (int((radius / 5) * self.square_size) + shift),
                              l_pos[0] + (int((radius / 5) * self.square_size) + shift),
                              l_pos[1] + (int((radius / 5) * self.square_size) + shift),
-                             width=3,
                              outline=color,
+                             width=3,
                              fill=color,
                              stipple="gray50",
                              tags="range")
         self.update_gamescreen()
-        # print("show range")
 
+    # pos_in_radius
     def ent_in_radius(self, cur_ent: dm.controllable_entity, radius: float, center: list[int, int]) -> bool:
-        # print("--radius")
         if (radius == 0):
             comparison_rad = 10
         else:
@@ -596,11 +702,21 @@ class DungeonMap():
         else:
             return False
 
+    def pos_in_radius(self, pos: list[int, int], radius: float, center: list[int, int]) -> bool:
+        #comparison_rad = ((radius / 5) * self.square_size) + (self.square_size / 2)
+        comparison_rad = (radius / 5) * self.square_size
+        print(comparison_rad)
+        if (((pos[0] - center[0]) ** 2) + ((pos[1] - center[1]) ** 2) <= comparison_rad ** 2):
+            return True
+        else:
+            return False
+
     def list_ents_in_radius(self, radius: float, center: list[int, int]):
         # print("-list")
         entities = []
         for i in self.control.entities:
-            if self.ent_in_radius(i, radius, center) is True:
+            ent_pos = self.determine_pixel_pos(i.get_grid_x(), i.get_grid_y())
+            if (self.pos_in_radius(ent_pos, radius, center) is True):
                 entities.append(i)
         return entities
 
@@ -613,11 +729,12 @@ class DungeonMap():
         self.control.add_attack(att)
         att1 = dm.attack(name="slash", att_range=5, aoe=0, damage="1d8")
         self.control.add_attack(att1)
-        att1 = dm.attack(name="fireball", att_range=9, aoe=0, damage="1d8")
+        att1 = dm.attack(name="fireball", att_range=50, aoe=10, damage="1d8")
         self.control.add_attack(att1)
         for i in self.control.entities:
             i.add_attack(self.control.get_attack_by_name("hand crossbow"))
             i.add_attack(self.control.get_attack_by_name("slash"))
+            i.add_attack(self.control.get_attack_by_name("fireball"))
         self.control.print_attacks()
         print(self.control.entities[0].get_attacks())
         print("test ran")

@@ -65,7 +65,10 @@ To-dos:
         this should not have been a separate item on the list. Built in with targetting
         logic
 
-- adding and removing entities                    [ ]
+- adding and removing entities                    [x]
+
+    - I realized before the next option I have to decide how to 
+      run the attack and modifyy entity hp
 
 - tracking damage and removing entities when hp=0 [ ]
 
@@ -101,7 +104,11 @@ To-dos:
 
 - action tracking?                                [ ]
 
-- add attacks to class                            [ ]
+- add attacks to class                            [x]
+    attacks have been added, they now exist on the 'control_scheme' object from the 
+    DMControls.py file. On turns, the attacks have their 'active_entity' property set to
+    the entity from the 'control_scheme' that is chosen to modify or is acting to be used.
+    This cuts down on memory as previously each object had attack objects creatd as well
 
 - change add entity features                      [ ]
     make pre set enemies, have add entity able to create a type of enemy
