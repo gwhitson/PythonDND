@@ -110,4 +110,8 @@ To-dos:
     the entity from the 'control_scheme' that is chosen to modify or is acting to be used.
     This cuts down on memory as previously each object had attack objects creatd as well
 
+- change add entity features                      [ ]
+    make pre set enemies, have add entity able to create a type of enemy
+    and be able to increase/decrease the number currently on the map
+  
 - more.....
