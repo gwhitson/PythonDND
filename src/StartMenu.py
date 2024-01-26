@@ -20,7 +20,7 @@ class StartMenu:
         tk.Button(self.frame, text="new", command=self.__newGame, width=18).grid(row=1, column=0)
         tk.Button(self.frame, text="load", command=self.__loadGame, width=18).grid(row=2, column=0)
         tk.Button(self.frame, text="settings", command=self.__editSettings, width=18).grid(row=3, column=0)
-        tk.Button(self.frame, text="quit", command=self.window.destroy, width=18).grid(row=4, column=0)
+        tk.Button(self.frame, text="quit", command=self.__quitMenu, width=18).grid(row=4, column=0)
 
         self.window.mainloop()
         return self.saveFile
@@ -72,3 +72,6 @@ class StartMenu:
         for widg in self.frame.winfo_children():
             widg.destroy()
         self.startMenu()
+
+    def __quitMenu(self):
+        exit(0)
