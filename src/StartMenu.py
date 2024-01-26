@@ -37,20 +37,20 @@ class StartMenu:
     def __createGame(self):
         self.saveFile = (os.getcwd() + "/res/saves/" + self.saveName.get() + ".db")
 
-        #if self.saveFile[-6:] == ".db.db":
-        #    self.saveFile = self.saveFile[0:-3]
-        #if os.path.isfile(self.saveFile):
-        #    exit(3)
+        if self.saveFile[-6:] == ".db.db":
+            self.saveFile = self.saveFile[0:-3]
+        if os.path.isfile(self.saveFile):
+            exit(3)
 
-        #conn = sqlite3.connect(self.saveFile)
-        #cur = conn.cursor()
+        conn = sqlite3.connect(self.saveFile)
+        cur = conn.cursor()
 
-        #with open("res/saves/default_db.txt", "r") as f:
-        #    defaultDBSchema = f.readlines()
-        #for i in defaultDBSchema:
-        #    cur.execute(i.replace("\n", ""))
+        with open("res/saves/default_db.txt", "r") as f:
+            defaultDBSchema = f.readlines()
+        for i in defaultDBSchema:
+            cur.execute(i.replace("\n", ""))
 
-        #conn.close()
+        conn.close()
 
         self.__startGame()
 
