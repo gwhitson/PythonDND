@@ -6,26 +6,25 @@ import tkinter as tk
 class PythonDND:
     def __init__(self):
         menu = StartMenu.StartMenu()
-        save = menu.startMenu()
-        #self.conn = sqlite3.connect(save)
+        self.save = menu.startMenu()
+        #self.conn = sqlite3.connect(self.save)
         #self.cur = self.conn.cursor()
+
         self.window = tk.Tk()
-        tk.Label(self.window, text=save).pack()
-        if (os.name == "nt"):
-            self.os = "win"
-            self.res_location = os.getcwd() + "\\resources"
-            self.window.state('zoomed')
-        else:
-            self.os = "lin"
-            self.res_location = os.getcwd() + "/resources"
-            self.window.attributes("-zoomed", True)
+        self.map = tk.Frame(self.window)
+        self.control = tk.Frame(self.window)
+        self.map.grid(row=0, column=0)
+        self.control.grid(row=0, column=1)
+        self.window.attributes("-fullscreen", True)
+
         self.window.mainloop()
+        self.renderFrame()
 
     def renderMapFrame(self):
-        print('WIP renderMapFrame')
+        tk.Label(self.map, text=self.save).pack()
 
     def renderControlFrame(self):
-        print('WIP renderControlFrame')
+        tk.Button(self.control, text="Quit", command=self.window.destroy).pack()
 
     def renderFrame(self):
         self.renderMapFrame()
