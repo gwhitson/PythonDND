@@ -17,8 +17,8 @@ class PythonDND:
         self.control.grid(row=0, column=1)
         self.window.attributes("-fullscreen", True)
 
-        self.window.mainloop()
         self.renderFrame()
+        self.window.mainloop()
 
     def renderMapFrame(self):
         tk.Label(self.map, text=self.save).pack()
