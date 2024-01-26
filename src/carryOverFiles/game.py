@@ -15,14 +15,10 @@ class DungeonMap():
                                         width=200,
                                         height=self.get_screen_size()[1])
         self.controller.pack(side=tk.RIGHT, fill=tk.BOTH)
-        if (os.name == "nt"):
-            self.os = "win"
-            self.res_location = os.getcwd() + "\\resources"
-            self.window.state('zoomed')
-        else:
-            self.os = "lin"
-            self.res_location = os.getcwd() + "/resources"
-            self.window.attributes("-zoomed", True)
+        #if (os.name == "nt"):
+        #    self.window.state('zoomed')
+        #else:
+        self.window.attributes("-zoomed", True)
 
         # GUI items
         # self.sprite = None
