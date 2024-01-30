@@ -1,4 +1,5 @@
-CREATE TABLE entities (id INTEGER PRIMARY KEY ASC, name TEXT, role TEXT, hp INTEGER, ac INTEGER, grid_x INTERGER, grid_y INTERGER);
+CREATE TABLE entities (id INTEGER PRIMARY KEY ASC, name TEXT, role TEXT, hp INTEGER, ac INTEGER, grid_x INTERGER not null, grid_y INTERGER not null);
 CREATE TABLE attacks (id INTEGER PRIMARY KEY ASC, name TEXT, damage TEXT, range INTEGER, poss_player INTEGER, FOREIGN KEY (poss_player) REFERENCES 'entities'(id));
-CREATE TABLE game (player_id INTEGER, grid_x INTEGER, grid_y INTEGER, initiative INTEGER, targetted INTEGER, current_atk INTEGER, FOREIGN KEY (player_id) REFERENCES entities(id), FOREIGN KEY (current_atk) REFERENCES attacks(id));
+/*CREATE TABLE OLDgame (player_id INTEGER, grid_x INTEGER, grid_y INTEGER, initiative INTEGER, targetted INTEGER, current_atk INTEGER, FOREIGN KEY (player_id) REFERENCES entities(id), FOREIGN KEY (current_atk) REFERENCES attacks(id));*/
+CREATE TABLE game (initiative TEXT, last_ent INTEGER not null, curr_ent INTEGER not null, next_ent INTEGER not null, mode TEXT not null, targetted TEXT, map_size INTEGER not null, FOREIGN KEY (last_ent) REFERENCES entities(id), FOREIGN KEY (curr_ent) REFERENCES entities(id), FOREIGN KEY (last_ent) REFERENCES entities(id));
 PRAGMA foreign_keys=on;
