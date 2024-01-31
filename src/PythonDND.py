@@ -112,13 +112,13 @@ class PythonDND:
         tk.Label(self.add, text="AC:").grid(row=3, column=0)
         self.ac = tk.Entry(self.add, textvariable=acvar)
         self.ac.grid(row=3, column=1)
-        tk.Label(self.add, text="X:").grid(row=3, column=0)
-        self.x = tk.Entry(self.add, textvariable=xvar)
-        self.x.grid(row=3, column=1)
-        tk.Label(self.add, text="Y:").grid(row=3, column=0)
-        self.y = tk.Entry(self.add, textvariable=yvar)
-        self.y.grid(row=3, column=1)
-        tk.Button(self.add, text="Submit", command=self.addEntToDB).grid(row=4, column=0, columnspan=2)
+        tk.Label(self.add, text="X:").grid(row=4, column=0)
+        self.grid_x = tk.Entry(self.add, textvariable=xvar)
+        self.grid_x.grid(row=4, column=1)
+        tk.Label(self.add, text="Y:").grid(row=5, column=0)
+        self.grid_y = tk.Entry(self.add, textvariable=yvar)
+        self.grid_y.grid(row=5, column=1)
+        tk.Button(self.add, text="Submit", command=self.addEntToDB).grid(row=6, column=0, columnspan=2)
 
     def addEntToDB(self):
         self.cur.execute("INSERT INTO entities (name, role, hp, ac, grid_x, grid_y) VALUES (?,?,?,?,?,?);", [self.name.get(), self.role.get(), self.hp.get(), self.ac.get(), self.grid_x.get(), self.grid_y.get()])
@@ -130,3 +130,4 @@ class PythonDND:
         self.ac = None
         self.grid_x = None
         self.grid_y = None
+        self.renderFrame()
