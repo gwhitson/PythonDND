@@ -1,5 +1,4 @@
 import StartMenu
-import EntityMenu
 import sqlite3
 import tkinter as tk
 
@@ -11,7 +10,6 @@ class PythonDND:
             exit(3)
         self.conn = sqlite3.connect(self.save)
         self.cur = self.conn.cursor()
-        self.square_size = 40
         self.entities = None
 
         self.name = None
@@ -24,17 +22,37 @@ class PythonDND:
         self.window = tk.Tk()
         self.window.title("Dungeons and Dragons")
         self.window.attributes("-fullscreen", True)
-        self.map = tk.Canvas(self.window,
-                             width=(self.window.winfo_screenwidth() - 200),
-                             height=(self.window.winfo_screenheight()),
-                             bg='white')
+
+        self.gameSettings = self.cur.execute("select [map_size],[mode] from game;").fetchone()
+        print(self.gameSettings[0])
+        self.mapDimension = [40,40] # will need to change the DB interaction on this to have map_size take in a string of format XXxYY or X,Y etc.etc.
+        self.square_size = int((self.window.winfo_screenwidth() - 200) / self.mapDimension[0])
+        self.mode = self.gameSettings[1]
+
+        self.mapFrame = tk.Frame(self.window,
+                                 width=(self.mapDimension[0] * self.square_size),
+                                 height=(self.mapDimension[1] * self.square_size))
+        self.map = tk.Canvas(self.mapFrame,
+                             width=(self.mapDimension[0] * self.square_size),
+                             height=(self.mapDimension[1] * self.square_size),
+                             bg='white',
+                             scrollregion=(0,0,self.mapDimension[0] * self.square_size,self.mapDimension[1] * self.square_size))
+        vbar = tk.Scrollbar(self.mapFrame, orient=tk.VERTICAL)
         self.control = tk.Frame(self.window,
                                 width=200,
                                 height=self.window.winfo_screenheight())
-        self.map.pack(side=tk.LEFT, fill=tk.BOTH)
+
+        vbar.config(command=self.map.yview)
+        self.map.config(yscrollcommand=vbar.set)
         self.map.bind('<Button-1>', self.click, add="+")
-        self.map.update()
+
+        vbar.pack(side=tk.RIGHT, fill=tk.Y)
+        self.map.pack(side=tk.LEFT, fill=tk.BOTH)
+        self.mapFrame.pack(side=tk.LEFT, fill=tk.BOTH)
         self.control.pack(side=tk.RIGHT, fill=tk.BOTH)
+
+        self.map.update()
+        self.mapFrame.update()
         self.control.update()
 
         self.renderFrame()
@@ -42,8 +60,8 @@ class PythonDND:
 
     def renderMapFrame(self):
         outline_width = self.square_size / 12
-        h = self.map.winfo_height()
-        w = self.map.winfo_width()
+        w = self.mapDimension[0] * self.square_size
+        h = self.mapDimension[1] * self.square_size
         # horizontal lines
         for i in range(0, h, self.square_size):
             self.map.create_line(0, i, w, i, fill="black")
@@ -75,17 +93,30 @@ class PythonDND:
     def renderControlFrame(self):
         tk.Button(self.control, text="Quit", command=self.window.destroy).pack()
         tk.Button(self.control, text="Add Entity", command=self.addEntity).pack()
+        if self.gameSettings[1] == "noncombat":
+            tk.Button(self.control, text="Start Combat", command = self.startCombat).pack()
+        else:
+            tk.Button(self.control, text="End Combat", command = self.endCombat).pack()
 
     def renderFrame(self):
-        self.renderMapFrame()
+        self.gameSettings = self.cur.execute("select [map_size],[mode] from game;").fetchone()
+        for widg in self.control.winfo_children():
+            widg.destroy()
         self.renderControlFrame()
+        self.renderMapFrame()
 
     def click(self, event):
-        click_x = int(event.x / self.square_size) + 1
-        click_y = int(event.y / self.square_size) + 1
+        click_x = int((self.map.canvasx(event.x)) / self.square_size) + 1
+        click_y = int((self.map.canvasy(event.y)) / self.square_size) + 1
         print(str(click_x) + " - " + str(click_y))
         clickedEnt = self.cur.execute("select * from entities where [grid_x] = ? and [grid_y] = ?", [click_x, click_y]).fetchall()
-        print(clickedEnt)
+        if clickedEnt != []:
+            print(clickedEnt)
+            self.cur.execute("update game set [targetted] = ? where 1 = 1;", [clickedEnt[0][1]])
+            self.conn.commit()
+        else:
+            self.cur.execute("update game set [targetted] = '' where 1 = 1;")
+            self.conn.commit()
         self.renderFrame()
 
     def test(self):
@@ -130,4 +161,15 @@ class PythonDND:
         self.ac = None
         self.grid_x = None
         self.grid_y = None
+        self.renderFrame()
+
+    def startCombat(self):
+        # self.chooseinitiative
+        self.cur.execute("update game set [mode] = 'combat' where 1=1;")
+        self.conn.commit()
+        self.renderFrame()
+
+    def endCombat(self):
+        self.cur.execute("update game set [mode] = 'noncombat' where 1=1;")
+        self.conn.commit()
         self.renderFrame()

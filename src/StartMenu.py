@@ -50,6 +50,9 @@ class StartMenu:
         for i in defaultDBSchema:
             cur.execute(i.replace("\n", ""))
 
+        #cur.execute("insert into game ([map_size], [mode]) values (40, 'non-combat');")
+
+        conn.commit()
         conn.close()
 
         self.__startGame()
