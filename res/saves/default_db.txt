@@ -1,6 +1,6 @@
-CREATE TABLE entities (id INTEGER PRIMARY KEY ASC, name TEXT, role TEXT, hp INTEGER, ac INTEGER, grid_x INTEGER not null, grid_y INTEGER not null) STRICT;
+CREATE TABLE entities (id INTEGER PRIMARY KEY ASC, name TEXT, role TEXT, hp INTEGER, ac INTEGER, move_spd INTEGER not null, grid_x INTEGER not null, grid_y INTEGER not null, sprite TEXT) STRICT;
 CREATE TABLE attacks (id INTEGER PRIMARY KEY ASC, name TEXT, damage TEXT, range INTEGER, poss_player INTEGER, FOREIGN KEY (poss_player) REFERENCES 'entities'(id)) STRICT;
 /*CREATE TABLE OLDgame (player_id INTEGER, grid_x INTEGER, grid_y INTEGER, initiative INTEGER, targetted INTEGER, current_atk INTEGER, FOREIGN KEY (player_id) REFERENCES entities(id), FOREIGN KEY (current_atk) REFERENCES attacks(id));*/
-CREATE TABLE game (initiative TEXT, last_ent INTEGER, curr_ent INTEGER, next_ent INTEGER, mode TEXT not null, targetted TEXT, map_size INTEGER not null, FOREIGN KEY (last_ent) REFERENCES entities(id), FOREIGN KEY (curr_ent) REFERENCES entities(id), FOREIGN KEY (next_ent) REFERENCES entities(id)) STRICT;
+CREATE TABLE game (initiative TEXT, last_ent INTEGER, curr_ent INTEGER, next_ent INTEGER, mode TEXT not null, targetted TEXT, map_size INTEGER not null, flags TEXT, FOREIGN KEY (last_ent) REFERENCES entities(id), FOREIGN KEY (curr_ent) REFERENCES entities(id), FOREIGN KEY (next_ent) REFERENCES entities(id)) STRICT;
 PRAGMA foreign_keys=on;
 INSERT INTO game ([map_size],[mode]) values (40, 'non-combat');

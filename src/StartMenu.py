@@ -1,7 +1,7 @@
 import os
 import sqlite3
 import tkinter as tk
-#from tkinter import filedialog
+from tkinter import filedialog
 
 
 class StartMenu:
@@ -23,7 +23,7 @@ class StartMenu:
         tk.Button(self.frame, text="quit", command=self.__quitMenu, width=18).grid(row=4, column=0)
 
         self.window.mainloop()
-        return self.saveFile
+        return [self.saveFile, os.getcwd() + "/res/"]
 
     def __newGame(self):
         for widg in self.frame.winfo_children():
