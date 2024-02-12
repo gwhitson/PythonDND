@@ -29,8 +29,8 @@ class PythonDND:
         self.window.title("Dungeons and Dragons")
         self.window.attributes("-fullscreen", True)
 
-        self.gameSettings = self.cur.execute("select [map_size],[mode] from game;").fetchone()
-        print(self.gameSettings[0])
+        self.gameSettings = self.cur.execute("select * from game;").fetchone()
+        print(self.gameSettings)
         self.mapDimension = [40,40] # will need to change the DB interaction on this to have map_size take in a string of format XXxYY or X,Y etc.etc.
         self.squareSize = int((self.window.winfo_screenwidth() - 200) / self.mapDimension[0])
 
@@ -102,39 +102,38 @@ class PythonDND:
     def renderControlFrame(self):
         tk.Button(self.control, text="Quit", command=self.__quitGame).pack()
         tk.Button(self.control, text="Add Entity", command=self.addEntity).pack()
-        if self.gameSettings[1] == "noncombat":
+        if self.gameSettings[4] == "noncombat":
             tk.Button(self.control, text="Start Combat", command = self.startCombat).pack()
         else:
             tk.Button(self.control, text="End Combat", command = self.endCombat).pack()
 
     def renderFrame(self):
         self.conn.commit()
-        self.gameSettings = self.cur.execute("select [map_size],[mode],[flags] from game;").fetchone()
+        self.gameSettings = self.cur.execute("select * from game;").fetchone()
         for widg in self.control.winfo_children():
             widg.destroy()
         self.renderControlFrame()
         self.renderMapFrame()
 
     def leftClick(self, event):
-        click_x = int((self.map.canvasx(event.x)) / self.squareSize) + 1
-        click_y = int((self.map.canvasy(event.y)) / self.squareSize) + 1
-        clickedEnt = self.cur.execute("select * from entities where [grid_x] = ? and [grid_y] = ?", [click_x, click_y]).fetchall()
+        click_x = int(event.x / self.squareSize) + 1
+        click_y = int(event.y / self.squareSize) + 1
+        clickedEnt = self.cur.execute("select * from entities where [grid_x] = ? and [grid_y] = ?;", [click_x, click_y]).fetchall()
         if clickedEnt != []:
             self.selected = clickedEnt[0]
-            #print(clickedEnt)
-            self.cur.execute("update game set [targetted] = ?;", [clickedEnt[0][1]])
-            if self.gameSettings[1] == "noncombat":
-                print('display move range')
+            print(clickedEnt[0])
+            if self.gameSettings[4] == "noncombat":
                 self.moveEnt(click_x, click_y)
         else:
-            if self.gameSettings[2] == 'm':
-                print('move')
-                print(clickedEnt)
-                self.cur.execute("update entities set [grid_x] = ?, [grid_y] = ? where id = ?;",[click_x, click_y, self.selected[0]])
-                self.cur.execute("update game set [flags] = '';")
-                self.map.delete("range")
-            else:
-                self.cur.execute("update game set [targetted] = '';")
+            print(click_x, click_y)
+            if self.gameSettings[7] == 'm':
+                px = int(click_x * self.squareSize) - int(self.squareSize / 2)
+                py = int(click_y * self.squareSize) - int(self.squareSize / 2)
+                print(event.x, px, '---' , event.y, py)
+                if self.posInRange([event.x, event.y], [self.selected[8], self.selected[9]], int(((self.selected[5] / 5) + 0.5) * self.squareSize)):
+                    self.cur.execute("update game set [flags] = '', [last_ent] = ?, [curr_ent] = null;",[self.selected[0]])
+                    self.cur.execute("update entities set [grid_x] = ?, [grid_y] = ?, [pix_x] = ?, [pix_y] = ?;", [click_x, click_y, px, py])
+                    self.map.delete("range")
 
         self.renderFrame()
 
@@ -177,7 +176,7 @@ class PythonDND:
         tk.Button(self.add, text="Submit", command=self.addEntToDB).grid(row=8, column=0, columnspan=2)
 
     def addEntToDB(self):
-        self.cur.execute("INSERT INTO entities (name, role, hp, ac, move_spd, grid_x, grid_y, sprite) VALUES (?,?,?,?,?,?,?,?);", [self.name.get(), self.role.get(), self.hp.get(), self.ac.get(), self.moveSpeed.get(), self.grid_x.get(), self.grid_y.get(), self.sprite.get()])
+        self.cur.execute("INSERT INTO entities (name, role, hp, ac, move_spd, grid_x, grid_y, pix_x, pix_y, sprite) VALUES (?,?,?,?,?,?,?,?,?,?);", [self.name.get(), self.role.get(), self.hp.get(), self.ac.get(), self.moveSpeed.get(), self.grid_x.get(), self.grid_y.get(), int(self.grid_x.get()) * self.squareSize, int(self.grid_y.get()) * self.squareSize, self.sprite.get()])
         self.add.destroy()
         self.name = None
         self.role = None
@@ -203,6 +202,9 @@ class PythonDND:
         self.showRange([x, y], self.selected[5] + 2.5, "#87d987")
         self.cur.execute("update game set [flags] = ?, [curr_ent] = ? where 1=1;", ['m', self.selected[0]])
 
+    def convertGridToPix(self, pos:[int,int]) -> [int,int]:
+        return [((pos[0] + 0.5) * self.squareSize), ((pos[1] + 0.5) * self.squareSize)]
+
     def showRange(self, center: [int, int], radius: float, color: str):
         self.map.delete("range")
         shift = int(self.squareSize / 2)
@@ -217,6 +219,12 @@ class PythonDND:
                              stipple="gray50",
                              tags="range")
         self.renderFrame()
+
+    def posInRange(self, pos: [int, int], center: [int, int], radius: float) -> bool:
+        if (((pos[0] - center[0]) ** 2) + ((pos[1] - center[1]) ** 2) <= radius ** 2):
+            return True
+        else:
+            return False
 
     def __quitGame(self):
         self.cur.execute("update game set [flags] = '', [mode] = 'noncombat';")
