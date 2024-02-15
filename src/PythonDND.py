@@ -77,6 +77,7 @@ class PythonDND:
         self.map.bind('<Button-1>', self.leftClick, add="+")
         self.map.bind('<Button-4>', self.__scrollUp, add="+")
         self.map.bind('<Button-5>', self.__scrollDown, add="+")
+        self.map.bind('<MouseWheel>', self.__windowsScroll, add="+")
 
         self.control.pack(side=tk.LEFT, fill=tk.BOTH, anchor='ne')
         self.map.pack(side=tk.RIGHT, anchor='w')
@@ -267,6 +268,13 @@ class PythonDND:
         print(self.cur.execute("select [range], [name], [damage] from attacks where id = ?;",[self.attackID]).fetchone())       
 
     # Privates
+    def __windowsScroll(self, event):
+        if event.delta < 1:
+            self.__scrollDown(event)
+        else:
+            self.__scrollUp(event)
+        print(event)
+    
     def __scrollDown(self, event):
         scrollVal = int(self.squareSize / 30)
         if self.mapDimension[0] <= self.mapDimension[1]:
