@@ -18,6 +18,8 @@ class PythonDND:
         self.cur = self.conn.cursor()
 
         # vars to be used
+        self.selected = None
+        self.selectedActions = None
         self.name = None
         self.role = None
         self.hp = None
@@ -27,7 +29,8 @@ class PythonDND:
         self.grid_y = None
         self.sprite = None
         self.entities = None
-        self.attackID = None
+        self.action = None
+        self.actionID = None
 
         self.window = tk.Tk()
         self.window.title("Dungeons and Dragons")
@@ -41,8 +44,9 @@ class PythonDND:
             self.squareSize = int((self.window.winfo_screenwidth() - 200) / int(min(self.mapDimension[0], self.mapDimension[1])))
         else:
             self.squareSize = int((self.window.winfo_screenheight()) / int(min(self.mapDimension[0], self.mapDimension[1])))
+        self.actionButtonSize = self.squareSize / 3
 
-        print(self.squareSize)
+        #print(self.squareSize)
 
         self.control = tk.Frame(self.window,
                                 height=self.window.winfo_screenheight())
@@ -52,7 +56,7 @@ class PythonDND:
                                  height=(self.mapDimension[1] * self.squareSize))
 
         if (self.mapDimension[0] <= self.mapDimension[1]):
-            print("x greater than y", self.squareSize)
+            #print("x greater than y", self.squareSize)
             self.map = tk.Canvas(self.mapFrame,
                                  width=(self.mapDimension[0] * self.squareSize),
                                  height=(self.mapDimension[1] * self.squareSize),
@@ -63,7 +67,7 @@ class PythonDND:
             vbar.pack(side=tk.RIGHT, fill=tk.Y)
             self.map.config(yscrollcommand=vbar.set)
         else:
-            print("x less than y", self.squareSize)
+            #print("x less than y", self.squareSize)
             self.map = tk.Canvas(self.mapFrame,
                                  width=(self.mapDimension[0] * self.squareSize),
                                  height=(self.mapDimension[1] * self.squareSize),
@@ -103,15 +107,8 @@ class PythonDND:
         for k in range(0, w, self.squareSize):
             self.map.create_line(k, 0, k, h, fill="black", tags="map")
 
-        self.entities = (self.cur.execute("Select [name],[role],[grid_x],[grid_y] from entities;")).fetchall()
+        self.entities = (self.cur.execute("Select [name],[role],[grid_x],[grid_y],[pix_x],[pix_y] from entities;")).fetchall()
         for i in self.entities:
-            self.map.create_oval((int(i[2]) - 1) * self.squareSize,
-                                 (int(i[3]) - 1) * self.squareSize,
-                                 int(i[2]) * self.squareSize,
-                                 int(i[3]) * self.squareSize,
-                                 outline="black",
-                                 width=outline_width,
-                                 tags="map")
             if i[1] == "player":
                 self.map.create_oval((int(i[2]) - 1) * self.squareSize,
                                      (int(i[3]) - 1) * self.squareSize,
@@ -126,13 +123,21 @@ class PythonDND:
                                      int(i[3]) * self.squareSize,
                                      fill="red",
                                      tags="map")
+            self.map.create_oval((int(i[2]) - 1) * self.squareSize,
+                                 (int(i[3]) - 1) * self.squareSize,
+                                 int(i[2]) * self.squareSize,
+                                 int(i[3]) * self.squareSize,
+                                 #i[4],i[5],i[4] + self.squareSize,i[5] + self.squareSize,
+                                 outline="black",
+                                 width=outline_width,
+                                 tags="map")
 
     def renderControlFrame(self):
         tk.Button(self.control, text="Quit", command=self.__quitGame).pack()
         tk.Button(self.control, text="Add Entity", command=self.addEntity).pack()
-        tk.Button(self.control, text="Action", command=self.action).pack()
+        tk.Button(self.control, text="Action", command=self.doAction).pack()
         if self.gameSettings[5] == "noncombat":
-            print(self.gameSettings[5])
+            #print(self.gameSettings[5])
             tk.Button(self.control, text="Start Combat", command = self.startCombat).pack()
         else:
             tk.Button(self.control, text="End Combat", command = self.endCombat).pack()
@@ -152,19 +157,20 @@ class PythonDND:
         clickedEnt = self.cur.execute("select * from entities where [grid_x] = ? and [grid_y] = ?;", [click_x, click_y]).fetchall()
         if clickedEnt != []:
             self.selected = clickedEnt[0]
-            print(clickedEnt[0])
+            #print(clickedEnt[0])
             if self.gameSettings[5] == "noncombat":
                 self.moveEnt(click_x, click_y)
         else:
-            print(click_x, click_y)
+            #print(click_x, click_y)
             if self.gameSettings[8] == 'm':
                 px = int(click_x * self.squareSize) - int(self.squareSize / 2)
                 py = int(click_y * self.squareSize) - int(self.squareSize / 2)
-                print(event.x, px, '---', event.y, py)
+                #print(event.x, px, '---', event.y, py)
                 if self.posInRange([self.map.canvasx(event.x), self.map.canvasy(event.y)], [self.selected[8], self.selected[9]], int(((self.selected[5] / 5) + 0.5) * self.squareSize)):
                     self.cur.execute("update game set [flags] = '', [last_ent] = ?, [curr_ent] = null;",[self.selected[0]])
                     self.cur.execute("update entities set [grid_x] = ?, [grid_y] = ?, [pix_x] = ?, [pix_y] = ?;", [click_x, click_y, px, py])
                     self.map.delete("range")
+                    self.selected = None
 
         self.renderFrame()
 
@@ -245,16 +251,19 @@ class PythonDND:
         self.renderFrame()
 
     # Helpers
-    def convertGridToPix(self, pos:[int, int]) -> [int, int]:
+    def convertGridToPix(self, pos: [int, int]) -> [int, int]:
         return [((pos[0] + 0.5) * self.squareSize), ((pos[1] + 0.5) * self.squareSize)]
 
     def posInRange(self, pos: [int, int], center: [int, int], radius: float) -> bool:
         if (((pos[0] - center[0]) ** 2) + ((pos[1] - center[1]) ** 2) <= radius ** 2):
-            print('true')
+            #print('true')
             return True
         else:
-            print('false')
+            #print('false')
             return False
+
+    def test(self, event):
+        print(event)
 
     # Actions
     def moveEnt(self, x, y):
@@ -262,19 +271,39 @@ class PythonDND:
         self.cur.execute("update game set [flags] = ?, [curr_ent] = ? where 1=1;", ['m', self.selected[0]])
 
     def chooseAction(self):
-        print('ermmm')
+        self.att_sel = tk.Menu(tearoff=0)
+        self.att_sel.event_add('<<event-test>>', '<Button-1>')
+        self.att_sel.bind('<<event-test>>', self.__actionHelper)
 
-    def action(self):
-        print(self.cur.execute("select [range], [name], [damage] from attacks where id = ?;",[self.attackID]).fetchone())       
+        if self.selected is not None:
+            print(self.selected)
+            self.selectedActions = self.cur.execute("select [id], [name], [range], [damage], [action_tags] from actions where [poss_player] = ?;", [self.selected[0]]).fetchall()
+
+            for i in self.selectedActions:
+                self.att_sel.add_command(label=i[1])
+            self.att_sel.tk_popup(int(self.selected[8] + self.control.winfo_width()),int(self.selected[9]))
+        else:
+            print('no ent selected')
+
+    def doAction(self):
+        print('test')
+        self.chooseAction()
 
     # Privates
+    def __actionHelper(self, event):
+        arith = int(self.att_sel.winfo_height() / len(self.selectedActions))
+        self.actionID = self.selectedActions[int(int(event.y) / arith)][0]
+        print(self.actionID)
+        self.action = self.cur.execute("select * from actions where id = ?;", [self.actionID]).fetchone()
+        print(self.action)
+
     def __windowsScroll(self, event):
         if event.delta < 1:
             self.__scrollDown(event)
         else:
             self.__scrollUp(event)
-        print(event)
-    
+        #print(event)
+
     def __scrollDown(self, event):
         scrollVal = int(self.squareSize / 30)
         if self.mapDimension[0] <= self.mapDimension[1]:
