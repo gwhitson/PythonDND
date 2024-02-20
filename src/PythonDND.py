@@ -161,14 +161,20 @@ class PythonDND:
             if self.gameSettings[5] == "noncombat":
                 self.moveEnt(click_x, click_y)
         else:
-            #print(click_x, click_y)
             if self.gameSettings[8] == 'm':
                 px = int(click_x * self.squareSize) - int(self.squareSize / 2)
                 py = int(click_y * self.squareSize) - int(self.squareSize / 2)
-                #print(event.x, px, '---', event.y, py)
                 if self.posInRange([self.map.canvasx(event.x), self.map.canvasy(event.y)], [self.selected[8], self.selected[9]], int(((self.selected[5] / 5) + 0.5) * self.squareSize)):
                     self.cur.execute("update game set [flags] = '', [last_ent] = ?, [curr_ent] = null;",[self.selected[0]])
                     self.cur.execute("update entities set [grid_x] = ?, [grid_y] = ?, [pix_x] = ?, [pix_y] = ?;", [click_x, click_y, px, py])
+                    self.map.delete("range")
+                    self.selected = None
+            elif self.gameSettings[8] == 'a':
+                px = int(click_x * self.squareSize) - int(self.squareSize / 2)
+                py = int(click_y * self.squareSize) - int(self.squareSize / 2)
+                if self.posInRange([self.map.canvasx(event.x), self.map.canvasy(event.y)], [self.selected[8], self.selected[9]], ((self.action[3] + 2.5) / 5) * self.squareSize):
+                    self.cur.execute("update game set [flags] = '', [last_ent] = ?, [curr_ent] = null;",[self.selected[0]])
+                    print('do some action!')
                     self.map.delete("range")
                     self.selected = None
 
@@ -256,8 +262,10 @@ class PythonDND:
 
     def posInRange(self, pos: [int, int], center: [int, int], radius: float) -> bool:
         if (((pos[0] - center[0]) ** 2) + ((pos[1] - center[1]) ** 2) <= radius ** 2):
+            # print("pos is in range")
             return True
         else:
+            # print("pos is not in range")
             return False
 
     # Actions
