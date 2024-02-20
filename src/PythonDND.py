@@ -18,7 +18,7 @@ class PythonDND:
         self.cur = self.conn.cursor()
 
         # vars to be used
-        self.selected = None
+        self.selected = [None,None,None,None,None,None,None,None,None]
         self.selectedActions = None
         self.name = None
         self.role = None
@@ -335,9 +335,88 @@ class PythonDND:
             self.map.xview_scroll(-scrollVal, "units")
 
     def __sessSettings(self):
+        try:
+            self.settingsWindow.destroy()
+        except AttributeError:
+            None
         print('adjust settings')
-        settings = tk.Toplevel(self.window)
-        settings.title("settings pls")
+        self.settingsWindow = tk.Toplevel(self.window)
+        self.settingsWindow.title("Session Settings")
+        tk.Button(self.settingsWindow, text="Entity Management", command=self.__entMgr).pack()
+        tk.Button(self.settingsWindow, text="Action Manager", command=self.__actMgr).pack()
+        textSettings = tk.Frame(self.settingsWindow)
+        tk.Button(self.settingsWindow, text="Exit", command=lambda: self.settingsWindow.destroy()).pack()
+
+    def __updateEntInDB(self):
+        print(self.name.get(), self.role.get(), self.hp.get(), self.ac.get())
+        self.cur.execute("Update entities set [name] = ?, [role] = ?, [hp] = ?, [ac] = ?, [move_spd] = ?, [grid_x] = ?, [grid_y] = ?, [pix_x] = ?, [pix_y] = ? where [id] = ?;",[self.name.get(), self.role.get(), self.hp.get(), self.ac.get(), self.moveSpeed.get(), self.grid_x.get(), self.grid_y.get(), int(self.grid_x.get()) * self.squareSize, int(self.grid_y.get()) * self.squareSize, self.selected[0]])
+        self.conn.commit()
+        self.__entMgr()
+
+    def __entMgr(self):
+        self.renderFrame()
+        def __editEnt(dropIn, frame: tk.Frame):
+            for i in frame.winfo_children():
+                i.destroy()
+            print(dropIn)
+
+            if dropIn == "New":
+                self.selected = [None,None,None,None,None,None,None,None,None]
+            else:
+                self.selected = (self.cur.execute("select * from entities where [id] = ?;",[dropIn[0]]).fetchone())
+            print(self.selected)
+            vName, vRole, vhp, vac, vms, vgrid_x, vgrid_y = tk.StringVar(value=self.selected[1]),tk.StringVar(value=self.selected[2]),tk.StringVar(value=self.selected[3]),tk.StringVar(value=self.selected[4]),tk.StringVar(value=self.selected[5]),tk.StringVar(value=self.selected[6]),tk.StringVar(value=self.selected[7])
+            tk.Label(frame, text="Name:").grid(row=0, column=0)
+            tk.Label(frame, text="Role:").grid(row=1, column=0)
+            tk.Label(frame, text="HP:").grid(row=2, column=0)
+            tk.Label(frame, text="AC:").grid(row=3, column=0)
+            tk.Label(frame, text="Move Spd:").grid(row=4, column=0)
+            tk.Label(frame, text="Grid X:").grid(row=5, column=0)
+            tk.Label(frame, text="Grid Y:").grid(row=6, column=0)
+            self.name = tk.Entry(frame, textvariable=vName)
+            self.name.grid(row=0, column=1)
+            self.role = tk.Entry(frame, textvariable=vRole)
+            self.role.grid(row=1, column=1)
+            self.hp = tk.Entry(frame, textvariable=vhp)
+            self.hp.grid(row=2, column=1)
+            self.ac = tk.Entry(frame, textvariable=vac)
+            self.ac.grid(row=3, column=1)
+            self.moveSpeed = tk.Entry(frame, textvariable=vms)
+            self.moveSpeed.grid(row=4, column=1)
+            self.grid_x = tk.Entry(frame, textvariable=vgrid_x)
+            self.grid_x.grid(row=5, column=1)
+            self.grid_y = tk.Entry(frame, textvariable=vgrid_y)
+            self.grid_y.grid(row=6, column=1)
+            tk.Button(frame, text="Submit", command= self.__updateEntInDB).grid(row=7, column=1)
+            tk.Button(frame, text="Back", command= self.__entMgr).grid(row=7, column=0)
+            tk.Button(frame, text="Action Manager", command=self.__actMgr).grid(row=9, column=0, columnspan=2)
+            tk.Button(frame, text="Exit", command= self.__exitSettings).grid(row=10, column=0, columnspan=2)
+        for i in self.settingsWindow.winfo_children():
+            i.destroy()
+
+        entFrame = tk.Frame(self.settingsWindow)
+        drop = ttk.Combobox(entFrame)
+        drop['values'] = self.cur.execute('select [id],[name] from entities;').fetchall()
+        drop.current(0)
+        drop.grid(row=0, column=0)
+        tk.Button(entFrame, text="Select", command=lambda: __editEnt(drop.get(), entFrame)).grid(row=0, column=1)
+        tk.Button(entFrame, text="New Entity", command=lambda: __editEnt("New", entFrame)).grid(row=1, column=0, columnspan=2)
+        #tk.Button(entFrame, text="New Entity", command=self.addEntity).grid(row=1, column=0, columnspan=2)
+        tk.Button(entFrame, text="Action Manager", command=self.__actMgr).grid(row=9, column=0, columnspan=2)
+        tk.Button(entFrame, text="Exit", command=self.__exitSettings).grid(row=10, column=0, columnspan=2)
+        entFrame.pack()
+
+    def __actMgr(self):
+        for i in self.settingsWindow.winfo_children():
+            i.destroy()
+        actFrame = tk.Frame(self.settingsWindow)
+        tk.Button(actFrame, text="Entity Manager", command=self.__entMgr).grid(row=9, column=0, columnspan=2)
+        tk.Button(actFrame, text="Exit", command=self.__exitSettings).grid(row=10, column=0, columnspan=2)
+        actFrame.pack()
+
+    def __exitSettings(self):
+        self.settingsWindow.destroy()
+        self.renderFrame()
 
     def __quitGame(self):
         self.cur.execute("update game set [flags] = '', [mode] = 'noncombat';")
