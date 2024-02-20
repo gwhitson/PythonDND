@@ -134,8 +134,9 @@ class PythonDND:
 
     def renderControlFrame(self):
         tk.Button(self.control, text="Quit", command=self.__quitGame).pack()
+        tk.Button(self.control, text="Session Settings", command=self.__sessSettings).pack()
         tk.Button(self.control, text="Add Entity", command=self.addEntity).pack()
-        tk.Button(self.control, text="Action", command=self.doAction).pack()
+        tk.Button(self.control, text="Action", command=self.doChooseAction).pack()
         if self.gameSettings[5] == "noncombat":
             #print(self.gameSettings[5])
             tk.Button(self.control, text="Start Combat", command = self.startCombat).pack()
@@ -174,7 +175,7 @@ class PythonDND:
                 py = int(click_y * self.squareSize) - int(self.squareSize / 2)
                 if self.posInRange([self.map.canvasx(event.x), self.map.canvasy(event.y)], [self.selected[8], self.selected[9]], ((self.action[3] + 2.5) / 5) * self.squareSize):
                     self.cur.execute("update game set [flags] = '', [last_ent] = ?, [curr_ent] = null;",[self.selected[0]])
-                    print('do some action!')
+                    self.__doAction([self.map.canvasx(event.x), self.map.canvasy(event.y)])
                     self.map.delete("range")
                     self.selected = None
 
@@ -290,13 +291,16 @@ class PythonDND:
             print('no ent selected')
             return 0
 
-    def doAction(self):
+    def doChooseAction(self):
         print('test')
         self.chooseAction()
         print('pos test?')
         self.cur.execute("update game set [flags] = ?, [curr_ent] = ? where 1=1;", ['a', self.selected[0]])
 
     # Privates
+    def __doAction(self, click: [int,int]):
+        print(click)
+
     def __actionHelper(self, event):
         arith = int(self.att_sel.winfo_height() / len(self.selectedActions))
         self.actionID = self.selectedActions[int(int(event.y) / arith)][0]
@@ -329,6 +333,11 @@ class PythonDND:
             self.map.yview_scroll(-scrollVal, "units")
         else:
             self.map.xview_scroll(-scrollVal, "units")
+
+    def __sessSettings(self):
+        print('adjust settings')
+        settings = tk.Toplevel(self.window)
+        settings.title("settings pls")
 
     def __quitGame(self):
         self.cur.execute("update game set [flags] = '', [mode] = 'noncombat';")
