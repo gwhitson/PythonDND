@@ -1,0 +1,4 @@
+name,range,damage,aoe,action_tags,modifiers
+Move,99999,0,0,movement,
+Slash,5,1d6,1,melee,Str
+Shortbow,50,1d6,1,ranged,Dex

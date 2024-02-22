@@ -1,4 +1,5 @@
 import os
+import csv
 import sqlite3
 import tkinter as tk
 from tkinter import filedialog
@@ -54,11 +55,46 @@ class StartMenu:
             cur.execute(i.replace("\n", ""))
 
         cur.execute("insert into game ([map_size], [mode]) values (?, 'noncombat');", [self.mapSize.get()])
+        cur.execute("insert into entities (id, name, role, hp, ac, move_spd, grid_x, grid_y, pix_x, pix_y) values (-1, 'template', 'template', -1, -1, -1, -1, -1, -1, -1);")
+
+        with open("res/defaultActions.csv", 'r') as f:
+            reader = csv.reader(f)
+            data = list(reader)
+            count = 0
+            for row in data:
+                if count != 0:
+                    row.append(-1)
+                    cur.execute("insert into actions ([name],[range],[damage],[aoe],[action_tags],[modifiers],[poss_player]) values (?,?,?,?,?,?,?);", row)
+                else:
+                    count += 1
 
         conn.commit()
         conn.close()
 
         self.__startGame()
+
+    def __loadActions(self):
+        conn = sqlite3.connect(self.saveFile)
+        cur = conn.cursor()
+
+        current = cur.execute("select * from actions where [poss_player] = -1;").fetchmany()
+        print(current)
+
+
+        conn.commit()
+        conn.close()
+        None
+
+    def __loadEnemies(self):
+        conn = sqlite3.connect(self.saveFile)
+        cur = conn.cursor()
+
+        current = cur.execute("select * from tEnemies;").fetchmany()
+        print(current)
+
+        conn.commit()
+        conn.close()
+        None
 
     def __loadGame(self):
         file = tk.filedialog.askopenfile(mode="r", initialdir=(os.getcwd()  + "/res/saves/"), filetypes=(("db files", "*.db"), ("all files", "*.*")))
@@ -81,3 +117,6 @@ class StartMenu:
 
     def __quitMenu(self):
         exit(0)
+
+    def test(self):
+        self.__loadActions()
