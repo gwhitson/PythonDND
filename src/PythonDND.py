@@ -368,7 +368,6 @@ class PythonDND:
                 self.selected = [None,None,None,None,None,None,None,None,None,None,None]
             else:
                 self.selected = (self.cur.execute("select * from entities where [id] = ?;",[dropIn[0]]).fetchone())
-            print(self.selected)
             vName, vRole, vhp, vac, vms, vgrid_x, vgrid_y = tk.StringVar(value=self.selected[1]),tk.StringVar(value=self.selected[2]),tk.StringVar(value=self.selected[3]),tk.StringVar(value=self.selected[4]),tk.StringVar(value=self.selected[5]),tk.StringVar(value=self.selected[6]),tk.StringVar(value=self.selected[7])
             tk.Label(frame, text="Name:").grid(row=0, column=0)
             tk.Label(frame, text="Role:").grid(row=1, column=0)
@@ -391,10 +390,22 @@ class PythonDND:
             self.grid_x.grid(row=5, column=1)
             self.grid_y = tk.Entry(frame, textvariable=vgrid_y)
             self.grid_y.grid(row=6, column=1)
-            tk.Button(frame, text="Submit", command= self.__updateEntInDB).grid(row=7, column=1)
-            tk.Button(frame, text="Back", command= self.__entMgr).grid(row=7, column=0)
-            #tk.Button(frame, text="Action Manager", command=self.__actMgr).grid(row=9, column=0, columnspan=2)
-            tk.Button(frame, text="Exit", command= self.__exitSettings).grid(row=10, column=0, columnspan=2)
+            if self.selected[0] is None:
+                tk.Label(frame, text="Submit to add actions").grid(row=7, column=1, columnspan=2)
+            else:
+                actFrame = tk.LabelFrame(frame, text="Actions")
+                actFrame.grid(row=8, column=0, columnspan=2)
+                actFrame.bind("<Button-1>", lambda event:print(event))
+                count = 0
+                for i in self.cur.execute("select [name] from actions where [poss_player] = ?;",[self.selected[0]]):
+                    temp = tk.Label(actFrame, text=i[0])
+                    temp.grid(row=count)
+                    count += 1
+
+            tk.Button(frame, text="Submit", command= self.__updateEntInDB).grid(row=9, column=1)
+            tk.Button(frame, text="Back", command= self.__entMgr).grid(row=9, column=0)
+            #tk.Button(frame, text="Action Manager", command=self.__actMgr).grid(row=10, column=0, columnspan=2)
+            tk.Button(frame, text="Exit", command= self.__exitSettings).grid(row=11, column=0, columnspan=2)
         for i in self.settingsWindow.winfo_children():
             i.destroy()
 
