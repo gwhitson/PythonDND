@@ -19,31 +19,27 @@ class PythonDND:
         self.window.title("Dungeons and Dragons")
         self.window.attributes("-fullscreen", True)
 
-
         self.conn = sqlite3.connect(self.save)
         self.cur = self.conn.cursor()
 
         # vars to be used
         self.selected = [None,None,None,None,None,None,None,None,None]
-        self.name = None
-        self.role = None
-        self.hp = None
-        self.ac = None
-        self.moveSpeed = None
-        self.grid_x = None
-        self.grid_y = None
-        self.sprite = None
-        self.entities = None
+
+        if (self.cur.execute("select [initiative] from game;") == None):
+            self.initiative = ""
+            for i in (self.cur.execute("select [id] from entities where [id] > -1;").fetchall()):
+                self.initiative += str(i[0])
+                self.initiative += ","
+        else:
+            self.initiative = self.cur.execute("select [initiative] from game;").fetchone()[0]
+
+        print(self.initiative)
+
+        self.cur.execute("update game set [initiative] = ?;", [str(self.initiative)])
+        self.conn.commit()
 
         self.selectedActions = None
         self.action = None
-        self.actionID = None
-        self.actname = None
-        self.actdamg = None
-        self.actrang = None
-        self.actaoef = None
-        self.acttags = None
-        self.actmods = None
 
         self.gameSettings = self.cur.execute("select * from game;").fetchone()
         spl = self.gameSettings[7].split('x')
@@ -164,6 +160,7 @@ class PythonDND:
 
     # Game State Interactions
     def leftClick(self, event):
+        print(self.cur.execute("select [initiative] from game;").fetchone())
         click_x = int((self.map.canvasx(event.x)) / self.squareSize + 1)
         click_y = int((self.map.canvasy(event.y)) / self.squareSize + 1)
         clickedEnt = self.cur.execute("select * from entities where [grid_x] = ? and [grid_y] = ?;", [click_x, click_y]).fetchall()
@@ -194,7 +191,7 @@ class PythonDND:
 
     def startCombat(self):
         # self.chooseinitiative
-        self.cur.execute("update game set [mode] = 'combat', [flags] = '';")
+        self.cur.execute("update game set [mode] = 'combat', [flags] = '', [initiative] = ?;", [self.initiative])
         self.map.delete("range")
         self.renderFrame()
 
