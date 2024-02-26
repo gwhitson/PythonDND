@@ -1,4 +1,5 @@
 import StartMenu
+import DNDSettings
 import os
 import sqlite3
 import tkinter as tk
@@ -13,6 +14,11 @@ class PythonDND:
         self.resFiles = menuRet[1]
         if self.save == "":
             exit(3)
+
+        self.window = tk.Tk()
+        self.window.title("Dungeons and Dragons")
+        self.window.attributes("-fullscreen", True)
+
 
         self.conn = sqlite3.connect(self.save)
         self.cur = self.conn.cursor()
@@ -38,10 +44,6 @@ class PythonDND:
         self.actaoef = None
         self.acttags = None
         self.actmods = None
-
-        self.window = tk.Tk()
-        self.window.title("Dungeons and Dragons")
-        self.window.attributes("-fullscreen", True)
 
         self.gameSettings = self.cur.execute("select * from game;").fetchone()
         spl = self.gameSettings[7].split('x')
@@ -97,6 +99,8 @@ class PythonDND:
         self.map.update()
         self.mapFrame.update()
         self.control.update()
+
+        self.settingsWindow = DNDSettings.DNDSettings(self.save, self.window, self.squareSize)
 
         self.renderFrame()
         self.window.mainloop()
@@ -186,57 +190,6 @@ class PythonDND:
                     self.map.delete("range")
                     self.selected = None
 
-        self.renderFrame()
-
-    def addEntity(self):
-        self.add = tk.Tk()
-        self.add.title("Add Entity")
-        namevar = tk.StringVar()
-        rolevar = tk.StringVar()
-        hpvar = tk.StringVar()
-        acvar = tk.StringVar()
-        mvspd = tk.StringVar()
-        xvar = tk.StringVar()
-        yvar = tk.StringVar()
-        sprite = tk.StringVar()
-        tk.Label(self.add, text="Name:").grid(row=0, column=0)
-        self.name = tk.Entry(self.add, textvariable=namevar)
-        self.name.grid(row=0, column=1)
-        tk.Label(self.add, text="Role:").grid(row=1, column=0)
-        self.role = tk.Entry(self.add, textvariable=rolevar)
-        self.role.grid(row=1, column=1)
-        tk.Label(self.add, text="HP:").grid(row=2, column=0)
-        self.hp = tk.Entry(self.add, textvariable=hpvar)
-        self.hp.grid(row=2, column=1)
-        tk.Label(self.add, text="AC:").grid(row=3, column=0)
-        self.ac = tk.Entry(self.add, textvariable=acvar)
-        self.ac.grid(row=3, column=1)
-        tk.Label(self.add, text="Speed:").grid(row=4, column=0)
-        self.moveSpeed = tk.Entry(self.add, textvariable=mvspd)
-        self.moveSpeed.grid(row=4, column=1)
-        tk.Label(self.add, text="X:").grid(row=5, column=0)
-        self.grid_x = tk.Entry(self.add, textvariable=xvar)
-        self.grid_x.grid(row=5, column=1)
-        tk.Label(self.add, text="Y:").grid(row=6, column=0)
-        self.grid_y = tk.Entry(self.add, textvariable=yvar)
-        self.grid_y.grid(row=6, column=1)
-        tk.Label(self.add, text="Sprite:").grid(row=7, column=0)
-        self.sprite = ttk.Combobox(self.add, textvariable=sprite)
-        self.sprite['values'] = (os.listdir(self.resFiles + "sprites"))
-        self.sprite.grid(row=7, column=1)
-        tk.Button(self.add, text="Submit", command=self.addEntToDB).grid(row=8, column=0, columnspan=2)
-
-    def addEntToDB(self):
-        self.cur.execute("INSERT INTO entities (name, role, hp, ac, move_spd, grid_x, grid_y, pix_x, pix_y, sprite) VALUES (?,?,?,?,?,?,?,?,?,?);", [self.name.get(), self.role.get(), self.hp.get(), self.ac.get(), self.moveSpeed.get(), self.grid_x.get(), self.grid_y.get(), int(self.grid_x.get()) * self.squareSize, int(self.grid_y.get()) * self.squareSize, self.sprite.get()])
-        self.add.destroy()
-        self.name = None
-        self.role = None
-        self.hp = None
-        self.ac = None
-        self.moveSpeed = None
-        self.grid_x = None
-        self.grid_y = None
-        self.sprite = None
         self.renderFrame()
 
     def startCombat(self):
@@ -343,148 +296,8 @@ class PythonDND:
             self.settingsWindow.destroy()
         except AttributeError:
             None
-        self.settingsWindow = tk.Toplevel(self.window)
-        self.settingsWindow.title("Session Settings")
-        tk.Button(self.settingsWindow, text="Entity Management", command=self.__entMgr).pack()
-        tk.Button(self.settingsWindow, text="Action Manager", command=self.__actMgr).pack()
-        tk.Button(self.settingsWindow, text="Exit", command=lambda: self.settingsWindow.destroy()).pack()
-
-    def __updateEntInDB(self):
-        if self.selected[0] is None:
-            self.cur.execute("insert into entities ([name], [role], [hp], [ac], [move_spd], [grid_x], [grid_y], [pix_x], [pix_y]) values (?,?,?,?,?,?,?,?,?);",[self.name.get(), self.role.get(), self.hp.get(), self.ac.get(), self.moveSpeed.get(), self.grid_x.get(), self.grid_y.get(), int(self.grid_x.get()) * self.squareSize, int(self.grid_y.get()) * self.squareSize])
-        else:
-            self.cur.execute("update entities set [name] = ?, [role] = ?, [hp] = ?, [ac] = ?, [move_spd] = ?, [grid_x] = ?, [grid_y] = ?, [pix_x] = ?, [pix_y] = ? where [id] = ?;",[self.name.get(), self.role.get(), self.hp.get(), self.ac.get(), self.moveSpeed.get(), self.grid_x.get(), self.grid_y.get(), int(self.grid_x.get()) * self.squareSize, int(self.grid_y.get()) * self.squareSize, self.selected[0]])
-
-        self.conn.commit()
-        self.__entMgr()
-
-    def __entMgr(self):
-        self.renderFrame()
-        def __editEnt(dropIn, frame: tk.Frame):
-            for i in frame.winfo_children():
-                i.destroy()
-
-            if dropIn == "New":
-                self.selected = [None,None,None,None,None,None,None,None,None,None,None]
-            else:
-                self.selected = (self.cur.execute("select * from entities where [id] = ?;",[dropIn[0]]).fetchone())
-            vName, vRole, vhp, vac, vms, vgrid_x, vgrid_y = tk.StringVar(value=self.selected[1]),tk.StringVar(value=self.selected[2]),tk.StringVar(value=self.selected[3]),tk.StringVar(value=self.selected[4]),tk.StringVar(value=self.selected[5]),tk.StringVar(value=self.selected[6]),tk.StringVar(value=self.selected[7])
-            tk.Label(frame, text="Name:").grid(row=0, column=0)
-            tk.Label(frame, text="Role:").grid(row=1, column=0)
-            tk.Label(frame, text="HP:").grid(row=2, column=0)
-            tk.Label(frame, text="AC:").grid(row=3, column=0)
-            tk.Label(frame, text="Move Spd:").grid(row=4, column=0)
-            tk.Label(frame, text="Grid X:").grid(row=5, column=0)
-            tk.Label(frame, text="Grid Y:").grid(row=6, column=0)
-            self.name = tk.Entry(frame, textvariable=vName)
-            self.name.grid(row=0, column=1)
-            self.role = tk.Entry(frame, textvariable=vRole)
-            self.role.grid(row=1, column=1)
-            self.hp = tk.Entry(frame, textvariable=vhp)
-            self.hp.grid(row=2, column=1)
-            self.ac = tk.Entry(frame, textvariable=vac)
-            self.ac.grid(row=3, column=1)
-            self.moveSpeed = tk.Entry(frame, textvariable=vms)
-            self.moveSpeed.grid(row=4, column=1)
-            self.grid_x = tk.Entry(frame, textvariable=vgrid_x)
-            self.grid_x.grid(row=5, column=1)
-            self.grid_y = tk.Entry(frame, textvariable=vgrid_y)
-            self.grid_y.grid(row=6, column=1)
-            if self.selected[0] is None:
-                tk.Label(frame, text="Submit to add actions").grid(row=7, column=1, columnspan=2)
-            else:
-                actFrame = tk.LabelFrame(frame, text="Actions")
-                actFrame.grid(row=8, column=0, columnspan=2)
-                actFrame.bind("<Button-1>", lambda event:print(event))
-                count = 0
-                for i in self.cur.execute("select [name] from actions where [poss_player] = ?;",[self.selected[0]]):
-                    temp = tk.Label(actFrame, text=i[0])
-                    temp.grid(row=count)
-                    count += 1
-
-            tk.Button(frame, text="Submit", command= self.__updateEntInDB).grid(row=9, column=1)
-            tk.Button(frame, text="Back", command= self.__entMgr).grid(row=9, column=0)
-            #tk.Button(frame, text="Action Manager", command=self.__actMgr).grid(row=10, column=0, columnspan=2)
-            tk.Button(frame, text="Exit", command= self.__exitSettings).grid(row=11, column=0, columnspan=2)
-        for i in self.settingsWindow.winfo_children():
-            i.destroy()
-
-        entFrame = tk.Frame(self.settingsWindow)
-        drop = ttk.Combobox(entFrame)
-        drop['values'] = self.cur.execute('select [id],[name] from entities where id > -1;').fetchall()
-        try:
-            drop.current(0)
-        except tk.TclError:
-            None
-        drop.grid(row=0, column=0)
-        tk.Button(entFrame, text="Edit", command=lambda: __editEnt(drop.get(), entFrame)).grid(row=0, column=1)
-        tk.Button(entFrame, text="New Entity", command=lambda: __editEnt("New", entFrame)).grid(row=1, column=0, columnspan=2)
-        #tk.Button(entFrame, text="New Entity", command=self.addEntity).grid(row=1, column=0, columnspan=2)
-        tk.Button(entFrame, text="Back", command=self.__sessSettings).grid(row=9, column=0, columnspan=2)
-        entFrame.pack()
-
-    def __updateActInDB(self):
-        print(self.actname.get(),self.actdamg.get(),self.actrang.get(),self.actaoef.get(),self.acttags.get(),self.actmods.get(),self.action[0])
-        if self.action[0] is None:
-            self.cur.execute("insert into actions ([name],[damage],[range],[aoe],[action_tags],[modifiers],[poss_player]) values (?,?,?,?,?,?,-1);",[self.actname.get(),self.actdamg.get(),self.actrang.get(),self.actaoef.get(),self.acttags.get(),self.actmods.get()])
-        else:
-            self.cur.execute("update actions set [name] = ?,[damage] = ?,[range] = ?,[aoe] = ?,[action_tags] = ?,[modifiers] = ? where [poss_player] = -1 and [name] = ?;",[self.actname.get(),self.actdamg.get(),self.actrang.get(),self.actaoef.get(),self.acttags.get(),self.actmods.get(),self.action[1]])
-        self.conn.commit()
-        self.__actMgr()
-
-    def __actMgr(self):
-        def __editAct(tag: str, frame: tk.Frame):
-            print(tag)
-            for i in frame.winfo_children():
-                i.destroy()
-
-            #print(self.actname, self.actdamg, self.actrang, self.actaoef, self.acttags, self.actents)
-
-            if tag == "New":
-                self.action = [None,None,None,None,None,None,None,None]
-            else:
-                self.action = self.cur.execute("select * from actions where [poss_player] = -1 and [name] = ?;", [tag]).fetchone()
-                print(self.action)
-
-            vN, vD, vR, vA, vT, vM = tk.StringVar(value=self.action[1]),tk.StringVar(value=self.action[2]),tk.StringVar(value=self.action[3]),tk.StringVar(value=self.action[4]),tk.StringVar(value=self.action[5]),tk.StringVar(value=self.action[6])
-            tk.Label(frame, text="Name:").grid(row=0, column=0)
-            tk.Label(frame, text="Damage:").grid(row=1, column=0)
-            tk.Label(frame, text="Range:").grid(row=2, column=0)
-            tk.Label(frame, text="AOE:").grid(row=3, column=0)
-            tk.Label(frame, text="Tags:").grid(row=4, column=0)
-            tk.Label(frame, text="Modifier:").grid(row=5, column=0)
-
-            self.actname = tk.Entry(frame, textvariable=vN)
-            self.actname .grid(row=0, column=1)
-            self.actdamg = tk.Entry(frame, textvariable=vD)
-            self.actdamg .grid(row=1, column=1)
-            self.actrang = tk.Entry(frame, textvariable=vR)
-            self.actrang .grid(row=2, column=1)
-            self.actaoef = tk.Entry(frame, textvariable=vA)
-            self.actaoef .grid(row=3, column=1)
-            self.acttags = tk.Entry(frame, textvariable=vT)
-            self.acttags .grid(row=4, column=1)
-            self.actmods = tk.Entry(frame, textvariable=vM)
-            self.actmods .grid(row=5, column=1)
-
-            tk.Button(frame, text="Submit", command= self.__updateActInDB).grid(row=7, column=1)
-            tk.Button(frame, text="Back", command= self.__actMgr).grid(row=7, column=0)
-            tk.Button(frame, text="Exit", command= self.__exitSettings).grid(row=10, column=0, columnspan=2)
-
-        for i in self.settingsWindow.winfo_children():
-            i.destroy()
-        actFrame = tk.Frame(self.settingsWindow)
-        drop = ttk.Combobox(actFrame)
-        drop['values'] = self.cur.execute('select [name] from actions where [poss_player] = -1;').fetchall()
-        drop.current(0)
-        drop.grid(row=0, column=0)
-        tk.Button(actFrame, text="Edit", command=lambda: __editAct(drop.get(), actFrame)).grid(row=0, column=1)
-        tk.Button(actFrame, text="New Action", command=lambda: __editAct("New", actFrame)).grid(row=1, column=0, columnspan=2)
-        tk.Button(actFrame, text="Back", command=self.__sessSettings).grid(row=9, column=0, columnspan=2)
-        actFrame.pack()
-
-    def __exitSettings(self):
-        self.settingsWindow.destroy()
+        self.settingsWindow.prompt()
+        self.settingsWindow.setRenderFunc(self.renderFrame)
         self.renderFrame()
 
     def __quitGame(self):
