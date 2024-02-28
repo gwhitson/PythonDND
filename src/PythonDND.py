@@ -33,7 +33,7 @@ class PythonDND:
         else:
             self.initiative = self.cur.execute("select [initiative] from game;").fetchone()[0]
 
-        print(self.initiative)
+        #print(self.initiative)
 
         self.cur.execute("update game set [initiative] = ?;", [str(self.initiative)])
         self.conn.commit()
@@ -91,6 +91,7 @@ class PythonDND:
         self.control.pack(side=tk.LEFT, fill=tk.BOTH, anchor='ne')
         self.map.pack(side=tk.RIGHT, anchor='w')
         self.mapFrame.pack(side=tk.RIGHT, anchor='w')
+        self.initLB = None
 
         self.map.update()
         self.mapFrame.update()
@@ -151,6 +152,7 @@ class PythonDND:
             tk.Button(self.control, text="End Combat", command = self.endCombat).pack()
 
     def renderFrame(self):
+        print("rendering frame")
         self.conn.commit()
         self.gameSettings = self.cur.execute("select * from game;").fetchone()
         for widg in self.control.winfo_children():
@@ -190,10 +192,11 @@ class PythonDND:
         self.renderFrame()
 
     def startCombat(self):
-        # self.chooseinitiative
-        self.cur.execute("update game set [mode] = 'combat', [flags] = '', [initiative] = ?;", [self.initiative])
-        self.map.delete("range")
-        self.renderFrame()
+        if self.cur.execute("select [initiative] from game;").fetchone() == ('None',):
+            self.__chooseInitiative()
+        else:
+            self.cur.execute("update game set [mode] = 'combat';")
+            self.renderFrame()
 
     def endCombat(self):
         self.cur.execute("update game set [mode] = 'noncombat';")
@@ -253,6 +256,68 @@ class PythonDND:
         self.cur.execute("update game set [flags] = ?, [curr_ent] = ?;", ['a', self.selected[0]])
 
     # Privates
+    def __chooseInitiative(self):
+        for i in self.control.winfo_children():
+            i.destroy()
+        iniFrame = tk.Frame(self.control)
+        butFrame = tk.Frame(iniFrame)
+        self.initLB = tk.Listbox(iniFrame)
+
+        for i in self.cur.execute("select [id] from entities where id > -1;").fetchall():
+            self.initLB.insert(tk.END, str(i[0]) + ' - ' +self.cur.execute("select [name] from entities where [id] = ?;",[i[0]]).fetchone()[0])
+
+        tk.Button(butFrame, text="▲", command=self.__iniMoveUp).grid(row=0, column=0)
+        tk.Button(butFrame, text="▼", command=self.__iniMoveDown).grid(row=1, column=0)
+
+        self.initLB.grid(row=0, column=0)
+        butFrame.grid(row=0,column=1)
+        tk.Button(iniFrame, text="Submit", command=self.__startCombat).grid(row=8,column=0, columnspan=2)
+        iniFrame.pack()
+        tk.Button(self.control, text="Quit", command=self.__quitGame).pack()
+
+    def __iniMoveUp(self):
+        #print(self.initLB.curselection())
+        if self.initLB.curselection()[0] == 0:
+            print("ent at top of order")
+        else:
+            ind1 = self.initLB.curselection()[0] - 1
+            ind2 = self.initLB.curselection()[0]
+            temp1 = self.initLB.get(ind1)
+            temp2 = self.initLB.get(ind2)
+            #print(temp1, temp2)
+            self.initLB.delete(ind1, ind2)
+            self.initLB.insert(ind1, temp2)
+            self.initLB.insert(ind2, temp1)
+            self.initLB.selection_set(ind1)
+
+    def __iniMoveDown(self):
+        #print(self.initLB.curselection())
+        if self.initLB.curselection()[0] == self.initLB.size() - 1:
+            print("ent at bottom of order")
+        else:
+            ind1 = self.initLB.curselection()[0]
+            ind2 = self.initLB.curselection()[0] + 1
+            temp1 = self.initLB.get(ind1)
+            temp2 = self.initLB.get(ind2)
+            #print(temp1, temp2)
+            self.initLB.delete(ind1, ind2)
+            self.initLB.insert(ind1, temp2)
+            self.initLB.insert(ind2, temp1)
+            self.initLB.selection_set(ind2)
+
+    def __startCombat(self):
+        init = ""
+        for i in self.initLB.get(0,self.initLB.size() - 1):
+            init += (str(i[0]) + ',')
+
+        initArr = init.split(',')
+        initArr.remove('')
+        self.cur.execute("update game set [mode] = 'combat', [flags] = '', [initiative] = ?, [last_ent] = ?, [curr_ent] = ?, [next_ent] = ?;",[init, initArr[-1], initArr[0], initArr[1]])
+        self.map.delete("range")
+        self.conn.commit()
+        self.renderFrame()
+
+
     def __doAction(self, click: [int,int]):
         print(click)
 
@@ -293,11 +358,11 @@ class PythonDND:
             self.settingsWindow.destroy()
         except AttributeError:
             None
-        self.settingsWindow.prompt()
         self.settingsWindow.setRenderFunc(self.renderFrame)
+        self.settingsWindow.prompt()
         self.renderFrame()
 
     def __quitGame(self):
-        self.cur.execute("update game set [flags] = '', [mode] = 'noncombat';")
+        #self.cur.execute("update game set [flags] = '', [mode] = 'noncombat';")
         self.conn.commit()
         self.window.destroy()

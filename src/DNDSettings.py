@@ -11,8 +11,6 @@ class DNDSettings:
         self.squareSize = squareSize
         self.lb = None
         self.renderFrame = None
-        self.initiative = str(self.cur.execute("select [initiative] from game;").fetchone()[0])
-        print(self.initiative[0])
 
     def prompt(self):
         try:
@@ -20,18 +18,20 @@ class DNDSettings:
         except AttributeError:
             None
         self.conn.commit()
-        self.initiative = str(self.cur.execute("select [initiative] from game;").fetchone()[0])
         self.settingsWindow = tk.Toplevel(self.window)
         self.settingsWindow.title("Session Settings")
         tk.Button(self.settingsWindow, text="Entity Manager", command=self.__entMgr).pack()
         tk.Button(self.settingsWindow, text="Action Manager", command=self.__actMgr).pack()
-        tk.Button(self.settingsWindow, text="Initiative Manager", command=self.__iniMgr).pack()
         tk.Button(self.settingsWindow, text="Exit", command=self.__exitSettings).pack()
+        self.renderFrame()
+
+    def __exitSettings(self):
+        self.settingsWindow.destroy()
 
     def setRenderFunc(self, renderFrame):
         self.renderFrame = renderFrame
 
-    def __setInitiative(self):
+    def __udpateInitInDB(self):
         temp = ""
         for i in self.lb.get(0, self.lb.size() - 1):
             temp += str(self.cur.execute("select [id] from entities where [name] = ?;", [i[0]]).fetchone()[0])
@@ -42,15 +42,61 @@ class DNDSettings:
     def __updateEntInDB(self):
         if self.selected[0] is None:
             self.cur.execute("insert into entities ([name], [role], [hp], [ac], [move_spd], [grid_x], [grid_y], [pix_x], [pix_y]) values (?,?,?,?,?,?,?,?,?);",[self.name.get(), self.role.get(), self.hp.get(), self.ac.get(), self.moveSpeed.get(), self.grid_x.get(), self.grid_y.get(), int(self.grid_x.get()) * self.squareSize, int(self.grid_y.get()) * self.squareSize])
-            self.initiative += str(int(self.initiative[-2:-1]) + 1)
-            self.initiative += ","
-            print(self.initiative)
-            self.cur.execute("update game set [initiative] = ?;", [str(self.initiative)])
         else:
             self.cur.execute("update entities set [name] = ?, [role] = ?, [hp] = ?, [ac] = ?, [move_spd] = ?, [grid_x] = ?, [grid_y] = ?, [pix_x] = ?, [pix_y] = ? where [id] = ?;",[self.name.get(), self.role.get(), self.hp.get(), self.ac.get(), self.moveSpeed.get(), self.grid_x.get(), self.grid_y.get(), int(self.grid_x.get()) * self.squareSize, int(self.grid_y.get()) * self.squareSize, self.selected[0]])
 
         self.conn.commit()
         self.__entMgr()
+
+    def __updateActInDB(self):
+        if self.action[0] is None:
+            self.cur.execute("insert into actions ([name],[damage],[range],[aoe],[action_tags],[modifiers],[poss_player]) values (?,?,?,?,?,?,-1);",[self.actname.get(),self.actdamg.get(),self.actrang.get(),self.actaoef.get(),self.acttags.get(),self.actmods.get()])
+        else:
+            self.cur.execute("update actions set [name] = ?,[damage] = ?,[range] = ?,[aoe] = ?,[action_tags] = ?,[modifiers] = ? where [name] = ?;",[self.actname.get(),self.actdamg.get(),self.actrang.get(),self.actaoef.get(),self.acttags.get(),self.actmods.get(),self.action[1]])
+        self.conn.commit()
+        self.__actMgr()
+
+
+    def __remEnt(self, dropIn, frame: tk.Frame):
+        #print(dropIn)
+        self.cur.execute("delete from entities where [id] = ?;", [dropIn[0]])
+        self.cur.execute("delete from actions where [poss_player] = ?;", [dropIn[0]])
+        init = self.cur.execute("select [initiative] from game;").fetchone()
+        rem = init[0].find(dropIn[0])
+        print(rem)
+
+        self.__entMgr()
+
+#   def __iniMoveUp(self):
+#       print(self.lb.curselection())
+#       if self.lb.curselection()[0] == 0:
+#           print("ent at top of order")
+#       else:
+#           ind1 = self.lb.curselection()[0] - 1
+#           ind2 = self.lb.curselection()[0]
+#           temp1 = self.lb.get(ind1)
+#           temp2 = self.lb.get(ind2)
+#           print(temp1, temp2)
+#           self.lb.delete(ind1, ind2)
+#           self.lb.insert(ind1, temp2)
+#           self.lb.insert(ind2, temp1)
+#           self.lb.selection_set(ind1)
+#       print(self.lb.get(0, self.lb.size() - 1))
+
+#   def __iniMoveDown(self):
+#       print(self.lb.curselection())
+#       if self.lb.curselection()[0] == self.lb.size() - 1:
+#           print("ent at bottom of order")
+#       else:
+#           ind1 = self.lb.curselection()[0]
+#           ind2 = self.lb.curselection()[0] + 1
+#           temp1 = self.lb.get(ind1)
+#           temp2 = self.lb.get(ind2)
+#           print(temp1, temp2)
+#           self.lb.delete(ind1, ind2)
+#           self.lb.insert(ind1, temp2)
+#           self.lb.insert(ind2, temp1)
+#           self.lb.selection_set(ind2)
 
     def __editAct(self, tag: str, frame: tk.Frame):
         for i in frame.winfo_children():
@@ -159,45 +205,6 @@ class DNDSettings:
         #tk.Button(frame, text="Action Manager", command=self.__actMgr).grid(row=10, column=0, columnspan=2)
         tk.Button(frame, text="Exit", command= self.__exitSettings).grid(row=11, column=0, columnspan=2)
 
-    def __iniMoveUp(self):
-        print(self.lb.curselection())
-        if self.lb.curselection()[0] == 0:
-            print("ent at top of order")
-        else:
-            ind1 = self.lb.curselection()[0] - 1
-            ind2 = self.lb.curselection()[0]
-            temp1 = self.lb.get(ind1)
-            temp2 = self.lb.get(ind2)
-            print(temp1, temp2)
-            self.lb.delete(ind1, ind2)
-            self.lb.insert(ind1, temp2)
-            self.lb.insert(ind2, temp1)
-            self.lb.selection_set(ind1)
-        print(self.lb.get(0, self.lb.size() - 1))
-
-    def __iniMoveDown(self):
-        print(self.lb.curselection())
-        if self.lb.curselection()[0] == self.lb.size() - 1:
-            print("ent at bottom of order")
-        else:
-            ind1 = self.lb.curselection()[0]
-            ind2 = self.lb.curselection()[0] + 1
-            temp1 = self.lb.get(ind1)
-            temp2 = self.lb.get(ind2)
-            print(temp1, temp2)
-            self.lb.delete(ind1, ind2)
-            self.lb.insert(ind1, temp2)
-            self.lb.insert(ind2, temp1)
-            self.lb.selection_set(ind2)
-
-    def __updateActInDB(self):
-        if self.action[0] is None:
-            self.cur.execute("insert into actions ([name],[damage],[range],[aoe],[action_tags],[modifiers],[poss_player]) values (?,?,?,?,?,?,-1);",[self.actname.get(),self.actdamg.get(),self.actrang.get(),self.actaoef.get(),self.acttags.get(),self.actmods.get()])
-        else:
-            self.cur.execute("update actions set [name] = ?,[damage] = ?,[range] = ?,[aoe] = ?,[action_tags] = ?,[modifiers] = ? where [name] = ?;",[self.actname.get(),self.actdamg.get(),self.actrang.get(),self.actaoef.get(),self.acttags.get(),self.actmods.get(),self.action[1]])
-        self.conn.commit()
-        self.__actMgr()
-
     def __actMgr(self):
         self.renderFrame()
         for i in self.settingsWindow.winfo_children():
@@ -224,37 +231,27 @@ class DNDSettings:
             drop.current(0)
         except tk.TclError:
             None
-        drop.grid(row=0, column=0)
-        tk.Button(entFrame, text="Edit", command=lambda: self.__editEnt(drop.get(), entFrame)).grid(row=0, column=1)
-        tk.Button(entFrame, text="New Entity", command=lambda: self.__editEnt("New", entFrame)).grid(row=1, column=0, columnspan=2)
+        drop.grid(row=0, column=0, columnspan=2)
+        tk.Button(entFrame, text="Edit", command=lambda: self.__editEnt(drop.get(), entFrame)).grid(row=1, column=1)
+        tk.Button(entFrame, text="Delete", command=lambda: self.__remEnt(drop.get(), entFrame)).grid(row=1, column=0)
+        tk.Button(entFrame, text="New Entity", command=lambda: self.__editEnt("New", entFrame)).grid(row=2, column=0, columnspan=2)
         #tk.Button(entFrame, text="New Entity", command=self.addEntity).grid(row=1, column=0, columnspan=2)
         tk.Button(entFrame, text="Back", command=self.prompt).grid(row=9, column=0, columnspan=2)
         entFrame.pack()
 
-    def __iniMgr(self):
-        self.renderFrame()
-        for i in self.settingsWindow.winfo_children():
-            i.destroy()
-        iniFrame = tk.Frame(self.settingsWindow)
-        butFrame = tk.Frame(iniFrame)
-        self.lb = tk.Listbox(iniFrame)
+#   def __iniMgr(self):
+#       self.renderFrame()
+#       for i in self.settingsWindow.winfo_children():
+#           i.destroy()
+#       iniFrame = tk.Frame(self.settingsWindow)
+#       butFrame = tk.Frame(iniFrame)
+#       self.lb = tk.Listbox(iniFrame)
 
-        temp = self.initiative[:-1].split(',')
+#       tk.Button(butFrame, text="▲", command=self.__iniMoveUp).grid(row=0, column=0)
+#       tk.Button(butFrame, text="▼", command=self.__iniMoveDown).grid(row=1, column=0)
 
-        for i in temp:
-            self.lb.insert(tk.END, self.cur.execute("select [name] from entities where id = ?;",[i]).fetchone())
-
-
-        tk.Button(butFrame, text="▲", command=self.__iniMoveUp).grid(row=0, column=0)
-        tk.Button(butFrame, text="▼", command=self.__iniMoveDown).grid(row=1, column=0)
-
-        self.lb.grid(row=0, column=0)
-        butFrame.grid(row=0,column=1)
-        tk.Button(iniFrame, text="Submit", command=self.__setInitiative).grid(row=8,column=0, columnspan=2)
-        tk.Button(iniFrame, text="Back", command=self.prompt).grid(row=9, column=0, columnspan=2)
-        iniFrame.pack()
-
-
-    def __exitSettings(self):
-        self.settingsWindow.destroy()
-        self.renderFrame()
+#       self.lb.grid(row=0, column=0)
+#       butFrame.grid(row=0,column=1)
+#       tk.Button(iniFrame, text="Submit", command=self.__udpateInitInDB).grid(row=8,column=0, columnspan=2)
+#       tk.Button(iniFrame, text="Back", command=self.prompt).grid(row=9, column=0, columnspan=2)
+#       iniFrame.pack()
