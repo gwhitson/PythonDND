@@ -22,6 +22,7 @@ class DNDSettings:
         self.settingsWindow.title("Session Settings")
         tk.Button(self.settingsWindow, text="Entity Manager", command=self.__entMgr).pack()
         tk.Button(self.settingsWindow, text="Action Manager", command=self.__actMgr).pack()
+        tk.Button(self.settingsWindow, text="Initiative Manager", command=self.__iniMgr).pack()
         tk.Button(self.settingsWindow, text="Exit", command=self.__exitSettings).pack()
         self.renderFrame()
 
@@ -67,36 +68,36 @@ class DNDSettings:
 
         self.__entMgr()
 
-#   def __iniMoveUp(self):
-#       print(self.lb.curselection())
-#       if self.lb.curselection()[0] == 0:
-#           print("ent at top of order")
-#       else:
-#           ind1 = self.lb.curselection()[0] - 1
-#           ind2 = self.lb.curselection()[0]
-#           temp1 = self.lb.get(ind1)
-#           temp2 = self.lb.get(ind2)
-#           print(temp1, temp2)
-#           self.lb.delete(ind1, ind2)
-#           self.lb.insert(ind1, temp2)
-#           self.lb.insert(ind2, temp1)
-#           self.lb.selection_set(ind1)
-#       print(self.lb.get(0, self.lb.size() - 1))
+    def __iniMoveUp(self):
+        #print(self.lb.curselection())
+        if self.lb.curselection()[0] == 0:
+            print("ent at top of order")
+        else:
+            ind1 = self.lb.curselection()[0] - 1
+            ind2 = self.lb.curselection()[0]
+            temp1 = self.lb.get(ind1)
+            temp2 = self.lb.get(ind2)
+            print(temp1, temp2)
+            self.lb.delete(ind1, ind2)
+            self.lb.insert(ind1, temp2)
+            self.lb.insert(ind2, temp1)
+            self.lb.selection_set(ind1)
+        print(self.lb.get(0, self.lb.size() - 1))
 
-#   def __iniMoveDown(self):
-#       print(self.lb.curselection())
-#       if self.lb.curselection()[0] == self.lb.size() - 1:
-#           print("ent at bottom of order")
-#       else:
-#           ind1 = self.lb.curselection()[0]
-#           ind2 = self.lb.curselection()[0] + 1
-#           temp1 = self.lb.get(ind1)
-#           temp2 = self.lb.get(ind2)
-#           print(temp1, temp2)
-#           self.lb.delete(ind1, ind2)
-#           self.lb.insert(ind1, temp2)
-#           self.lb.insert(ind2, temp1)
-#           self.lb.selection_set(ind2)
+    def __iniMoveDown(self):
+        print(self.lb.curselection())
+        if self.lb.curselection()[0] == self.lb.size() - 1:
+            print("ent at bottom of order")
+        else:
+            ind1 = self.lb.curselection()[0]
+            ind2 = self.lb.curselection()[0] + 1
+            temp1 = self.lb.get(ind1)
+            temp2 = self.lb.get(ind2)
+            print(temp1, temp2)
+            self.lb.delete(ind1, ind2)
+            self.lb.insert(ind1, temp2)
+            self.lb.insert(ind2, temp1)
+            self.lb.selection_set(ind2)
 
     def __editAct(self, tag: str, frame: tk.Frame):
         for i in frame.winfo_children():
@@ -235,23 +236,27 @@ class DNDSettings:
         tk.Button(entFrame, text="Edit", command=lambda: self.__editEnt(drop.get(), entFrame)).grid(row=1, column=1)
         tk.Button(entFrame, text="Delete", command=lambda: self.__remEnt(drop.get(), entFrame)).grid(row=1, column=0)
         tk.Button(entFrame, text="New Entity", command=lambda: self.__editEnt("New", entFrame)).grid(row=2, column=0, columnspan=2)
-        #tk.Button(entFrame, text="New Entity", command=self.addEntity).grid(row=1, column=0, columnspan=2)
         tk.Button(entFrame, text="Back", command=self.prompt).grid(row=9, column=0, columnspan=2)
         entFrame.pack()
 
-#   def __iniMgr(self):
-#       self.renderFrame()
-#       for i in self.settingsWindow.winfo_children():
-#           i.destroy()
-#       iniFrame = tk.Frame(self.settingsWindow)
-#       butFrame = tk.Frame(iniFrame)
-#       self.lb = tk.Listbox(iniFrame)
+    def __iniMgr(self):
+        init = self.cur.execute("select [initiative] from game;").fetchone()[0]
+        print(init)
+        self.renderFrame()
+        for i in self.settingsWindow.winfo_children():
+            i.destroy()
+        iniFrame = tk.Frame(self.settingsWindow)
+        butFrame = tk.Frame(iniFrame)
+        self.lb = tk.Listbox(iniFrame)
 
-#       tk.Button(butFrame, text="▲", command=self.__iniMoveUp).grid(row=0, column=0)
-#       tk.Button(butFrame, text="▼", command=self.__iniMoveDown).grid(row=1, column=0)
+        for i in init.split(','):
+            self.lb.insert(tk.END, self.cur.execute("select [name] from entities where [id] = ?;", [i]).fetchone())
 
-#       self.lb.grid(row=0, column=0)
-#       butFrame.grid(row=0,column=1)
-#       tk.Button(iniFrame, text="Submit", command=self.__udpateInitInDB).grid(row=8,column=0, columnspan=2)
-#       tk.Button(iniFrame, text="Back", command=self.prompt).grid(row=9, column=0, columnspan=2)
-#       iniFrame.pack()
+        tk.Button(butFrame, text="▲", command=self.__iniMoveUp).grid(row=0, column=0)
+        tk.Button(butFrame, text="▼", command=self.__iniMoveDown).grid(row=1, column=0)
+
+        self.lb.grid(row=0, column=0)
+        butFrame.grid(row=0,column=1)
+        tk.Button(iniFrame, text="Submit", command=self.__udpateInitInDB).grid(row=8,column=0, columnspan=2)
+        tk.Button(iniFrame, text="Back", command=self.prompt).grid(row=9, column=0, columnspan=2)
+        iniFrame.pack()

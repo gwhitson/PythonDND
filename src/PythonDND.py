@@ -11,9 +11,12 @@ class PythonDND:
         menu = StartMenu.StartMenu()
         menuRet = menu.startMenu()
         self.save = menuRet[0]
-        self.resFiles = menuRet[1]
+        self.encounter = menuRet[1]
+        self.resFiles = menuRet[2]
         if self.save == "":
             exit(3)
+
+
 
         self.window = tk.Tk()
         self.window.title("Dungeons and Dragons")
@@ -23,26 +26,27 @@ class PythonDND:
         self.cur = self.conn.cursor()
 
         # vars to be used
-        self.selected = [None,None,None,None,None,None,None,None,None]
+        self.curr_ent = [None, None, None, None, None, None, None, None, None]
 
-        if (self.cur.execute("select [initiative] from game;") == None):
+        if (self.cur.execute("select [initiative] from " + self.encounter + ";") == None):
             self.initiative = ""
             for i in (self.cur.execute("select [id] from entities where [id] > -1;").fetchall()):
                 self.initiative += str(i[0])
                 self.initiative += ","
         else:
-            self.initiative = self.cur.execute("select [initiative] from game;").fetchone()[0]
+            self.initiative = self.cur.execute("select [initiative] from " + self.encounter + ";").fetchone()[0]
 
         #print(self.initiative)
 
-        self.cur.execute("update game set [initiative] = ?;", [str(self.initiative)])
+        self.cur.execute("update " + self.encounter + " set [initiative] = ?;", [str(self.initiative)])
         self.conn.commit()
 
         self.selectedActions = None
         self.action = None
 
-        self.gameSettings = self.cur.execute("select * from game;").fetchone()
-        spl = self.gameSettings[7].split('x')
+        self.gameSettings = self.cur.execute("select * from " + self.encounter + ";").fetchone()
+        print(self.gameSettings)
+        spl = self.gameSettings[3].split('x')
         self.mapDimension = [int(spl[0]), int(spl[1])]
 
         if self.mapDimension[0] <= self.mapDimension[1]:
@@ -152,9 +156,9 @@ class PythonDND:
             tk.Button(self.control, text="End Combat", command = self.endCombat).pack()
 
     def renderFrame(self):
-        print("rendering frame")
+        #print("rendering frame")
         self.conn.commit()
-        self.gameSettings = self.cur.execute("select * from game;").fetchone()
+        self.gameSettings = self.cur.execute("select * from " + self.encounter + ";").fetchone()
         for widg in self.control.winfo_children():
             widg.destroy()
         self.renderControlFrame()
@@ -162,44 +166,77 @@ class PythonDND:
 
     # Game State Interactions
     def leftClick(self, event):
-        print(self.cur.execute("select [initiative] from game;").fetchone())
+        self.gameSettings = self.cur.execute("select * from " + self.encounter + ";").fetchone()
         click_x = int((self.map.canvasx(event.x)) / self.squareSize + 1)
         click_y = int((self.map.canvasy(event.y)) / self.squareSize + 1)
-        clickedEnt = self.cur.execute("select * from entities where [grid_x] = ? and [grid_y] = ?;", [click_x, click_y]).fetchall()
-        if clickedEnt != []:
-            self.selected = clickedEnt[0]
-            #print(clickedEnt[0])
-            if self.gameSettings[5] == "noncombat":
-                self.moveEnt(click_x, click_y)
-        else:
-            if self.gameSettings[8] == 'm':
-                px = int(click_x * self.squareSize) - int(self.squareSize / 2)
-                py = int(click_y * self.squareSize) - int(self.squareSize / 2)
-                if self.posInRange([self.map.canvasx(event.x), self.map.canvasy(event.y)], [self.selected[8], self.selected[9]], int(((self.selected[5] / 5) + 0.5) * self.squareSize)):
-                    self.cur.execute("update game set [flags] = '', [last_ent] = ?, [curr_ent] = null;",[self.selected[0]])
-                    self.cur.execute("update entities set [grid_x] = ?, [grid_y] = ?, [pix_x] = ?, [pix_y] = ? where [id] = ?;", [click_x, click_y, px, py, self.selected[0]])
-                    self.map.delete("range")
-                    self.selected = None
-            elif self.gameSettings[8] == 'a':
-                px = int(click_x * self.squareSize) - int(self.squareSize / 2)
-                py = int(click_y * self.squareSize) - int(self.squareSize / 2)
-                if self.posInRange([self.map.canvasx(event.x), self.map.canvasy(event.y)], [self.selected[8], self.selected[9]], ((self.action[3] + 2.5) / 5) * self.squareSize):
-                    self.cur.execute("update game set [flags] = '', [last_ent] = ?, [curr_ent] = null;",[self.selected[0]])
-                    self.__doAction([self.map.canvasx(event.x), self.map.canvasy(event.y)])
-                    self.map.delete("range")
-                    self.selected = None
+        clickedEnt = self.cur.execute("select * from entities where [grid_x] = ? and [grid_y] = ?;", [click_x, click_y]).fetchone()
+        #print(clickedEnt)
 
-        self.renderFrame()
+        # check mode
+        #print(self.gameSettings)
+        if self.gameSettings[5] == 'combat':
+            print("combat")
+        elif self.gameSettings[5] == 'noncombat':
+            #print("noncombat")
+            if self.gameSettings[8] == 'm' and clickedEnt is None:
+                #print('move')
+                #print(self.curr_ent)
+                px = int(click_x * self.squareSize) - int(self.squareSize / 2)
+                py = int(click_y * self.squareSize) - int(self.squareSize / 2)
+                if self.posInRange([self.map.canvasx(event.x), self.map.canvasy(event.y)], [self.curr_ent[8], self.curr_ent[9]], int(((self.curr_ent[5] / 5) + 0.5) * self.squareSize)):
+                    self.cur.execute("update " + self.encounter + " set [flags] = '';")
+                    self.cur.execute("update entities set [grid_x] = ?, [grid_y] = ?, [pix_x] = ?, [pix_y] = ? where [id] = ?;", [click_x, click_y, px, py, self.curr_ent[0]])
+                    self.map.delete("range")
+                self.curr_ent = [None, None, None, None, None, None, None, None, None]
+                self.renderFrame()
+            else:
+                #print('prompt move')
+                if clickedEnt is not None:
+                    self.moveEnt(click_x, click_y, clickedEnt[0])
+        else:
+            #print('invalid game mode')
+            self.__quitGame()
+
+
+#   def leftClick(self, event):
+#       #print(self.cur.execute("select [initiative] from game;").fetchone())
+#       click_x = int((self.map.canvasx(event.x)) / self.squareSize + 1)
+#       click_y = int((self.map.canvasy(event.y)) / self.squareSize + 1)
+#       clickedEnt = self.cur.execute("select * from entities where [grid_x] = ? and [grid_y] = ?;", [click_x, click_y]).fetchall()
+#       if clickedEnt != []:
+#           self.curr_ent = clickedEnt[0]
+#           #print(clickedEnt[0])
+#           if self.gameSettings[5] == "noncombat":
+#               self.moveEnt(click_x, click_y)
+#       else:
+#           if self.gameSettings[8] == 'm':
+#               px = int(click_x * self.squareSize) - int(self.squareSize / 2)
+#               py = int(click_y * self.squareSize) - int(self.squareSize / 2)
+#               if self.posInRange([self.map.canvasx(event.x), self.map.canvasy(event.y)], [self.curr_ent[8], self.curr_ent[9]], int(((self.curr_ent[5] / 5) + 0.5) * self.squareSize)):
+#                   self.cur.execute("update game set [flags] = '', [last_ent] = ?, [curr_ent] = null;",[self.curr_ent[0]])
+#                   self.cur.execute("update entities set [grid_x] = ?, [grid_y] = ?, [pix_x] = ?, [pix_y] = ? where [id] = ?;", [click_x, click_y, px, py, self.curr_ent[0]])
+#                   self.map.delete("range")
+#                   self.curr_ent = None
+#           elif self.gameSettings[8] == 'a':
+#               px = int(click_x * self.squareSize) - int(self.squareSize / 2)
+#               py = int(click_y * self.squareSize) - int(self.squareSize / 2)
+#               if self.posInRange([self.map.canvasx(event.x), self.map.canvasy(event.y)], [self.curr_ent[8], self.curr_ent[9]], ((self.action[3] + 2.5) / 5) * self.squareSize):
+#                   self.cur.execute("update game set [flags] = '', [last_ent] = ?, [curr_ent] = null;",[self.curr_ent[0]])
+#                   self.__doAction([self.map.canvasx(event.x), self.map.canvasy(event.y)])
+#                   self.map.delete("range")
+#                   self.curr_ent = None
+
+#       self.renderFrame()
 
     def startCombat(self):
-        if self.cur.execute("select [initiative] from game;").fetchone() == ('None',):
+        if self.gameSettings[0] is None or self.gameSettings[2] is None:
             self.__chooseInitiative()
         else:
-            self.cur.execute("update game set [mode] = 'combat';")
+            self.cur.execute("update " + self.encounter + " set [mode] = 'combat';")
             self.renderFrame()
 
     def endCombat(self):
-        self.cur.execute("update game set [mode] = 'noncombat';")
+        self.cur.execute("update " + self.encounter + " set [mode] = 'noncombat';")
         self.renderFrame()
 
     def showRange(self, center: [int, int], radius: float, color: str):
@@ -223,37 +260,40 @@ class PythonDND:
 
     def posInRange(self, pos: [int, int], center: [int, int], radius: float) -> bool:
         if (((pos[0] - center[0]) ** 2) + ((pos[1] - center[1]) ** 2) <= radius ** 2):
-            # print("pos is in range")
+            # #print("pos is in range")
             return True
         else:
-            # print("pos is not in range")
+            # #print("pos is not in range")
             return False
 
     # Actions
-    def moveEnt(self, x, y):
-        self.showRange([x, y], self.selected[5] + 2.5, "#87d987")
-        self.cur.execute("update game set [flags] = ?, [curr_ent] = ?;", ['m', self.selected[0]])
+    def moveEnt(self, x, y, entID):
+        self.curr_ent = self.cur.execute("select * from entities where [id] = ?;", [entID]).fetchone()
+        self.showRange([x, y], self.curr_ent[5] + 2.5, "#87d987")
+        self.cur.execute("update " + self.encounter + " set [flags] = ?, [curr_ent] = ?;", ['m', entID])
 
     def chooseAction(self):
         self.att_sel = tk.Menu(tearoff=0)
         self.att_sel.event_add('<<event-test>>', '<Button-1>')
         self.att_sel.bind('<<event-test>>', self.__actionHelper)
+        self.curr_ent = self.cur.execute("select * from entities where [id] = ?;", [self.cur.execute("select [curr_ent] from " + self.encounter + ";").fetchone()[0]]).fetchone()
 
-        if self.selected is not None:
-            print(self.selected)
-            self.selectedActions = self.cur.execute("select [id], [name], [range], [damage], [action_tags] from actions where [poss_player] = ?;", [self.selected[0]]).fetchall()
+        if self.curr_ent is not None:
+            #print(self.curr_ent)
+            self.selectedActions = self.cur.execute("select [id], [name], [range], [damage], [action_tags] from actions where [poss_player] = ?;", [self.curr_ent[0]]).fetchall()
 
             for i in self.selectedActions:
                 self.att_sel.add_command(label=i[1])
-            self.att_sel.tk_popup(int(self.selected[8] + self.control.winfo_width()),int(self.selected[9]))
+            self.att_sel.tk_popup(int(self.curr_ent[8] + self.control.winfo_width()),int(self.curr_ent[9]))
             return 1
         else:
-            print('no ent selected')
+            #print('no ent selected')
             return 0
 
     def doChooseAction(self):
-        self.chooseAction()
-        self.cur.execute("update game set [flags] = ?, [curr_ent] = ?;", ['a', self.selected[0]])
+        if self.cur.execute("select [mode] from " + self.encounter + ";").fetchone()[0] == 'combat':
+            print('tester')
+            self.chooseAction()
 
     # Privates
     def __chooseInitiative(self):
@@ -278,7 +318,8 @@ class PythonDND:
     def __iniMoveUp(self):
         #print(self.initLB.curselection())
         if self.initLB.curselection()[0] == 0:
-            print("ent at top of order")
+            None
+            #print("ent at top of order")
         else:
             ind1 = self.initLB.curselection()[0] - 1
             ind2 = self.initLB.curselection()[0]
@@ -293,7 +334,8 @@ class PythonDND:
     def __iniMoveDown(self):
         #print(self.initLB.curselection())
         if self.initLB.curselection()[0] == self.initLB.size() - 1:
-            print("ent at bottom of order")
+            None
+            #print("ent at bottom of order")
         else:
             ind1 = self.initLB.curselection()[0]
             ind2 = self.initLB.curselection()[0] + 1
@@ -312,26 +354,22 @@ class PythonDND:
 
         initArr = init.split(',')
         initArr.remove('')
-        self.cur.execute("update game set [mode] = 'combat', [flags] = '', [initiative] = ?, [last_ent] = ?, [curr_ent] = ?, [next_ent] = ?;",[init, initArr[-1], initArr[0], initArr[1]])
+        self.cur.execute("update " + self.encounter + " set [mode] = 'combat', [flags] = '', [initiative] = ?, [last_ent] = ?, [curr_ent] = ?, [next_ent] = ?;",[init, initArr[-1], initArr[0], initArr[1]])
+
         self.map.delete("range")
-        self.conn.commit()
         self.renderFrame()
 
 
     def __doAction(self, click: [int,int]):
-        print(click)
+        None
+        #print(click)
 
     def __actionHelper(self, event):
         arith = int(self.att_sel.winfo_height() / len(self.selectedActions))
         self.actionID = self.selectedActions[int(int(event.y) / arith)][0]
-        print(self.actionID)
         self.action = self.cur.execute("select * from actions where id = ?;", [self.actionID]).fetchone()
-        print(self.action)
-        print('show range')
-        print(self.selected[6])
-        print(self.selected[7])
-        print(self.action[3])
-        self.showRange([self.selected[6], self.selected[7]], self.action[3] + 2.5, "#ff7878")
+        #print(self.action)
+        self.showRange([self.curr_ent[6], self.curr_ent[7]], self.action[3] + 2.5, "#ff7878")
 
     def __windowsScroll(self, event):
         if event.delta < 1:
