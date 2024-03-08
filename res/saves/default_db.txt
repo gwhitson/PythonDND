@@ -1,5 +1,4 @@
 CREATE TABLE players (id INTEGER PRIMARY KEY ASC, name TEXT, hp INTEGER, ac INTEGER, move_spd INTEGER not null, sprite TEXT) STRICT;
 CREATE TABLE enemies (id INTEGER PRIMARY KEY ASC, name TEXT, hp INTEGER, ac INTEGER, move_spd INTEGER not null, sprite TEXT) STRICT;
-CREATE TABLE actions (id INTEGER PRIMARY KEY ASC, name TEXT, damage TEXT, range INTEGER, aoe TEXT, action_tags TEXT, modifiers TEXT, poss_player INTEGER, FOREIGN KEY (poss_player) REFERENCES 'entities'(id)) STRICT;
 CREATE TABLE game (encounters TEXT);
 PRAGMA foreign_keys=on;

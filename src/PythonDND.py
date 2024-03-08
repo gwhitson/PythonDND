@@ -278,7 +278,7 @@ class PythonDND:
 
         if self.curr_ent is not None:
             #print(self.curr_ent)
-            self.selectedActions = self.cur.execute("select [id], [name], [range], [damage], [action_tags] from actions where [poss_player] = ?;", [self.curr_ent[0]]).fetchall()
+            self.selectedActions = self.cur.execute("select [id], [name], [range], [damage], [action_tags] from " + self.encounter + "_actions where [poss_player] = ?;", [self.curr_ent[0]]).fetchall()
 
             for i in self.selectedActions:
                 self.att_sel.add_command(label=i[1])
@@ -365,7 +365,7 @@ class PythonDND:
     def __actionHelper(self, event):
         arith = int(self.att_sel.winfo_height() / len(self.selectedActions))
         self.actionID = self.selectedActions[int(int(event.y) / arith)][0]
-        self.action = self.cur.execute("select * from actions where id = ?;", [self.actionID]).fetchone()
+        self.action = self.cur.execute("select * from " + self.encounter + "_actions where id = ?;", [self.actionID]).fetchone()
         #print(self.action)
         self.showRange([self.curr_ent[6], self.curr_ent[7]], self.action[3] + 2.5, "#ff7878")
 

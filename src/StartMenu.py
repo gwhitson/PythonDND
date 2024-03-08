@@ -60,7 +60,6 @@ class StartMenu:
 
         self.conn.commit()
 
-        self.__loadActions()
         self.__loadEnemies()
         self.__loadEncounter()
 
@@ -80,11 +79,13 @@ class StartMenu:
     def __createEncounter(self):
         self.encounter = self.encounterVar.get()
         self.cur.execute("insert into game ([encounters]) values (?);", [self.encounter])
-        self.cur.execute("CREATE TABLE " + self.encounter + " (initiative TEXT, curr_ent INTEGER, curr_action INTEGER, mode TEXT not null, targetted TEXT, map_size TEXT not null, flags TEXT, FOREIGN KEY (curr_ent) REFERENCES entities(id), FOREIGN KEY (curr_action) REFERENCES actions(id)) STRICT;")
+        self.cur.execute("CREATE TABLE " + self.encounter + " (initiative TEXT, curr_ent INTEGER, curr_action INTEGER, mode TEXT not null, targetted TEXT, map_size TEXT not null, flags TEXT, FOREIGN KEY (curr_ent) REFERENCES entities(id), FOREIGN KEY (curr_action) REFERENCES " + self.encounter + "_actions(id)) STRICT;")
         self.cur.execute("CREATE TABLE " + self.encounter + "_entities (id INTEGER PRIMARY KEY ASC, name TEXT, role TEXT, hp INTEGER, ac INTEGER, move_spd INTEGER not null, grid_x INTEGER not null, grid_y INTEGER not null, pix_x INTEGER not null, pix_y INTEGER not null, sprite TEXT) STRICT;")
+        self.cur.execute("CREATE TABLE " + self.encounter + "_actions (id INTEGER PRIMARY KEY ASC, name TEXT, damage TEXT, range INTEGER, aoe INTEGER, action_tags TEXT, modifiers TEXT, poss_player INTEGER, FOREIGN KEY (poss_player) REFERENCES '" + self.encounter + "_entities') STRICT;")
         self.cur.execute("insert into " + self.encounter + " ([map_size], [mode]) values (?,?);", ["noncombat", self.mapSize.get()])
         self.cur.execute("insert into " + self.encounter + "_entities (id, name, role, hp, ac, move_spd, grid_x, grid_y, pix_x, pix_y) values (-1, 'template', 'template', -1, -1, -1, -1, -1, -1, -1);")
         self.conn.commit()
+        self.__loadActions()
         self.__startGame()
 
     def __loadEncounter(self):
@@ -111,7 +112,7 @@ class StartMenu:
             for row in data:
                 if count != 0:
                     row.append(-1)
-                    self.cur.execute("insert into actions ([name],[range],[damage],[aoe],[action_tags],[modifiers],[poss_player]) values (?,?,?,?,?,?,?);", row)
+                    self.cur.execute("insert into " + self.encounter + "_actions ([name],[range],[damage],[aoe],[action_tags],[modifiers],[poss_player]) values (?,?,?,?,?,?,?);", row)
                     self.conn.commit()
                 else:
                     count += 1

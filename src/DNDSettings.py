@@ -52,9 +52,9 @@ class DNDSettings:
 
     def __updateActInDB(self):
         if self.action[0] is None:
-            self.cur.execute("insert into actions ([name],[damage],[range],[aoe],[action_tags],[modifiers],[poss_player]) values (?,?,?,?,?,?,-1);",[self.actname.get(),self.actdamg.get(),self.actrang.get(),self.actaoef.get(),self.acttags.get(),self.actmods.get()])
+            self.cur.execute("insert into " + self.encounter + "_actions ([name],[damage],[range],[aoe],[action_tags],[modifiers],[poss_player]) values (?,?,?,?,?,?,-1);",[self.actname.get(),self.actdamg.get(),self.actrang.get(),self.actaoef.get(),self.acttags.get(),self.actmods.get()])
         else:
-            self.cur.execute("update actions set [name] = ?,[damage] = ?,[range] = ?,[aoe] = ?,[action_tags] = ?,[modifiers] = ? where [name] = ?;",[self.actname.get(),self.actdamg.get(),self.actrang.get(),self.actaoef.get(),self.acttags.get(),self.actmods.get(),self.action[1]])
+            self.cur.execute("update " + self.encounter + "_actions set [name] = ?,[damage] = ?,[range] = ?,[aoe] = ?,[action_tags] = ?,[modifiers] = ? where [name] = ?;",[self.actname.get(),self.actdamg.get(),self.actrang.get(),self.actaoef.get(),self.acttags.get(),self.actmods.get(),self.action[1]])
         self.conn.commit()
         self.__actMgr()
 
@@ -62,7 +62,7 @@ class DNDSettings:
     def __remEnt(self, dropIn, frame: tk.Frame):
         #print(dropIn)
         self.cur.execute("delete from " + self.encounter + "_entities where [id] = ?;", [dropIn[0]])
-        self.cur.execute("delete from actions where [poss_player] = ?;", [dropIn[0]])
+        self.cur.execute("delete from " + self.encounter + "_actions where [poss_player] = ?;", [dropIn[0]])
         init = self.cur.execute("select [initiative] from game;").fetchone()
         rem = init[0].find(dropIn[0])
         print(rem)
@@ -107,7 +107,7 @@ class DNDSettings:
         if tag == "New":
             self.action = [None,None,None,None,None,None,None,None]
         else:
-            self.action = self.cur.execute("select * from actions where [poss_player] = -1 and [name] = ?;", [tag]).fetchone()
+            self.action = self.cur.execute("select * from " + self.encounter + "_actions where [poss_player] = -1 and [name] = ?;", [tag]).fetchone()
 
         vN, vD, vR, vA, vT, vM = tk.StringVar(value=self.action[1]),tk.StringVar(value=self.action[2]),tk.StringVar(value=self.action[3]),tk.StringVar(value=self.action[4]),tk.StringVar(value=self.action[5]),tk.StringVar(value=self.action[6])
         tk.Label(frame, text="Name:").grid(row=0, column=0)
@@ -173,27 +173,27 @@ class DNDSettings:
             butFrame.grid(row=0,column=1)
             lb1 = tk.Listbox(actFrame)
             lb1.grid(row=0, column=0)
-            for i in self.cur.execute("select [name] from actions where [poss_player] = ?;",[self.selected[0]]):
+            for i in self.cur.execute("select [name] from " + self.encounter + "_actions where [poss_player] = ?;",[self.selected[0]]):
                 lb1.insert(tk.END, i)
                 #temp = tk.Label(actFrame, text=i[0])
                 #temp.grid(row=count1, column=0)
                 #temp.bind("<Button-1>", lambda event: print(event))
             lb2 = tk.Listbox(actFrame)
             lb2.grid(row=0, column=2)
-            for i in self.cur.execute("select [name] from actions where [poss_player] = -1 and [name] not in (select [name] from actions where [poss_player] = ?);",[self.selected[0]]):
+            for i in self.cur.execute("select [name] from " + self.encounter + "_actions where [poss_player] = -1 and [name] not in (select [name] from " + self.encounter + "_actions where [poss_player] = ?);",[self.selected[0]]):
                 lb2.insert(tk.END, i)
                 #temp = tk.Label(actFrame, text=i[0])
                 #temp.grid(row=count2, column=1)
                 #temp.bind("<Button-1>", lambda event: print(event))
 
             def __addAct(lb1: tk.Listbox, lb2: tk.Listbox):
-                self.cur.execute("insert into actions ([poss_player],[name],[damage],[range],[aoe],[action_tags],[modifiers]) select ?,[name],[damage],[range],[aoe],[action_tags],[modifiers] from actions where [name] = ? and [poss_player] = -1;", [self.selected[0], lb2.get(lb2.curselection())[0]]) 
+                self.cur.execute("insert into " + self.encounter + "_actions ([poss_player],[name],[damage],[range],[aoe],[action_tags],[modifiers]) select ?,[name],[damage],[range],[aoe],[action_tags],[modifiers] from " + self.encounter + "_actions where [name] = ? and [poss_player] = -1;", [self.selected[0], lb2.get(lb2.curselection())[0]]) 
                 name = lb2.get(lb2.curselection())
                 lb2.delete(lb2.curselection()[0])
                 lb1.insert(tk.END, name)
 
             def __remAct(lb1: tk.Listbox, lb2: tk.Listbox):
-                self.cur.execute("delete from actions where [name] = ? and [poss_player] = ?;", [lb1.get(lb1.curselection())[0], self.selected[0]]) 
+                self.cur.execute("delete from " + self.encounter + "_actions where [name] = ? and [poss_player] = ?;", [lb1.get(lb1.curselection())[0], self.selected[0]]) 
                 name = lb1.get(lb1.curselection())
                 lb1.delete(lb1.curselection()[0])
                 lb2.insert(tk.END, name)
@@ -213,7 +213,7 @@ class DNDSettings:
             i.destroy()
         actFrame = tk.Frame(self.settingsWindow)
         drop = ttk.Combobox(actFrame)
-        drop['values'] = self.cur.execute('select [name] from actions where [poss_player] = -1;').fetchall()
+        drop['values'] = self.cur.execute("select [name] from " + self.encounter + "_actions where [poss_player] = -1;").fetchall()
         drop.current(0)
         drop.grid(row=0, column=0)
         tk.Button(actFrame, text="Edit", command=lambda: self.__editAct(drop.get(), actFrame)).grid(row=0, column=1)
