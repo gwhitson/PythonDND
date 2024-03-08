@@ -16,8 +16,6 @@ class PythonDND:
         if self.save == "":
             exit(3)
 
-
-
         self.window = tk.Tk()
         self.window.title("Dungeons and Dragons")
         self.window.attributes("-fullscreen", True)
@@ -30,7 +28,7 @@ class PythonDND:
 
         if (self.cur.execute("select [initiative] from " + self.encounter + ";") == None):
             self.initiative = ""
-            for i in (self.cur.execute("select [id] from entities where [id] > -1;").fetchall()):
+            for i in (self.cur.execute("select [id] from " + self.encounter + "_entities where [id] > -1;").fetchall()):
                 self.initiative += str(i[0])
                 self.initiative += ","
         else:
@@ -101,7 +99,7 @@ class PythonDND:
         self.mapFrame.update()
         self.control.update()
 
-        self.settingsWindow = DNDSettings.DNDSettings(self.save, self.window, self.squareSize)
+        self.settingsWindow = DNDSettings.DNDSettings(self.save, self.window, self.squareSize, self.encounter)
 
         self.renderFrame()
         self.window.mainloop()
@@ -119,7 +117,7 @@ class PythonDND:
         for k in range(0, w, self.squareSize):
             self.map.create_line(k, 0, k, h, fill="black", tags="map")
 
-        self.entities = (self.cur.execute("Select [name],[role],[grid_x],[grid_y],[pix_x],[pix_y] from entities where id > -1;")).fetchall()
+        self.entities = (self.cur.execute("Select [name],[role],[grid_x],[grid_y],[pix_x],[pix_y] from " + self.encounter + "_entities where id > -1;")).fetchall()
         for i in self.entities:
             if i[1] == "player":
                 self.map.create_oval((int(i[2]) - 1) * self.squareSize,
@@ -156,7 +154,7 @@ class PythonDND:
             tk.Button(self.control, text="End Combat", command = self.endCombat).pack()
 
     def renderFrame(self):
-        #print("rendering frame")
+        print("rendering frame")
         self.conn.commit()
         self.gameSettings = self.cur.execute("select * from " + self.encounter + ";").fetchone()
         for widg in self.control.winfo_children():
@@ -169,7 +167,7 @@ class PythonDND:
         self.gameSettings = self.cur.execute("select * from " + self.encounter + ";").fetchone()
         click_x = int((self.map.canvasx(event.x)) / self.squareSize + 1)
         click_y = int((self.map.canvasy(event.y)) / self.squareSize + 1)
-        clickedEnt = self.cur.execute("select * from entities where [grid_x] = ? and [grid_y] = ?;", [click_x, click_y]).fetchone()
+        clickedEnt = self.cur.execute("select * from " + self.encouter + "_entities where [grid_x] = ? and [grid_y] = ?;", [click_x, click_y]).fetchone()
         #print(clickedEnt)
 
         # check mode
@@ -185,7 +183,7 @@ class PythonDND:
                 py = int(click_y * self.squareSize) - int(self.squareSize / 2)
                 if self.posInRange([self.map.canvasx(event.x), self.map.canvasy(event.y)], [self.curr_ent[8], self.curr_ent[9]], int(((self.curr_ent[5] / 5) + 0.5) * self.squareSize)):
                     self.cur.execute("update " + self.encounter + " set [flags] = '';")
-                    self.cur.execute("update entities set [grid_x] = ?, [grid_y] = ?, [pix_x] = ?, [pix_y] = ? where [id] = ?;", [click_x, click_y, px, py, self.curr_ent[0]])
+                    self.cur.execute("update " +self.encounter + "_entities set [grid_x] = ?, [grid_y] = ?, [pix_x] = ?, [pix_y] = ? where [id] = ?;", [click_x, click_y, px, py, self.curr_ent[0]])
                     self.map.delete("range")
                 self.curr_ent = [None, None, None, None, None, None, None, None, None]
                 self.renderFrame()
@@ -268,7 +266,7 @@ class PythonDND:
 
     # Actions
     def moveEnt(self, x, y, entID):
-        self.curr_ent = self.cur.execute("select * from entities where [id] = ?;", [entID]).fetchone()
+        self.curr_ent = self.cur.execute("select * from " + self.encounter + "_entities where [id] = ?;", [entID]).fetchone()
         self.showRange([x, y], self.curr_ent[5] + 2.5, "#87d987")
         self.cur.execute("update " + self.encounter + " set [flags] = ?, [curr_ent] = ?;", ['m', entID])
 
@@ -276,7 +274,7 @@ class PythonDND:
         self.att_sel = tk.Menu(tearoff=0)
         self.att_sel.event_add('<<event-test>>', '<Button-1>')
         self.att_sel.bind('<<event-test>>', self.__actionHelper)
-        self.curr_ent = self.cur.execute("select * from entities where [id] = ?;", [self.cur.execute("select [curr_ent] from " + self.encounter + ";").fetchone()[0]]).fetchone()
+        self.curr_ent = self.cur.execute("select * from " + self.encounter + "_entities where [id] = ?;", [self.cur.execute("select [curr_ent] from " + self.encounter + ";").fetchone()[0]]).fetchone()
 
         if self.curr_ent is not None:
             #print(self.curr_ent)
@@ -303,8 +301,8 @@ class PythonDND:
         butFrame = tk.Frame(iniFrame)
         self.initLB = tk.Listbox(iniFrame)
 
-        for i in self.cur.execute("select [id] from entities where id > -1;").fetchall():
-            self.initLB.insert(tk.END, str(i[0]) + ' - ' +self.cur.execute("select [name] from entities where [id] = ?;",[i[0]]).fetchone()[0])
+        for i in self.cur.execute("select [id] from " + self.encounter + "_entities where id > -1;").fetchall():
+            self.initLB.insert(tk.END, str(i[0]) + ' - ' +self.cur.execute("select [name] from " + self.encounter + "_entities where [id] = ?;",[i[0]]).fetchone()[0])
 
         tk.Button(butFrame, text="▲", command=self.__iniMoveUp).grid(row=0, column=0)
         tk.Button(butFrame, text="▼", command=self.__iniMoveDown).grid(row=1, column=0)

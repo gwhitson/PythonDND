@@ -58,7 +58,6 @@ class StartMenu:
         for i in defaultDBSchema:
             self.cur.execute(i.replace("\n", ""))
 
-        self.cur.execute("insert into entities (id, name, role, hp, ac, move_spd, grid_x, grid_y, pix_x, pix_y) values (-1, 'template', 'template', -1, -1, -1, -1, -1, -1, -1);")
         self.conn.commit()
 
         self.__loadActions()
@@ -82,7 +81,9 @@ class StartMenu:
         self.encounter = self.encounterVar.get()
         self.cur.execute("insert into game ([encounters]) values (?);", [self.encounter])
         self.cur.execute("CREATE TABLE " + self.encounter + " (initiative TEXT, curr_ent INTEGER, curr_action INTEGER, mode TEXT not null, targetted TEXT, map_size TEXT not null, flags TEXT, FOREIGN KEY (curr_ent) REFERENCES entities(id), FOREIGN KEY (curr_action) REFERENCES actions(id)) STRICT;")
+        self.cur.execute("CREATE TABLE " + self.encounter + "_entities (id INTEGER PRIMARY KEY ASC, name TEXT, role TEXT, hp INTEGER, ac INTEGER, move_spd INTEGER not null, grid_x INTEGER not null, grid_y INTEGER not null, pix_x INTEGER not null, pix_y INTEGER not null, sprite TEXT) STRICT;")
         self.cur.execute("insert into " + self.encounter + " ([map_size], [mode]) values (?,?);", ["noncombat", self.mapSize.get()])
+        self.cur.execute("insert into " + self.encounter + "_entities (id, name, role, hp, ac, move_spd, grid_x, grid_y, pix_x, pix_y) values (-1, 'template', 'template', -1, -1, -1, -1, -1, -1, -1);")
         self.conn.commit()
         self.__startGame()
 
@@ -123,7 +124,7 @@ class StartMenu:
             count = 0
             for row in data:
                 if count != 0:
-                    self.cur.execute("insert into tEnemies ([name], [hp], [ac], [move_spd], [sprite]) values (?,?,?,?,?);", row)
+                    self.cur.execute("insert into enemies ([name], [hp], [ac], [move_spd], [sprite]) values (?,?,?,?,?);", row)
                     self.conn.commit()
                 else:
                     count += 1

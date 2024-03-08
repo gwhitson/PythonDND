@@ -4,13 +4,14 @@ from tkinter import ttk
 
 
 class DNDSettings:
-    def __init__(self, saveFile: str, window: tk.Tk, squareSize):
+    def __init__(self, saveFile: str, window: tk.Tk, squareSize, encounter: str):
         self.window = window
         self.conn = sqlite3.connect(saveFile)
         self.cur = self.conn.cursor()
         self.squareSize = squareSize
         self.lb = None
         self.renderFrame = None
+        self.encounter = encounter
 
     def prompt(self):
         try:
@@ -35,16 +36,16 @@ class DNDSettings:
     def __udpateInitInDB(self):
         temp = ""
         for i in self.lb.get(0, self.lb.size() - 1):
-            temp += str(self.cur.execute("select [id] from entities where [name] = ?;", [i[0]]).fetchone()[0])
+            temp += str(self.cur.execute("select [id] from " + self.encounter + "_entities where [name] = ?;", [i[0]]).fetchone()[0])
             temp += ','
         self.cur.execute("update game set [initiative] = ?;", [temp])
         self.prompt()
 
     def __updateEntInDB(self):
         if self.selected[0] is None:
-            self.cur.execute("insert into entities ([name], [role], [hp], [ac], [move_spd], [grid_x], [grid_y], [pix_x], [pix_y]) values (?,?,?,?,?,?,?,?,?);",[self.name.get(), self.role.get(), self.hp.get(), self.ac.get(), self.moveSpeed.get(), self.grid_x.get(), self.grid_y.get(), int(self.grid_x.get()) * self.squareSize, int(self.grid_y.get()) * self.squareSize])
+            self.cur.execute("insert into " + self.encounter + "_entities ([name], [role], [hp], [ac], [move_spd], [grid_x], [grid_y], [pix_x], [pix_y]) values (?,?,?,?,?,?,?,?,?);",[self.name.get(), self.role.get(), self.hp.get(), self.ac.get(), self.moveSpeed.get(), self.grid_x.get(), self.grid_y.get(), int(self.grid_x.get()) * self.squareSize, int(self.grid_y.get()) * self.squareSize])
         else:
-            self.cur.execute("update entities set [name] = ?, [role] = ?, [hp] = ?, [ac] = ?, [move_spd] = ?, [grid_x] = ?, [grid_y] = ?, [pix_x] = ?, [pix_y] = ? where [id] = ?;",[self.name.get(), self.role.get(), self.hp.get(), self.ac.get(), self.moveSpeed.get(), self.grid_x.get(), self.grid_y.get(), int(self.grid_x.get()) * self.squareSize, int(self.grid_y.get()) * self.squareSize, self.selected[0]])
+            self.cur.execute("update " + self.encounter + "_entities set [name] = ?, [role] = ?, [hp] = ?, [ac] = ?, [move_spd] = ?, [grid_x] = ?, [grid_y] = ?, [pix_x] = ?, [pix_y] = ? where [id] = ?;",[self.name.get(), self.role.get(), self.hp.get(), self.ac.get(), self.moveSpeed.get(), self.grid_x.get(), self.grid_y.get(), int(self.grid_x.get()) * self.squareSize, int(self.grid_y.get()) * self.squareSize, self.selected[0]])
 
         self.conn.commit()
         self.__entMgr()
@@ -60,7 +61,7 @@ class DNDSettings:
 
     def __remEnt(self, dropIn, frame: tk.Frame):
         #print(dropIn)
-        self.cur.execute("delete from entities where [id] = ?;", [dropIn[0]])
+        self.cur.execute("delete from " + self.encounter + "_entities where [id] = ?;", [dropIn[0]])
         self.cur.execute("delete from actions where [poss_player] = ?;", [dropIn[0]])
         init = self.cur.execute("select [initiative] from game;").fetchone()
         rem = init[0].find(dropIn[0])
@@ -140,7 +141,7 @@ class DNDSettings:
         if dropIn == "New":
             self.selected = [None,None,None,None,None,None,None,None,None,None,None]
         else:
-            self.selected = (self.cur.execute("select * from entities where [id] = ?;",[dropIn[0]]).fetchone())
+            self.selected = (self.cur.execute("select * from " + self.encounter + "_entities where [id] = ?;",[dropIn[0]]).fetchone())
         vName, vRole, vhp, vac, vms, vgrid_x, vgrid_y = tk.StringVar(value=self.selected[1]),tk.StringVar(value=self.selected[2]),tk.StringVar(value=self.selected[3]),tk.StringVar(value=self.selected[4]),tk.StringVar(value=self.selected[5]),tk.StringVar(value=self.selected[6]),tk.StringVar(value=self.selected[7])
         tk.Label(frame, text="Name:").grid(row=0, column=0)
         tk.Label(frame, text="Role:").grid(row=1, column=0)
@@ -227,7 +228,7 @@ class DNDSettings:
 
         entFrame = tk.Frame(self.settingsWindow)
         drop = ttk.Combobox(entFrame)
-        drop['values'] = self.cur.execute('select [id],[name] from entities where id > -1;').fetchall()
+        drop['values'] = self.cur.execute("select [id],[name] from " + self.encounter + "_entities where id > -1;").fetchall()
         try:
             drop.current(0)
         except tk.TclError:
@@ -250,7 +251,7 @@ class DNDSettings:
         self.lb = tk.Listbox(iniFrame)
 
         for i in init.split(','):
-            self.lb.insert(tk.END, self.cur.execute("select [name] from entities where [id] = ?;", [i]).fetchone())
+            self.lb.insert(tk.END, self.cur.execute("select [name] from " + self.encounter + "_entities where [id] = ?;", [i]).fetchone())
 
         tk.Button(butFrame, text="▲", command=self.__iniMoveUp).grid(row=0, column=0)
         tk.Button(butFrame, text="▼", command=self.__iniMoveDown).grid(row=1, column=0)
