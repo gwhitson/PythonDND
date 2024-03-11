@@ -1,4 +1,5 @@
-CREATE TABLE players (id INTEGER PRIMARY KEY ASC, name TEXT, hp INTEGER, ac INTEGER, move_spd INTEGER not null, sprite TEXT) STRICT;
-CREATE TABLE enemies (id INTEGER PRIMARY KEY ASC, name TEXT, hp INTEGER, ac INTEGER, move_spd INTEGER not null, sprite TEXT) STRICT;
+CREATE TABLE players (id INTEGER, hp INTEGER, ac INTEGER, move_spd INTEGER not null, sprite TEXT, FOREIGN KEY (id) REFERENCES allEntities(id)) STRICT;
+CREATE TABLE enemies (id INTEGER, hp INTEGER, ac INTEGER, move_spd INTEGER not null, sprite TEXT, FOREIGN KEY (id) REFERENCES allEntities(id)) STRICT;
+CREATE TABLE allEntities (id INTEGER PRIMARY KEY ASC, name TEXT, role TEXT) STRICT;
 CREATE TABLE game (encounters TEXT);
 PRAGMA foreign_keys=on;

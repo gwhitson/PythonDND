@@ -128,7 +128,9 @@ class StartMenu:
             count = 0
             for row in data:
                 if count != 0:
-                    self.cur.execute("insert into enemies ([name], [hp], [ac], [move_spd], [sprite]) values (?,?,?,?,?);", row)
+                    self.cur.execute("insert into allEntities ([name], [role]) values (?, 'enemies');", [row[0]])
+                    id = self.cur.execute("select [id] from allEntities where [name] = ?;", [row[0]]).fetchone()
+                    self.cur.execute("insert into enemies ([id], [hp], [ac], [move_spd], [sprite]) values (?,?,?,?,?);", [id[0], row[1], row[2], row[3], row[4]])
                     self.conn.commit()
                 else:
                     count += 1
@@ -170,9 +172,19 @@ class StartMenu:
 
     def __updateEntInDB(self, name: str, role: str, hp: str, ac: str, moveSpeed: str, sprite: str):
         if self.selected[0] is None:
-            self.cur.execute("insert into " + role + " ([name], [hp], [ac], [move_spd] [sprite]) values (?,?,?,?,?);",[name, hp, ac, moveSpeed, sprite])
+            self.cur.execute("insert into allEntities ([name], [role]) values (?, ?);",[name, role])
+            self.cur.execute("insert into " + role + " ([id], [hp], [ac], [move_spd], [sprite]) values (?,?,?,?,?);",[self.cur.execute("select [id] from allEntities where [name] = ?;",[name]).fetchone()[0], hp, ac, moveSpeed, sprite])
         else:
-            self.cur.execute("update " + self.encounter + "_entities set [name] = ?, [role] = ?, [hp] = ?, [ac] = ?, [move_spd] = ?, [grid_x] = ?, [grid_y] = ?, [pix_x] = ?, [pix_y] = ? where [id] = ?;",[self.name.get(), self.role.get(), self.hp.get(), self.ac.get(), self.moveSpeed.get(), self.grid_x.get(), self.grid_y.get(), int(self.grid_x.get()) * self.squareSize, int(self.grid_y.get()) * self.squareSize, self.selected[0]])
+            print(role)
+            print(self.selected)
+            if role == self.cur.execute("select [role] from allEntities where [id] = ?;", [self.selected[0]]).fetchone()[0]:
+                self.cur.execute("update allEntities set [name] = ? where id = ?", [name, self.selected[0]])
+                self.cur.execute("update " + role + " set [hp] = ?, [ac] = ?, [move_spd] = ?, [sprite] = ? where [id] = ?;", [hp, ac, moveSpeed, sprite, self.selected[0]])
+            else:
+                tempname = self.cur.execute("select [name] from allEntities where [id] = ?;", [self.selected[0]]).fetchone()[0]
+                self.cur.execute("delete from " + self.cur.execute("select [role] from allEntities where [id] = ?;", [self.selected[0]]).fetchone()[0] + " where id = ?;", [self.cur.execute("select [id] from allEntities where [name] = ?;", [tempname]).fetchone()[0]])
+                self.cur.execute("update allEntities set [name] = ?, [role] = ? where id = ?", [name, role, self.selected[0]])
+                self.cur.execute("insert into " + role + " ([id], [hp], [ac], [move_spd], [sprite]) values (?,?,?,?,?);",[self.cur.execute("select [id] from allEntities where [name] = ?;",[name]).fetchone()[0], hp, ac, moveSpeed, sprite])
 
         self.conn.commit()
         self.__entMgr()
@@ -182,32 +194,40 @@ class StartMenu:
             i.destroy()
 
         if dropIn == "New":
-            self.selected = [None,None,None,None,None,None]
+            self.selected = [None,None,None,None,None]
+            entName = None
         else:
-            self.selected = (self.cur.execute("select * from " + self.encounter + "_entities where [id] = ?;",[dropIn[0]]).fetchone())
-        vName, vRole, vhp, vac, vms, vsp = tk.StringVar(value=self.selected[1]),tk.StringVar(value=self.selected[2]),tk.StringVar(value=self.selected[3]),tk.StringVar(value=self.selected[4]),tk.StringVar(value=self.selected[5]),tk.StringVar(value=self.selected[6]),tk.StringVar(value=self.selected[7])
+            self.selected = (self.cur.execute("select * from " + role + " where [id] = ?;",[dropIn[0]]).fetchone())
+            entName = self.cur.execute("select [name] from allEntities where [id] = ?;", [dropIn[0]]).fetchone()
+        vName, vRole, vhp, vac, vms, vsp = tk.StringVar(value=entName),tk.StringVar(value=role),tk.StringVar(value=self.selected[1]),tk.StringVar(value=self.selected[2]),tk.StringVar(value=self.selected[3]),tk.StringVar(value=self.selected[4])
         tk.Label(frame, text="Name:").grid(row=0, column=0)
         tk.Label(frame, text="Role:").grid(row=1, column=0)
         tk.Label(frame, text="HP:").grid(row=2, column=0)
         tk.Label(frame, text="AC:").grid(row=3, column=0)
         tk.Label(frame, text="Move Spd:").grid(row=4, column=0)
-        self.name = tk.Entry(frame, textvariable=vName)
-        self.name.grid(row=0, column=1)
-        self.role = tk.Entry(frame, textvariable=vRole)
-        self.role.grid(row=1, column=1)
-        self.hp = tk.Entry(frame, textvariable=vhp)
-        self.hp.grid(row=2, column=1)
-        self.ac = tk.Entry(frame, textvariable=vac)
-        self.ac.grid(row=3, column=1)
-        self.moveSpeed = tk.Entry(frame, textvariable=vms)
-        self.moveSpeed.grid(row=4, column=1)
-        self.sprite = tk.Entry(frame, textvariable=vsp)
-        self.sprite.grid(row=4, column=1)
+        tk.Label(frame, text="Sprite:").grid(row=5, column=0)
+        name = tk.Entry(frame, textvariable=vName)
+        name.grid(row=0, column=1)
+        erole = ttk.Combobox(frame)
+        erole['values'] = ("players", "enemies")
+        if role == "enemies":
+            erole.current(1)
+        else:
+            erole.current(0)
+        erole.grid(row=1, column=1)
+        hp = tk.Entry(frame, textvariable=vhp)
+        hp.grid(row=2, column=1)
+        ac = tk.Entry(frame, textvariable=vac)
+        ac.grid(row=3, column=1)
+        moveSpeed = tk.Entry(frame, textvariable=vms)
+        moveSpeed.grid(row=4, column=1)
+        sprite = tk.Entry(frame, textvariable=vsp)
+        sprite.grid(row=5, column=1)
 
-        tk.Button(frame, text="Submit", command= self.__updateEntInDB).grid(row=9, column=1)
+        tk.Button(frame, text="Submit", command= lambda: self.__updateEntInDB(name.get(), erole.get(), hp.get(), ac.get(), moveSpeed.get(), sprite.get())).grid(row=9, column=1)
         tk.Button(frame, text="Back", command= self.__entMgr).grid(row=9, column=0)
         #tk.Button(frame, text="Action Manager", command=self.__actMgr).grid(row=10, column=0, columnspan=2)
-        tk.Button(frame, text="Exit", command= self.__exitSettings).grid(row=11, column=0, columnspan=2)
+        tk.Button(frame, text="Exit", command= self.__quitMenu).grid(row=11, column=0, columnspan=2)
 
     def __entMgr(self):
         for i in self.window.winfo_children():
@@ -215,18 +235,18 @@ class StartMenu:
 
         entFrame = tk.Frame(self.window)
         drop = ttk.Combobox(entFrame)
-        enemies = self.cur.execute("select [id],[name] from enemies ;").fetchall()
-        players = self.cur.execute("select [id],[name] from players ;").fetchall()
-        drop['values'] = (enemies + players)
+        drop['values'] = (self.cur.execute("select [id],[name] from allEntities;").fetchall())
         try:
             drop.current(0)
         except tk.TclError:
             None
+        role = self.cur.execute("select [role] from allEntities where [id] = ?;", [drop.get()[0]]).fetchone()[0]
         drop.grid(row=0, column=0, columnspan=2)
-        #tk.Button(entFrame, text="Edit", command=lambda: self.__editEnt(drop.get(), entFrame)).grid(row=1, column=1)
+        tk.Button(entFrame, text="Edit", command=lambda: self.__editEnt(drop.get(), self.cur.execute("select [role] from allEntities where [id] = ?;", [drop.get()[0]]).fetchone()[0], entFrame)).grid(row=1, column=1)
         #tk.Button(entFrame, text="Delete", command=lambda: self.__remEnt(drop.get(), entFrame)).grid(row=1, column=0)
-        #tk.Button(entFrame, text="New Entity", command=lambda: self.__editEnt("New", entFrame)).grid(row=2, column=0, columnspan=2)
+        tk.Button(entFrame, text="New Entity", command=lambda: self.__editEnt("New", "", entFrame)).grid(row=2, column=0, columnspan=2)
         tk.Button(entFrame, text="Back", command=self.__loadEncounter).grid(row=9, column=0, columnspan=2)
+        tk.Button(entFrame, text="Exit", command= self.__quitMenu).grid(row=11, column=0, columnspan=2)
         entFrame.pack()
 
     def __quitMenu(self):
