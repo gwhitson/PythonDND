@@ -2,6 +2,7 @@ import os
 import csv
 import sqlite3
 import tkinter as tk
+from tkinter import ttk
 from tkinter import filedialog
 
 
@@ -18,6 +19,7 @@ class StartMenu:
         self.frame = tk.Frame(self.window)
         self.frame.pack()
         self.encounters = None
+        self.selected = None
         self.conn = None
         self.cur = None
         self.encEntry = None
@@ -101,6 +103,7 @@ class StartMenu:
         self.encounters.pack()
         tk.Button(frame, text="New Encounter", command=self.__newEncouter).pack(expand=True)
         tk.Button(frame, text="Load Encounter", command=self.__startGame).pack(expand=True)
+        tk.Button(frame, text="Entity Manager", command=self.__entMgr).pack(expand=True)
         frame.pack(expand=True)
 
     def __loadActions(self):
@@ -160,6 +163,71 @@ class StartMenu:
         for widg in self.frame.winfo_children():
             widg.destroy()
         self.startMenu()
+
+    def __remEnt(self, dropIn, role: str):
+        self.cur.execute("delete from " + role + " where [id] = ?;", [dropIn[0]])
+        self.__entMgr()
+
+    def __updateEntInDB(self, name: str, role: str, hp: str, ac: str, moveSpeed: str, sprite: str):
+        if self.selected[0] is None:
+            self.cur.execute("insert into " + role + " ([name], [hp], [ac], [move_spd] [sprite]) values (?,?,?,?,?);",[name, hp, ac, moveSpeed, sprite])
+        else:
+            self.cur.execute("update " + self.encounter + "_entities set [name] = ?, [role] = ?, [hp] = ?, [ac] = ?, [move_spd] = ?, [grid_x] = ?, [grid_y] = ?, [pix_x] = ?, [pix_y] = ? where [id] = ?;",[self.name.get(), self.role.get(), self.hp.get(), self.ac.get(), self.moveSpeed.get(), self.grid_x.get(), self.grid_y.get(), int(self.grid_x.get()) * self.squareSize, int(self.grid_y.get()) * self.squareSize, self.selected[0]])
+
+        self.conn.commit()
+        self.__entMgr()
+
+    def __editEnt(self, dropIn, role: str, frame: tk.Frame):
+        for i in frame.winfo_children():
+            i.destroy()
+
+        if dropIn == "New":
+            self.selected = [None,None,None,None,None,None]
+        else:
+            self.selected = (self.cur.execute("select * from " + self.encounter + "_entities where [id] = ?;",[dropIn[0]]).fetchone())
+        vName, vRole, vhp, vac, vms, vsp = tk.StringVar(value=self.selected[1]),tk.StringVar(value=self.selected[2]),tk.StringVar(value=self.selected[3]),tk.StringVar(value=self.selected[4]),tk.StringVar(value=self.selected[5]),tk.StringVar(value=self.selected[6]),tk.StringVar(value=self.selected[7])
+        tk.Label(frame, text="Name:").grid(row=0, column=0)
+        tk.Label(frame, text="Role:").grid(row=1, column=0)
+        tk.Label(frame, text="HP:").grid(row=2, column=0)
+        tk.Label(frame, text="AC:").grid(row=3, column=0)
+        tk.Label(frame, text="Move Spd:").grid(row=4, column=0)
+        self.name = tk.Entry(frame, textvariable=vName)
+        self.name.grid(row=0, column=1)
+        self.role = tk.Entry(frame, textvariable=vRole)
+        self.role.grid(row=1, column=1)
+        self.hp = tk.Entry(frame, textvariable=vhp)
+        self.hp.grid(row=2, column=1)
+        self.ac = tk.Entry(frame, textvariable=vac)
+        self.ac.grid(row=3, column=1)
+        self.moveSpeed = tk.Entry(frame, textvariable=vms)
+        self.moveSpeed.grid(row=4, column=1)
+        self.sprite = tk.Entry(frame, textvariable=vsp)
+        self.sprite.grid(row=4, column=1)
+
+        tk.Button(frame, text="Submit", command= self.__updateEntInDB).grid(row=9, column=1)
+        tk.Button(frame, text="Back", command= self.__entMgr).grid(row=9, column=0)
+        #tk.Button(frame, text="Action Manager", command=self.__actMgr).grid(row=10, column=0, columnspan=2)
+        tk.Button(frame, text="Exit", command= self.__exitSettings).grid(row=11, column=0, columnspan=2)
+
+    def __entMgr(self):
+        for i in self.window.winfo_children():
+            i.destroy()
+
+        entFrame = tk.Frame(self.window)
+        drop = ttk.Combobox(entFrame)
+        enemies = self.cur.execute("select [id],[name] from enemies ;").fetchall()
+        players = self.cur.execute("select [id],[name] from players ;").fetchall()
+        drop['values'] = (enemies + players)
+        try:
+            drop.current(0)
+        except tk.TclError:
+            None
+        drop.grid(row=0, column=0, columnspan=2)
+        #tk.Button(entFrame, text="Edit", command=lambda: self.__editEnt(drop.get(), entFrame)).grid(row=1, column=1)
+        #tk.Button(entFrame, text="Delete", command=lambda: self.__remEnt(drop.get(), entFrame)).grid(row=1, column=0)
+        #tk.Button(entFrame, text="New Entity", command=lambda: self.__editEnt("New", entFrame)).grid(row=2, column=0, columnspan=2)
+        tk.Button(entFrame, text="Back", command=self.__loadEncounter).grid(row=9, column=0, columnspan=2)
+        entFrame.pack()
 
     def __quitMenu(self):
         exit(0)
