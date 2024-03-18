@@ -43,7 +43,7 @@ class PythonDND:
 
         self.gameSettings = self.cur.execute("select * from " + self.encounter + ";").fetchone()
         print(self.gameSettings)
-        spl = self.gameSettings[3].split('x')
+        spl = self.gameSettings[5].split('x')
         self.mapDimension = [int(spl[0]), int(spl[1])]
 
         if self.mapDimension[0] <= self.mapDimension[1]:
@@ -116,28 +116,29 @@ class PythonDND:
         for k in range(0, w, self.squareSize):
             self.map.create_line(k, 0, k, h, fill="black", tags="map")
 
-        self.entities = (self.cur.execute("Select [name],[role],[grid_x],[grid_y],[pix_x],[pix_y] from " + self.encounter + "_entities where id > -1;")).fetchall()
+        self.entities = (self.cur.execute("Select [id],[name],[role],[grid_x],[grid_y],[pix_x],[pix_y] from " + self.encounter + "_entities where id > -1;")).fetchall()
         for i in self.entities:
-            if i[1] == "player":
-                self.map.create_oval((int(i[2]) - 1) * self.squareSize,
-                                     (int(i[3]) - 1) * self.squareSize,
-                                     int(i[2]) * self.squareSize,
+            if i[2] == "player":
+                self.map.create_oval((int(i[3]) - 1) * self.squareSize,
+                                     (int(i[4]) - 1) * self.squareSize,
                                      int(i[3]) * self.squareSize,
+                                     int(i[4]) * self.squareSize,
                                      fill="blue",
                                      tags="map")
-            if i[1] == "enemy":
-                self.map.create_oval((int(i[2]) - 1) * self.squareSize,
-                                     (int(i[3]) - 1) * self.squareSize,
-                                     int(i[2]) * self.squareSize,
+            if i[2] == "enemy":
+                self.map.create_oval((int(i[3]) - 1) * self.squareSize,
+                                     (int(i[4]) - 1) * self.squareSize,
                                      int(i[3]) * self.squareSize,
+                                     int(i[4]) * self.squareSize,
                                      fill="red",
                                      tags="map")
-            self.map.create_oval((int(i[2]) - 1) * self.squareSize,
-                                 (int(i[3]) - 1) * self.squareSize,
-                                 int(i[2]) * self.squareSize,
+            outline_color = 'orange' if (self.cur.execute("select [curr_ent] from " + self.encounter).fetchone()[0] == i[0]) else 'black'
+            self.map.create_oval((int(i[3]) - 1) * self.squareSize,
+                                 (int(i[4]) - 1) * self.squareSize,
                                  int(i[3]) * self.squareSize,
+                                 int(i[4]) * self.squareSize,
                                  #i[4],i[5],i[4] + self.squareSize,i[5] + self.squareSize,
-                                 outline="black",
+                                 outline=outline_color,
                                  width=outline_width,
                                  tags="map")
 
@@ -145,7 +146,7 @@ class PythonDND:
         tk.Button(self.control, text="Quit", command=self.__quitGame).pack()
         tk.Button(self.control, text="Session Settings", command=self.__sessSettings).pack()
         #tk.Button(self.control, text="Add Entity", command=self.addEntity).pack()
-        if self.gameSettings[5] == "noncombat":
+        if self.gameSettings[3] == "noncombat":
             #print(self.gameSettings[5])
             tk.Button(self.control, text="Start Combat", command = self.startCombat).pack()
         else:
@@ -171,11 +172,11 @@ class PythonDND:
 
         # check mode
         #print(self.gameSettings)
-        if self.gameSettings[5] == 'combat':
+        if self.gameSettings[3] == 'combat':
             print("combat")
-        elif self.gameSettings[5] == 'noncombat':
+        elif self.gameSettings[3] == 'noncombat':
             #print("noncombat")
-            if self.gameSettings[8] == 'm' and clickedEnt is None:
+            if self.gameSettings[6] == 'm' and clickedEnt is None:
                 #print('move')
                 #print(self.curr_ent)
                 px = int(click_x * self.squareSize) - int(self.squareSize / 2)
@@ -226,7 +227,7 @@ class PythonDND:
 #       self.renderFrame()
 
     def startCombat(self):
-        if self.gameSettings[0] is None or self.gameSettings[2] is None:
+        if self.gameSettings[0] is None or self.gameSettings[1] is None:
             self.__chooseInitiative()
         else:
             self.cur.execute("update " + self.encounter + " set [mode] = 'combat';")
@@ -351,7 +352,7 @@ class PythonDND:
 
         initArr = init.split(',')
         initArr.remove('')
-        self.cur.execute("update " + self.encounter + " set [mode] = 'combat', [flags] = '', [initiative] = ?, [last_ent] = ?, [curr_ent] = ?, [next_ent] = ?;",[init, initArr[-1], initArr[0], initArr[1]])
+        self.cur.execute("update " + self.encounter + " set [mode] = 'combat', [flags] = '', [initiative] = ?, [curr_ent] = ?;",[init, initArr[0]])
 
         self.map.delete("range")
         self.renderFrame()
