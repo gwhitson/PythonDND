@@ -156,10 +156,12 @@ class StartMenu:
         self.conn.close()
 
     def __startGame(self):
-        if self.encounters is not None:
+        if self.encounters.curselection() != ():
             self.encounter = (self.encounters.get(self.encounters.curselection()[0]))
-        self.__closeConnection()
-        self.window.destroy()
+            self.__closeConnection()
+            self.window.destroy()
+        else:
+            self.__loadEncounter()
 
     def __reloadMenu(self):
         for widg in self.frame.winfo_children():
