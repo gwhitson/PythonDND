@@ -167,7 +167,7 @@ class PythonDND:
         self.gameSettings = self.cur.execute("select * from " + self.encounter + ";").fetchone()
         click_x = int((self.map.canvasx(event.x)) / self.squareSize + 1)
         click_y = int((self.map.canvasy(event.y)) / self.squareSize + 1)
-        clickedEnt = self.cur.execute("select * from " + self.encouter + "_entities where [grid_x] = ? and [grid_y] = ?;", [click_x, click_y]).fetchone()
+        clickedEnt = self.cur.execute("select * from " + self.encounter + "_entities where [grid_x] = ? and [grid_y] = ?;", [click_x, click_y]).fetchone()
         #print(clickedEnt)
 
         # check mode
@@ -237,8 +237,30 @@ class PythonDND:
         self.cur.execute("update " + self.encounter + " set [mode] = 'noncombat';")
         self.renderFrame()
 
-    def showRange(self, center: [int, int], radius: float, color: str):
+    def showRange(self, center: [int, int], color: str, action: (int, str, str, int, int, str, str, int, None)):
         self.map.delete("range")
+        if action[-3] == "movement" and action[1] == "Move":
+            radius = self.cur.execute(f"select [move_spd] from {self.encounter}_entities where [id] = ?;", [action[-1]]).fetchone()[0]
+            color = "#87d987"
+        shift = int(self.squareSize / 2)
+        lPos = [center[0] * self.squareSize, center[1] * self.squareSize]
+        self.map.create_oval(lPos[0] - (int((radius / 5) * self.squareSize) + shift),
+                             lPos[1] - (int((radius / 5) * self.squareSize) + shift),
+                             lPos[0] + (int((radius / 5) * self.squareSize) - shift),
+                             lPos[1] + (int((radius / 5) * self.squareSize) - shift),
+                             outline=color,
+                             width=3,
+                             fill=color,
+                             stipple="gray50",
+                             tags="range")
+        self.renderFrame()
+
+    def oldshowRange(self, center: [int, int], radius: float, color: str, action: (int, str, str, int, int, str, str, int, None)):
+        print("show range")
+        self.map.delete("range")
+        if action[-3] == "movement" and action[1] == "Move":
+            radius = self.cur.execute(f"select [move_spd] from {self.encounter}_entities where [id] = ?;", [action[-1]]).fetchone()[0]
+            color = "#87d987"
         shift = int(self.squareSize / 2)
         lPos = [center[0] * self.squareSize, center[1] * self.squareSize]
         self.map.create_oval(lPos[0] - (int((radius / 5) * self.squareSize) + shift),
@@ -267,21 +289,22 @@ class PythonDND:
     # Actions
     def moveEnt(self, x, y, entID):
         self.curr_ent = self.cur.execute("select * from " + self.encounter + "_entities where [id] = ?;", [entID]).fetchone()
-        self.showRange([x, y], self.curr_ent[5] + 2.5, "#87d987")
+        self.showRange([x, y], self.curr_ent[5] + 2.5, "#87d987", self.cur.execute(f"select * from {self.encounter}_actions where [name] = 'Move' and id = ?;", [self.curr_ent[0]]).fetchone())
         self.cur.execute("update " + self.encounter + " set [flags] = ?, [curr_ent] = ?;", ['m', entID])
 
     def chooseAction(self):
         self.att_sel = tk.Menu(tearoff=0)
-        self.att_sel.event_add('<<event-test>>', '<Button-1>')
-        self.att_sel.bind('<<event-test>>', self.__actionHelper)
+        #self.att_sel.event_add('<<event-test>>', '<Button-1>')
+        #self.att_sel.bind('<<event-test>>', self.__actionHelper)
         self.curr_ent = self.cur.execute("select * from " + self.encounter + "_entities where [id] = ?;", [self.cur.execute("select [curr_ent] from " + self.encounter + ";").fetchone()[0]]).fetchone()
 
         if self.curr_ent is not None:
             #print(self.curr_ent)
-            self.selectedActions = self.cur.execute("select [id], [name], [range], [damage], [action_tags] from " + self.encounter + "_actions where [poss_player] = ?;", [self.curr_ent[0]]).fetchall()
+            self.selectedActions = self.cur.execute("select * from " + self.encounter + "_actions where [poss_player] = ?;", [self.curr_ent[0]]).fetchall()
 
             for i in self.selectedActions:
-                self.att_sel.add_command(label=i[1])
+                #self.att_sel.add_command(label=i[1], command=lambda val=i: self.cur.execute(f"update {self.encounter} set [curr_action] = ?;", [val[0]]))
+                self.att_sel.add_command(label=i[1], command=lambda val=i: self.__actionHelper(val))
             self.att_sel.tk_popup(int(self.curr_ent[8] + self.control.winfo_width()),int(self.curr_ent[9]))
             return 1
         else:
@@ -352,7 +375,7 @@ class PythonDND:
 
         initArr = init.split(',')
         initArr.remove('')
-        self.cur.execute("update " + self.encounter + " set [mode] = 'combat', [flags] = '', [initiative] = ?, [curr_ent] = ?;",[init, initArr[0]])
+        self.cur.execute(f"update {self.encounter} set [mode] = 'combat', [flags] = '', [initiative] = ?, [curr_ent] = ?;",[init, initArr[0]])
 
         self.map.delete("range")
         self.renderFrame()
@@ -362,12 +385,12 @@ class PythonDND:
         None
         #print(click)
 
-    def __actionHelper(self, event):
-        arith = int(self.att_sel.winfo_height() / len(self.selectedActions))
-        self.actionID = self.selectedActions[int(int(event.y) / arith)][0]
-        self.action = self.cur.execute("select * from " + self.encounter + "_actions where id = ?;", [self.actionID]).fetchone()
-        #print(self.action)
-        self.showRange([self.curr_ent[6], self.curr_ent[7]], self.action[3] + 2.5, "#ff7878")
+    def __actionHelper(self, action: (int, str, str, int, int ,str, str, int, None)):
+        print("action helper")
+        print(action)
+        self.cur.execute(f"update {self.encounter} set [curr_action] = ?;", [action[0]])
+        self.conn.commit()
+        self.showRange([self.curr_ent[6], self.curr_ent[7]], action[3] + 2.5, "#ff7878", action)
 
     def __windowsScroll(self, event):
         if event.delta < 1:
