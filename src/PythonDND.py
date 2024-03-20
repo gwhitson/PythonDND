@@ -141,6 +141,12 @@ class PythonDND:
                                  outline=outline_color,
                                  width=outline_width,
                                  tags="map")
+            self.map.create_text((int(i[3]) - 0.5) * self.squareSize,
+                                 (int(i[4]) - 0.5) * self.squareSize,
+                                 fill='white',
+                                 text=str(i[0]),
+                                 font=('sans serif', int(self.squareSize / 4), "bold"),
+                                 tags="map")
 
     def renderControlFrame(self):
         tk.Button(self.control, text="Quit", command=self.__quitGame).pack()
@@ -151,6 +157,10 @@ class PythonDND:
             tk.Button(self.control, text="Start Combat", command = self.startCombat).pack()
         else:
             tk.Button(self.control, text="Action", command=self.doChooseAction).pack()
+            turnFrame = tk.Frame(self.control)
+            tk.Button(turnFrame, text="Prev Turn", command=self.__prevTurn).grid(row=0, column=0)
+            tk.Button(turnFrame, text="Next Turn", command=self.__nextTurn).grid(row=0, column=1)
+            turnFrame.pack()
             tk.Button(self.control, text="End Combat", command = self.endCombat).pack()
 
     def renderFrame(self):
@@ -174,7 +184,13 @@ class PythonDND:
             print("combat")
             if self.gameSettings[6] == 'a':
                 print("attack!")
-                self.cur.execute(f"update {self.encounter} set [flags] = '';")
+
+                if self.posInRange([self.map.canvasx(event.x), self.map.canvasy(event.y)], [self.curr_ent[8], self.curr_ent[9]], ((self.cur.execute(f"select [range] from {self.encounter}_actions where [id] = ?;", [self.gameSettings[2]]).fetchone()[0] / 5) + 0.5) * self.squareSize):
+                    print("in range")
+                    self.map.delete("range")
+                    self.cur.execute(f"update {self.encounter} set [flags] = '';")
+                else:
+                    print("not")
             else:
                 print("not attacking")
         elif self.gameSettings[3] == 'noncombat':
@@ -348,6 +364,33 @@ class PythonDND:
         self.cur.execute(f"update {self.encounter} set [curr_action] = ?, [flags] = 'a';", [action[0]])
         self.conn.commit()
         self.showRange([self.curr_ent[6], self.curr_ent[7]], "#ff7878", action)
+
+    def __nextTurn(self):
+        next = None
+        init = self.gameSettings[0].split(',')[:-1]
+        curr = str(self.gameSettings[1])
+        if curr == init [-1]:
+            next = init[0]
+        else:
+            next = init[init.index(curr) + 1]
+
+        self.cur.execute(f"update {self.encounter} set [curr_ent] = ?;", [next])
+        self.conn.commit()
+        self.renderFrame()
+
+
+    def __prevTurn(self):
+        next = None
+        init = self.gameSettings[0].split(',')[:-1]
+        curr = str(self.gameSettings[1])
+        if curr == init [0]:
+            next = init[-1]
+        else:
+            next = init[init.index(curr) - 1]
+
+        self.cur.execute(f"update {self.encounter} set [curr_ent] = ?;", [next])
+        self.conn.commit()
+        self.renderFrame()
 
     def __windowsScroll(self, event):
         if event.delta < 1:

@@ -44,6 +44,9 @@ class DNDSettings:
     def __updateEntInDB(self):
         if self.selected[0] is None:
             self.cur.execute("insert into " + self.encounter + "_entities ([name], [role], [hp], [ac], [move_spd], [grid_x], [grid_y], [pix_x], [pix_y]) values (?,?,?,?,?,?,?,?,?);",[self.name.get(), self.role.get(), self.hp.get(), self.ac.get(), self.moveSpeed.get(), self.grid_x.get(), self.grid_y.get(), int(self.grid_x.get()) * self.squareSize, int(self.grid_y.get()) * self.squareSize])
+            newInit = self.cur.execute(f"select [initiative] from {self.encounter};").fetchone()[0]
+            newInit += str(self.cur.execute(f"select [id] from {self.encounter}_entities order by [id] desc limit 1;").fetchone()[0]) + ","
+            self.cur.execute(f"update {self.encounter} set [initiative] = ?;", [newInit])
         else:
             self.cur.execute("update " + self.encounter + "_entities set [name] = ?, [role] = ?, [hp] = ?, [ac] = ?, [move_spd] = ?, [grid_x] = ?, [grid_y] = ?, [pix_x] = ?, [pix_y] = ? where [id] = ?;",[self.name.get(), self.role.get(), self.hp.get(), self.ac.get(), self.moveSpeed.get(), self.grid_x.get(), self.grid_y.get(), int(self.grid_x.get()) * self.squareSize, int(self.grid_y.get()) * self.squareSize, self.selected[0]])
 
@@ -63,10 +66,11 @@ class DNDSettings:
         #print(dropIn)
         self.cur.execute("delete from " + self.encounter + "_entities where [id] = ?;", [dropIn[0]])
         self.cur.execute("delete from " + self.encounter + "_actions where [poss_player] = ?;", [dropIn[0]])
-        init = self.cur.execute("select [initiative] from game;").fetchone()
-        rem = init[0].find(dropIn[0])
-        print(rem)
+        init = (self.cur.execute(f"select [initiative] from {self.encounter}").fetchone()[0]).split(',')
+        init.remove(dropIn[0])
+        self.cur.execute(f"update {self.encounter} set [initiative] = ?;", [",".join(init)])
 
+        self.conn.commit()
         self.__entMgr()
 
     def __iniMoveUp(self):
@@ -241,7 +245,7 @@ class DNDSettings:
         entFrame.pack()
 
     def __iniMgr(self):
-        init = self.cur.execute("select [initiative] from game;").fetchone()[0]
+        init = self.cur.execute(f"select [initiative] from {self.encounter};").fetchone()[0]
         print(init)
         self.renderFrame()
         for i in self.settingsWindow.winfo_children():

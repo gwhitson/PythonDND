@@ -22,6 +22,7 @@ class StartMenu:
         self.selected = None
         self.conn = None
         self.cur = None
+        self.load = False
         self.encEntry = None
         self.mpSzEntry = None
 
@@ -88,6 +89,7 @@ class StartMenu:
         self.cur.execute("insert into " + self.encounter + "_entities (id, name, role, hp, ac, move_spd, grid_x, grid_y, pix_x, pix_y) values (-1, 'template', 'template', -1, -1, -1, -1, -1, -1, -1);")
         self.conn.commit()
         self.__loadActions()
+        self.load = True
         self.__startGame()
 
     def __loadEncounter(self):
@@ -156,8 +158,13 @@ class StartMenu:
         self.conn.close()
 
     def __startGame(self):
-        if self.encounters.curselection() != ():
-            self.encounter = (self.encounters.get(self.encounters.curselection()[0]))
+        try:
+            if self.encounters.curselection() != ():
+                self.load = True
+                self.encounter = (self.encounters.get(self.encounters.curselection()[0]))
+        except AttributeError:
+            None
+        if self.load is True:
             self.__closeConnection()
             self.window.destroy()
         else:
