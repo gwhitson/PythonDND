@@ -13,36 +13,21 @@ class PythonDND:
         self.encounter = menuRet[1]
         self.resFiles = menuRet[2]
         if self.save == "":
-            exit(3)
+            exit(127)
 
+        # Tk init
         self.window = tk.Tk()
         self.window.title("Dungeons and Dragons")
         self.window.attributes("-fullscreen", True)
 
+        # Sqlite init
         self.conn = sqlite3.connect(self.save)
         self.cur = self.conn.cursor()
 
         # vars to be used
         self.curr_ent = [None, None, None, None, None, None, None, None, None]
-
-        if (self.cur.execute("select [initiative] from " + self.encounter + ";") == None):
-            self.initiative = ""
-            for i in (self.cur.execute("select [id] from " + self.encounter + "_entities where [id] > -1;").fetchall()):
-                self.initiative += str(i[0])
-                self.initiative += ","
-        else:
-            self.initiative = self.cur.execute("select [initiative] from " + self.encounter + ";").fetchone()[0]
-
-        #print(self.initiative)
-
-        self.cur.execute("update " + self.encounter + " set [initiative] = ?;", [str(self.initiative)])
-        self.conn.commit()
-
         self.selectedActions = None
-        self.action = None
-
         self.gameSettings = self.cur.execute("select * from " + self.encounter + ";").fetchone()
-        print(self.gameSettings)
         spl = self.gameSettings[5].split('x')
         self.mapDimension = [int(spl[0]), int(spl[1])]
 
@@ -51,6 +36,8 @@ class PythonDND:
         else:
             self.squareSize = int((self.window.winfo_screenheight()) / int(min(self.mapDimension[0], self.mapDimension[1])))
         self.actionButtonSize = self.squareSize / 3
+
+        self.__setInit()
 
         #print(self.squareSize)
 
@@ -98,8 +85,8 @@ class PythonDND:
         self.mapFrame.update()
         self.control.update()
 
+        # Declare settings window
         self.settingsWindow = DNDSettings.DNDSettings(self.save, self.window, self.squareSize, self.encounter)
-
         self.renderFrame()
         self.window.mainloop()
 
@@ -154,14 +141,14 @@ class PythonDND:
         #tk.Button(self.control, text="Add Entity", command=self.addEntity).pack()
         if self.gameSettings[3] == "noncombat":
             #print(self.gameSettings[5])
-            tk.Button(self.control, text="Start Combat", command = self.startCombat).pack()
+            tk.Button(self.control, text="Start Combat", command=self.startCombat).pack()
         else:
             tk.Button(self.control, text="Action", command=self.doChooseAction).pack()
             turnFrame = tk.Frame(self.control)
             tk.Button(turnFrame, text="Prev Turn", command=self.__prevTurn).grid(row=0, column=0)
             tk.Button(turnFrame, text="Next Turn", command=self.__nextTurn).grid(row=0, column=1)
             turnFrame.pack()
-            tk.Button(self.control, text="End Combat", command = self.endCombat).pack()
+            tk.Button(self.control, text="End Combat", command=self.endCombat).pack()
 
     def renderFrame(self):
         print("rendering frame")
@@ -275,34 +262,27 @@ class PythonDND:
     def moveEnt(self, x, y, entID):
         self.curr_ent = self.cur.execute("select * from " + self.encounter + "_entities where [id] = ?;", [entID]).fetchone()
         self.showRange([x, y], "#87d987", self.cur.execute(f"select * from {self.encounter}_actions where [name] = 'Move' and id = ?;", [self.curr_ent[0]]).fetchone())
-        #self.showRange([x, y], self.curr_ent[5] + 2.5, "#87d987", self.cur.execute(f"select * from {self.encounter}_actions where [name] = 'Move' and id = ?;", [self.curr_ent[0]]).fetchone())
         self.cur.execute("update " + self.encounter + " set [flags] = ?, [curr_ent] = ?;", ['m', entID])
 
-    def chooseAction(self):
+    def doChooseAction(self):
+        if self.cur.execute("select [mode] from " + self.encounter + ";").fetchone()[0] == 'combat':
+            self.__chooseAction()
+
+    # Privates
+    def __chooseAction(self):
         self.att_sel = tk.Menu(tearoff=0)
-        #self.att_sel.event_add('<<event-test>>', '<Button-1>')
-        #self.att_sel.bind('<<event-test>>', self.__actionHelper)
         self.curr_ent = self.cur.execute("select * from " + self.encounter + "_entities where [id] = ?;", [self.cur.execute("select [curr_ent] from " + self.encounter + ";").fetchone()[0]]).fetchone()
 
         if self.curr_ent is not None:
-            #print(self.curr_ent)
             self.selectedActions = self.cur.execute("select * from " + self.encounter + "_actions where [poss_player] = ?;", [self.curr_ent[0]]).fetchall()
 
             for i in self.selectedActions:
-                #self.att_sel.add_command(label=i[1], command=lambda val=i: self.cur.execute(f"update {self.encounter} set [curr_action] = ?;", [val[0]]))
                 self.att_sel.add_command(label=i[1], command=lambda val=i: self.__actionHelper(val))
             self.att_sel.tk_popup(int(self.curr_ent[8] + self.control.winfo_width()),int(self.curr_ent[9]))
             return 1
         else:
-            #print('no ent selected')
             return 0
 
-    def doChooseAction(self):
-        if self.cur.execute("select [mode] from " + self.encounter + ";").fetchone()[0] == 'combat':
-            print('tester')
-            self.chooseAction()
-
-    # Privates
     def __entsInAoe(self, pos: [int,int]):
         print(self.cur.execute(f"select [aoe] from {self.encounter}_actions where [id] = ?;",[self.gameSettings[2]]).fetchone()[0])
         return pos
@@ -387,7 +367,7 @@ class PythonDND:
         next = None
         init = self.gameSettings[0].split(',')[:-1]
         curr = str(self.gameSettings[1])
-        if curr == init [-1]:
+        if curr == init[-1]:
             next = init[0]
         else:
             next = init[init.index(curr) + 1]
@@ -396,12 +376,11 @@ class PythonDND:
         self.conn.commit()
         self.renderFrame()
 
-
     def __prevTurn(self):
         next = None
         init = self.gameSettings[0].split(',')[:-1]
         curr = str(self.gameSettings[1])
-        if curr == init [0]:
+        if curr == init[0]:
             next = init[-1]
         else:
             next = init[init.index(curr) - 1]
@@ -409,6 +388,18 @@ class PythonDND:
         self.cur.execute(f"update {self.encounter} set [curr_ent] = ?;", [next])
         self.conn.commit()
         self.renderFrame()
+
+    def __setInit(self):
+        if (self.cur.execute("select [initiative] from " + self.encounter + ";").fetchone()[0] is None):
+            self.initiative = ""
+            for i in (self.cur.execute("select [id] from " + self.encounter + "_entities where [id] > -1;").fetchall()):
+                self.initiative += str(i[0])
+                self.initiative += ","
+        else:
+            self.initiative = self.cur.execute("select [initiative] from " + self.encounter + ";").fetchone()[0]
+
+        self.cur.execute("update " + self.encounter + " set [initiative] = ?;", [str(self.initiative)])
+        self.conn.commit()
 
     def __windowsScroll(self, event):
         if event.delta < 1:
