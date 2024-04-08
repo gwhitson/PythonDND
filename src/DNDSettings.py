@@ -1,10 +1,11 @@
+import os
 import sqlite3
 import tkinter as tk
 from tkinter import ttk
 
 
 class DNDSettings:
-    def __init__(self, saveFile: str, window: tk.Tk, squareSize, encounter: str):
+    def __init__(self, saveFile: str, window: tk.Tk, squareSize, encounter: str, map: tk.Canvas):
         self.window = window
         self.conn = sqlite3.connect(saveFile)
         self.cur = self.conn.cursor()
@@ -12,6 +13,8 @@ class DNDSettings:
         self.lb = None
         self.renderFrame = None
         self.encounter = encounter
+        self.map = map
+        self.image = None
 
     def prompt(self):
         try:
@@ -24,7 +27,9 @@ class DNDSettings:
         tk.Button(self.settingsWindow, text="Entity Manager", command=self.__entMgr).pack()
         tk.Button(self.settingsWindow, text="Action Manager", command=self.__actMgr).pack()
         tk.Button(self.settingsWindow, text="Initiative Manager", command=self.__iniMgr).pack()
+        tk.Button(self.settingsWindow, text="Set Background", command=self.__bckMgr).pack()
         tk.Button(self.settingsWindow, text="Exit", command=self.__exitSettings).pack()
+        tk.Button(self.settingsWindow, text='test', command=self.__info).pack()
         self.renderFrame()
 
     def __exitSettings(self):
@@ -265,3 +270,18 @@ class DNDSettings:
         tk.Button(iniFrame, text="Submit", command=self.__udpateInitInDB).grid(row=8,column=0, columnspan=2)
         tk.Button(iniFrame, text="Back", command=self.prompt).grid(row=9, column=0, columnspan=2)
         iniFrame.pack()
+
+    def __bckMgr(self):
+        imagefile = tk.filedialog.askopenfile(mode='r',
+                                          initialdir=(os.getcwd() + "/res/maps/"),
+                                          filetypes=(("png files", "*.png"), ("all files", "*.*")))
+        self.image = tk.PhotoImage(file=imagefile.name)
+        if int(self.map.winfo_screenwidth()) != int(self.map.cget('width')):
+            scale = int(int(self.map.cget('height')) / int(self.image.height()))
+        else:
+            scale = int(int(self.map.cget('width')) / int(self.image.width()))
+        self.image = self.image.zoom(scale)
+        self.map.create_image(0,0, anchor=tk.NW, image=self.image)
+
+    def __info(self):
+        print(self.map.winfo_screenwidth(), self.map.winfo_screenheight(), self.map.cget('width'), self.map.cget('height'))

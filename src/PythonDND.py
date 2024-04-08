@@ -89,7 +89,7 @@ class PythonDND:
         self.control.update()
 
         # Declare settings window
-        self.settingsWindow = DNDSettings.DNDSettings(self.save, self.window, self.squareSize, self.encounter)
+        self.settingsWindow = DNDSettings.DNDSettings(self.save, self.window, self.squareSize, self.encounter, self.map)
         self.renderFrame()
         self.window.mainloop()
 
