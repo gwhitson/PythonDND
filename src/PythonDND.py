@@ -134,6 +134,8 @@ class PythonDND:
                                  text=str(i[0]),
                                  font=('sans serif', int(self.squareSize / 4), "bold"),
                                  tags="map")
+            if self.gameSettings[4] is not None:
+                if self.gameSettings[4].split(',')
 
     def renderControlFrame(self):
         tk.Button(self.control, text="Quit", command=self.__quitGame).pack()
@@ -171,23 +173,26 @@ class PythonDND:
         if self.gameSettings[3] == 'combat':
             print("combat")
             if self.gameSettings[6] == 'a':
-                # decide target, prompt for roll for hit and damage
-                print("attack!")
+                if clickedEnt is not None:
+                    if self.gameSettings[4] is None:
+                        self.cur.execute(f"update {self.encounter} set [targetted] = ?;", [clickedEnt[0]])
+                    else:
+                        self.cur.execute(f"update {self.encounter} set [targetted] = ?;", [self.gameSettings[4].split(',').append(clickedEnt[0])])
+                    self.conn.commit()
 
-                if self.posInRange([self.map.canvasx(event.x), self.map.canvasy(event.y)], [self.curr_ent[8], self.curr_ent[9]], ((self.cur.execute(f"select [range] from {self.encounter}_actions where [id] = ?;", [self.gameSettings[2]]).fetchone()[0] / 5) + 0.5) * self.squareSize):
-                    print("click in range")
-                    print(self.__entsInAoe([self.map.canvasx(event.x), self.map.canvasy(event.y)]))
-                    #self.map.delete("range")
-                    #self.cur.execute(f"update {self.encounter} set [flags] = '';")
-                else:
-                    print("not")
-                self.__nextTurn()
+                # decide target, prompt for roll for hit and damage
+                try:
+                    print(self.gameSettings[4].split(','))
+                except AttributeError:
+                    print("i tried")
+                #self.map.delete("range")
+                #self.cur.execute(f"update {self.encounter} set [flags] = '';")
             elif self.gameSettings[6] == 'm':
                 px = int(click_x * self.squareSize) - int(self.squareSize / 2)
                 py = int(click_y * self.squareSize) - int(self.squareSize / 2)
                 if self.posInRange([self.map.canvasx(event.x), self.map.canvasy(event.y)], [self.curr_ent[8], self.curr_ent[9]], ((self.curr_ent[5] / 5) + 0.5) * self.squareSize):
                     self.cur.execute(f"update {self.encounter} set [flags] = '';")
-                    self.cur.execute("update " +self.encounter + "_entities set [grid_x] = ?, [grid_y] = ?, [pix_x] = ?, [pix_y] = ? where [id] = ?;", [click_x, click_y, px, py, self.curr_ent[0]])
+                    self.cur.execute("update " + self.encounter + "_entities set [grid_x] = ?, [grid_y] = ?, [pix_x] = ?, [pix_y] = ? where [id] = ?;", [click_x, click_y, px, py, self.curr_ent[0]])
                     self.map.delete("range")
                 self.curr_ent = [None, None, None, None, None, None, None, None, None]
                 self.__nextTurn()
@@ -201,10 +206,9 @@ class PythonDND:
                 py = int(click_y * self.squareSize) - int(self.squareSize / 2)
                 if self.posInRange([self.map.canvasx(event.x), self.map.canvasy(event.y)], [self.curr_ent[8], self.curr_ent[9]], ((self.curr_ent[5] / 5) + 0.5) * self.squareSize):
                     self.cur.execute(f"update {self.encounter} set [flags] = '';")
-                    self.cur.execute("update " +self.encounter + "_entities set [grid_x] = ?, [grid_y] = ?, [pix_x] = ?, [pix_y] = ? where [id] = ?;", [click_x, click_y, px, py, self.curr_ent[0]])
+                    self.cur.execute("update " + self.encounter + "_entities set [grid_x] = ?, [grid_y] = ?, [pix_x] = ?, [pix_y] = ? where [id] = ?;", [click_x, click_y, px, py, self.curr_ent[0]])
                     self.map.delete("range")
                 self.curr_ent = [None, None, None, None, None, None, None, None, None]
-                self.renderFrame()
             else:
                 #print('prompt move')
                 if clickedEnt is not None:
@@ -212,6 +216,7 @@ class PythonDND:
         else:
             #print('invalid game mode')
             self.__quitGame()
+        self.renderFrame()
 
     def startCombat(self):
         if self.gameSettings[0] is None or self.gameSettings[1] is None:
@@ -361,7 +366,7 @@ class PythonDND:
         aFlag = 'm' if action[5] == 'movement' else 'a'
         self.cur.execute(f"update {self.encounter} set [curr_action] = ?, [flags] = ?;", [action[0],aFlag])
         self.conn.commit()
-        self.showRange([self.curr_ent[6], self.curr_ent[7]], "#ff7878", action)
+        #self.showRange([self.curr_ent[6], self.curr_ent[7]], "#ff7878", action)
 
     def __nextTurn(self):
         next = None
