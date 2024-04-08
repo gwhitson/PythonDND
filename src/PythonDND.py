@@ -137,6 +137,12 @@ class PythonDND:
                                              int(i[4]) * self.squareSize,
                                              fill="red",
                                              tags="map")
+                    self.map.create_text((int(i[3]) - 0.5) * self.squareSize,
+                                         (int(i[4]) - 0.5) * self.squareSize,
+                                         fill='white',
+                                         text=str(i[0]),
+                                         font=('sans serif', int(self.squareSize / 4), "bold"),
+                                         tags="map")
                 outline_color = 'orange' if (self.cur.execute("select [curr_ent] from " + self.encounter).fetchone()[0] == i[0]) else 'black'
                 self.map.create_oval((int(i[3]) - 1) * self.squareSize,
                                      (int(i[4]) - 1) * self.squareSize,
@@ -145,12 +151,6 @@ class PythonDND:
                                      #i[4],i[5],i[4] + self.squareSize,i[5] + self.squareSize,
                                      outline=outline_color,
                                      width=outline_width,
-                                     tags="map")
-                self.map.create_text((int(i[3]) - 0.5) * self.squareSize,
-                                     (int(i[4]) - 0.5) * self.squareSize,
-                                     fill='white',
-                                     text=str(i[0]),
-                                     font=('sans serif', int(self.squareSize / 4), "bold"),
                                      tags="map")
                 if self.gameSettings[4] is not None:
                     if str(i[0]) in self.gameSettings[4].split(','):
