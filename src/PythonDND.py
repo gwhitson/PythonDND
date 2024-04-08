@@ -30,6 +30,9 @@ class PythonDND:
         self.gameSettings = self.cur.execute("select * from " + self.encounter + ";").fetchone()
         spl = self.gameSettings[5].split('x')
         self.mapDimension = [int(spl[0]), int(spl[1])]
+        self.atkToHit = None
+        self.atkDmg = None
+        self.atkBonus = None
 
         if self.mapDimension[0] <= self.mapDimension[1]:
             self.squareSize = int((self.window.winfo_screenwidth() - 200) / int(min(self.mapDimension[0], self.mapDimension[1])))
@@ -96,6 +99,7 @@ class PythonDND:
         outline_width = self.squareSize / 12
         w = self.mapDimension[0] * self.squareSize
         h = self.mapDimension[1] * self.squareSize
+
         # horizontal lines
         for i in range(0, h, self.squareSize):
             self.map.create_line(0, i, w, i, fill="black", tags="map")
@@ -103,39 +107,69 @@ class PythonDND:
         for k in range(0, w, self.squareSize):
             self.map.create_line(k, 0, k, h, fill="black", tags="map")
 
-        self.entities = (self.cur.execute("Select [id],[name],[role],[grid_x],[grid_y],[pix_x],[pix_y] from " + self.encounter + "_entities where id > -1;")).fetchall()
+        self.entities = (self.cur.execute("Select [id],[name],[role],[grid_x],[grid_y],[pix_x],[pix_y],[hp] from " + self.encounter + "_entities where id > -1;")).fetchall()
         for i in self.entities:
-            if i[2] == "player":
+            print(i)
+            if i[7] > 0:
+                if i[2] == "player":
+                    self.map.create_oval((int(i[3]) - 1) * self.squareSize,
+                                         (int(i[4]) - 1) * self.squareSize,
+                                         int(i[3]) * self.squareSize,
+                                         int(i[4]) * self.squareSize,
+                                         fill="blue",
+                                         tags="map")
+                if i[2] == "enemy":
+                    self.map.create_oval((int(i[3]) - 1) * self.squareSize,
+                                         (int(i[4]) - 1) * self.squareSize,
+                                         int(i[3]) * self.squareSize,
+                                         int(i[4]) * self.squareSize,
+                                         fill="red",
+                                         tags="map")
+                outline_color = 'orange' if (self.cur.execute("select [curr_ent] from " + self.encounter).fetchone()[0] == i[0]) else 'black'
                 self.map.create_oval((int(i[3]) - 1) * self.squareSize,
                                      (int(i[4]) - 1) * self.squareSize,
                                      int(i[3]) * self.squareSize,
                                      int(i[4]) * self.squareSize,
-                                     fill="blue",
+                                     #i[4],i[5],i[4] + self.squareSize,i[5] + self.squareSize,
+                                     outline=outline_color,
+                                     width=outline_width,
                                      tags="map")
-            if i[2] == "enemy":
-                self.map.create_oval((int(i[3]) - 1) * self.squareSize,
-                                     (int(i[4]) - 1) * self.squareSize,
-                                     int(i[3]) * self.squareSize,
-                                     int(i[4]) * self.squareSize,
-                                     fill="red",
+                self.map.create_text((int(i[3]) - 0.5) * self.squareSize,
+                                     (int(i[4]) - 0.5) * self.squareSize,
+                                     fill='white',
+                                     text=str(i[0]),
+                                     font=('sans serif', int(self.squareSize / 4), "bold"),
                                      tags="map")
-            outline_color = 'orange' if (self.cur.execute("select [curr_ent] from " + self.encounter).fetchone()[0] == i[0]) else 'black'
-            self.map.create_oval((int(i[3]) - 1) * self.squareSize,
-                                 (int(i[4]) - 1) * self.squareSize,
-                                 int(i[3]) * self.squareSize,
-                                 int(i[4]) * self.squareSize,
-                                 #i[4],i[5],i[4] + self.squareSize,i[5] + self.squareSize,
-                                 outline=outline_color,
-                                 width=outline_width,
-                                 tags="map")
-            self.map.create_text((int(i[3]) - 0.5) * self.squareSize,
-                                 (int(i[4]) - 0.5) * self.squareSize,
-                                 fill='white',
-                                 text=str(i[0]),
-                                 font=('sans serif', int(self.squareSize / 4), "bold"),
-                                 tags="map")
-            if self.gameSettings[4] is not None:
-                if self.gameSettings[4].split(',')
+                if self.gameSettings[4] is not None:
+                    if str(i[0]) in self.gameSettings[4].split(','):
+                        self.map.create_line((int(i[3]) - 1) * self.squareSize,
+                                             (int(i[4]) - 1) * self.squareSize,
+                                             (int(i[3])) * self.squareSize,
+                                             (int(i[4])) * self.squareSize,
+                                             width=self.squareSize / 12 + 3,
+                                             fill='black',
+                                             tags="map")
+                        self.map.create_line((int(i[3])) * self.squareSize,
+                                             (int(i[4]) - 1) * self.squareSize,
+                                             (int(i[3]) - 1) * self.squareSize,
+                                             (int(i[4])) * self.squareSize,
+                                             width=self.squareSize / 12 + 3,
+                                             fill='black',
+                                             tags="map")
+                        self.map.create_line(((int(i[3]) - 1) * self.squareSize) + 2,
+                                             ((int(i[4]) - 1) * self.squareSize) + 2,
+                                             ((int(i[3])) * self.squareSize) - 2,
+                                             ((int(i[4])) * self.squareSize) - 2,
+                                             width=self.squareSize / 12 - 2,
+                                             fill='red',
+                                             tags="map")
+                        self.map.create_line(((int(i[3])) * self.squareSize) - 2,
+                                             ((int(i[4]) - 1) * self.squareSize) + 2,
+                                             ((int(i[3]) - 1) * self.squareSize) + 2,
+                                             ((int(i[4])) * self.squareSize) - 2,
+                                             width=self.squareSize / 12 - 2,
+                                             fill='red',
+                                             tags="map")
 
     def renderControlFrame(self):
         tk.Button(self.control, text="Quit", command=self.__quitGame).pack()
@@ -145,10 +179,32 @@ class PythonDND:
             #print(self.gameSettings[5])
             tk.Button(self.control, text="Start Combat", command=self.startCombat).pack()
         else:
-            tk.Button(self.control, text="Action", command=self.doChooseAction).pack()
-            turnFrame = tk.Frame(self.control)
-            tk.Button(turnFrame, text="Prev Turn", command=self.__prevTurn).grid(row=0, column=0)
-            tk.Button(turnFrame, text="Next Turn", command=self.__nextTurn).grid(row=0, column=1)
+            dmg = tk.IntVar()
+            toHit = tk.IntVar()
+            self.atkBonus = tk.BooleanVar()
+            actionFrame = tk.Frame(self.control)
+            curTurn = self.cur.execute(f"select [name] from {self.encounter}_entities where [id] = ?;", [self.gameSettings[1]]).fetchone()[0]
+            tk.Label(actionFrame, text=f"Current Turn: {curTurn}").grid(row=0, column=0)
+            #tk.Button(actionFrame, text="Choose Action", command=self.doChooseAction).grid(row=1, column=0)
+            tk.Button(actionFrame, text="Move", command=self.__setMoveFlag).grid(row=1, column=0)
+            tk.Button(actionFrame, text="Attack", command=self.__setAtkFlag).grid(row=1, column=1)
+            if self.gameSettings[6] == 'a':
+                tk.Button(actionFrame, text="Clear Targets", command=self.__clearTargets).grid(row=2, column=0)
+                tk.Label(actionFrame, text="ATK Roll:").grid(row=3, column=0)
+                self.atkToHit = tk.Entry(actionFrame, textvariable=toHit, width=3)
+                self.atkToHit.grid(row=3, column=1)
+                tk.Label(actionFrame, text="DMG Roll:").grid(row=4, column=0)
+                self.atkDmg = tk.Entry(actionFrame, textvariable=dmg, width=3)
+                self.atkDmg.grid(row=4, column=1)
+                tk.Label(actionFrame, text="DMG Roll:").grid(row=5, column=0)
+                atkBonus = tk.Checkbutton(actionFrame, variable=self.atkBonus, width=1)
+                atkBonus.grid(row=5, column=1)
+                tk.Button(actionFrame, text="Attack!", command=self.__doAction).grid(row=6, column=0)
+
+            turnFrame = tk.Frame(self.control, borderwidth=2)
+            tk.Button(turnFrame, text="Prev", command=self.__prevTurn).grid(row=0, column=0)
+            tk.Button(turnFrame, text="Next", command=self.__nextTurn).grid(row=0, column=1)
+            actionFrame.pack()
             turnFrame.pack()
             tk.Button(self.control, text="End Combat", command=self.endCombat).pack()
 
@@ -164,6 +220,7 @@ class PythonDND:
     # Game State Interactions
     def leftClick(self, event):
         self.gameSettings = self.cur.execute("select * from " + self.encounter + ";").fetchone()
+        self.curr_ent = self.cur.execute(f"select * from {self.encounter}_entities where [id] = ?", [self.gameSettings[1]]).fetchone()
         click_x = int((self.map.canvasx(event.x)) / self.squareSize + 1)
         click_y = int((self.map.canvasy(event.y)) / self.squareSize + 1)
         clickedEnt = self.cur.execute("select * from " + self.encounter + "_entities where [grid_x] = ? and [grid_y] = ?;", [click_x, click_y]).fetchone()
@@ -175,9 +232,14 @@ class PythonDND:
             if self.gameSettings[6] == 'a':
                 if clickedEnt is not None:
                     if self.gameSettings[4] is None:
+                        print("if")
                         self.cur.execute(f"update {self.encounter} set [targetted] = ?;", [clickedEnt[0]])
                     else:
-                        self.cur.execute(f"update {self.encounter} set [targetted] = ?;", [self.gameSettings[4].split(',').append(clickedEnt[0])])
+                        print("else")
+                        temp = self.gameSettings[4].split(',')
+                        temp.append(str(clickedEnt[0]))
+                        temp = str(','.join(temp))
+                        self.cur.execute(f"update {self.encounter} set [targetted] = ?;", [temp])
                     self.conn.commit()
 
                 # decide target, prompt for roll for hit and damage
@@ -229,16 +291,11 @@ class PythonDND:
         self.cur.execute("update " + self.encounter + " set [mode] = 'noncombat';")
         self.renderFrame()
 
-    def showRange(self, center: [int, int], color: str, action: (int, str, str, int, int, str, str, int, None)):
+    def showRange(self, center: [int, int], radius: int):
         self.map.delete("range")
-        if action[-3] == "movement" and action[1] == "Move":
-            radius = self.cur.execute(f"select [move_spd] from {self.encounter}_entities where [id] = ?;", [action[-4]]).fetchone()[0]
-            color = "#87d987"
-        else:
-            radius = action[3] + 2.5
+        color = "#87d987"
         lPos = [center[0] * self.squareSize, center[1] * self.squareSize]
         print("range pls")
-        print(action)
         print(lPos)
         self.map.create_oval(lPos[0] - int((radius / 5) + 0.5) * self.squareSize,
                              lPos[1] - int((radius / 5) + 0.5) * self.squareSize,
@@ -356,9 +413,26 @@ class PythonDND:
         self.renderFrame()
 
 
-    def __doAction(self, click: [int,int]):
-        None
-        #print(click)
+    def __doAction(self):
+        self.atkToHit.update()
+        self.atkDmg.update()
+        print(self.atkToHit.get(), self.atkDmg.get(), self.atkBonus.get())
+        # quick guard clause
+        if self.gameSettings[4] is None:
+            return None
+        for i in self.gameSettings[4].split(','):
+            print(i)
+            if int(self.atkToHit.get()) >= int(self.cur.execute(f"select [ac] from {self.encounter}_entities where [id] = ?;", [i]).fetchone()[0]):
+                self.cur.execute(f"update {self.encounter}_entities set [hp] = ? where [id] = ?", [int(self.cur.execute(f"select [hp] from {self.encounter}_entities where [id] = {i};").fetchone()[0] - int(self.atkDmg.get())), i])
+        if self.atkBonus.get() is False:
+            self.__nextTurn()
+        self.atkToHit.setvar(value=0)
+        self.atkDmg.setvar(value=0)
+        self.atkBonus.set(value=False)
+        self.cur.execute(f"update {self.encounter} set [flags] = ?;", [''])
+        self.conn.commit()
+        self.__clearTargets()
+        self.renderFrame()
 
     def __actionHelper(self, action: (int, str, str, int, int ,str, str, int, None)):
         print("action helper")
@@ -392,6 +466,20 @@ class PythonDND:
 
         self.cur.execute(f"update {self.encounter} set [curr_ent] = ?;", [next])
         self.conn.commit()
+        self.renderFrame()
+
+    def __setAtkFlag(self):
+        self.cur.execute(f"update {self.encounter} set [flags] = 'a';")
+        self.renderFrame()
+
+    def __setMoveFlag(self):
+        ent = self.cur.execute(f"select * from {self.encounter}_entities where [id] = ?;", [self.gameSettings[1]]).fetchone()
+        self.cur.execute(f"update {self.encounter} set [flags] = 'm';")
+        self.showRange([ent[6], ent[7]], ent[5])
+        self.renderFrame()
+
+    def __clearTargets(self):
+        self.cur.execute(f"update {self.encounter} set [targetted] = ?;", [None])
         self.renderFrame()
 
     def __setInit(self):
