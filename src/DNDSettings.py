@@ -2,6 +2,7 @@ import os
 import sqlite3
 import tkinter as tk
 from tkinter import ttk
+from PIL import ImageTk, Image
 
 
 class DNDSettings:
@@ -29,7 +30,6 @@ class DNDSettings:
         tk.Button(self.settingsWindow, text="Initiative Manager", command=self.__iniMgr).pack()
         tk.Button(self.settingsWindow, text="Set Background", command=self.__bckMgr).pack()
         tk.Button(self.settingsWindow, text="Exit", command=self.__exitSettings).pack()
-        tk.Button(self.settingsWindow, text='test', command=self.__info).pack()
         self.renderFrame()
 
     def __exitSettings(self):
@@ -275,13 +275,7 @@ class DNDSettings:
         imagefile = tk.filedialog.askopenfile(mode='r',
                                           initialdir=(os.getcwd() + "/res/maps/"),
                                           filetypes=(("png files", "*.png"), ("all files", "*.*")))
-        self.image = tk.PhotoImage(file=imagefile.name)
-        if int(self.map.winfo_screenwidth()) != int(self.map.cget('width')):
-            scale = int(int(self.map.cget('height')) / int(self.image.height()))
-        else:
-            scale = int(int(self.map.cget('width')) / int(self.image.width()))
-        self.image = self.image.zoom(scale)
+        image = Image.open(imagefile.name)
+        image = image.resize((int(self.map.cget('width')), int(self.map.cget('height'))))
+        self.image = ImageTk.PhotoImage(image)
         self.map.create_image(0,0, anchor=tk.NW, image=self.image)
-
-    def __info(self):
-        print(self.map.winfo_screenwidth(), self.map.winfo_screenheight(), self.map.cget('width'), self.map.cget('height'))

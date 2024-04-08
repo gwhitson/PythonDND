@@ -3,6 +3,7 @@ import DNDSettings
 import sqlite3
 import tkinter as tk
 from tkinter import ttk
+from PIL import ImageTk, Image
 
 
 class PythonDND:
@@ -33,6 +34,7 @@ class PythonDND:
         self.atkToHit = None
         self.atkDmg = None
         self.atkBonus = None
+        self.sprites = {}
 
         if self.mapDimension[0] <= self.mapDimension[1]:
             self.squareSize = int((self.window.winfo_screenwidth() - 200) / int(min(self.mapDimension[0], self.mapDimension[1])))
@@ -107,24 +109,34 @@ class PythonDND:
         for k in range(0, w, self.squareSize):
             self.map.create_line(k, 0, k, h, fill="black", tags="map")
 
-        self.entities = (self.cur.execute("Select [id],[name],[role],[grid_x],[grid_y],[pix_x],[pix_y],[hp] from " + self.encounter + "_entities where id > -1;")).fetchall()
+        self.entities = (self.cur.execute("Select [id],[name],[role],[grid_x],[grid_y],[pix_x],[pix_y],[hp],[sprite] from " + self.encounter + "_entities where id > -1;")).fetchall()
         for i in self.entities:
             print(i)
+            # check HP
             if i[7] > 0:
-                if i[2] == "player":
-                    self.map.create_oval((int(i[3]) - 1) * self.squareSize,
+                if i[8] != None:
+                    image = Image.open(i[8])
+                    image = image.resize((self.squareSize, self.squareSize))
+                    self.sprites[i[0]] = ImageTk.PhotoImage(image)
+                    self.map.create_image((int(i[3]) - 1) * self.squareSize,
                                          (int(i[4]) - 1) * self.squareSize,
-                                         int(i[3]) * self.squareSize,
-                                         int(i[4]) * self.squareSize,
-                                         fill="blue",
-                                         tags="map")
-                if i[2] == "enemy":
-                    self.map.create_oval((int(i[3]) - 1) * self.squareSize,
-                                         (int(i[4]) - 1) * self.squareSize,
-                                         int(i[3]) * self.squareSize,
-                                         int(i[4]) * self.squareSize,
-                                         fill="red",
-                                         tags="map")
+                                          anchor=tk.NW,
+                                          image=self.sprites[i[0]])
+                else:
+                    if i[2] == "player":
+                        self.map.create_oval((int(i[3]) - 1) * self.squareSize,
+                                             (int(i[4]) - 1) * self.squareSize,
+                                             int(i[3]) * self.squareSize,
+                                             int(i[4]) * self.squareSize,
+                                             fill="blue",
+                                             tags="map")
+                    if i[2] == "enemy":
+                        self.map.create_oval((int(i[3]) - 1) * self.squareSize,
+                                             (int(i[4]) - 1) * self.squareSize,
+                                             int(i[3]) * self.squareSize,
+                                             int(i[4]) * self.squareSize,
+                                             fill="red",
+                                             tags="map")
                 outline_color = 'orange' if (self.cur.execute("select [curr_ent] from " + self.encounter).fetchone()[0] == i[0]) else 'black'
                 self.map.create_oval((int(i[3]) - 1) * self.squareSize,
                                      (int(i[4]) - 1) * self.squareSize,
