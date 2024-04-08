@@ -13,6 +13,7 @@ class PythonDND:
         self.save = menuRet[0]
         self.encounter = menuRet[1]
         self.resFiles = menuRet[2]
+        self.keybinds = menuRet[3]
         if self.save == "":
             exit(127)
 
@@ -111,17 +112,18 @@ class PythonDND:
 
         self.entities = (self.cur.execute("Select [id],[name],[role],[grid_x],[grid_y],[pix_x],[pix_y],[hp],[sprite] from " + self.encounter + "_entities where id > -1;")).fetchall()
         for i in self.entities:
-            print(i)
+            #print(i)
             # check HP
             if i[7] > 0:
-                if i[8] != None:
+                if i[8] is not None:
                     image = Image.open(i[8])
                     image = image.resize((self.squareSize, self.squareSize))
                     self.sprites[i[0]] = ImageTk.PhotoImage(image)
                     self.map.create_image((int(i[3]) - 1) * self.squareSize,
-                                         (int(i[4]) - 1) * self.squareSize,
+                                          (int(i[4]) - 1) * self.squareSize,
                                           anchor=tk.NW,
-                                          image=self.sprites[i[0]])
+                                          image=self.sprites[i[0]],
+                                          tags="map")
                 else:
                     if i[2] == "player":
                         self.map.create_oval((int(i[3]) - 1) * self.squareSize,
@@ -221,13 +223,14 @@ class PythonDND:
             tk.Button(self.control, text="End Combat", command=self.endCombat).pack()
 
     def renderFrame(self):
-        print("rendering frame")
+        #print("rendering frame")
         self.conn.commit()
         self.gameSettings = self.cur.execute("select * from " + self.encounter + ";").fetchone()
         for widg in self.control.winfo_children():
             widg.destroy()
         self.renderControlFrame()
         self.renderMapFrame()
+        self.__ensureBound()
 
     # Game State Interactions
     def leftClick(self, event):
@@ -236,18 +239,18 @@ class PythonDND:
         click_x = int((self.map.canvasx(event.x)) / self.squareSize + 1)
         click_y = int((self.map.canvasy(event.y)) / self.squareSize + 1)
         clickedEnt = self.cur.execute("select * from " + self.encounter + "_entities where [grid_x] = ? and [grid_y] = ?;", [click_x, click_y]).fetchone()
-        print(self.gameSettings)
+        #print(self.gameSettings)
 
         # check mode
         if self.gameSettings[3] == 'combat':
-            print("combat")
+            #print("combat")
             if self.gameSettings[6] == 'a':
                 if clickedEnt is not None:
                     if self.gameSettings[4] is None:
-                        print("if")
+                        #print("if")
                         self.cur.execute(f"update {self.encounter} set [targetted] = ?;", [clickedEnt[0]])
                     else:
-                        print("else")
+                        #print("else")
                         temp = self.gameSettings[4].split(',')
                         temp.append(str(clickedEnt[0]))
                         temp = str(','.join(temp))
@@ -255,10 +258,6 @@ class PythonDND:
                     self.conn.commit()
 
                 # decide target, prompt for roll for hit and damage
-                try:
-                    print(self.gameSettings[4].split(','))
-                except AttributeError:
-                    print("i tried")
                 #self.map.delete("range")
                 #self.cur.execute(f"update {self.encounter} set [flags] = '';")
             elif self.gameSettings[6] == 'm':
@@ -270,8 +269,8 @@ class PythonDND:
                     self.map.delete("range")
                 self.curr_ent = [None, None, None, None, None, None, None, None, None]
                 self.__nextTurn()
-            else:
-                print("not attacking")
+            #else:
+                #print("not attacking")
         elif self.gameSettings[3] == 'noncombat':
             if self.gameSettings[6] == 'm' and clickedEnt is None:
                 #print('move')
@@ -307,8 +306,8 @@ class PythonDND:
         self.map.delete("range")
         color = "#87d987"
         lPos = [center[0] * self.squareSize, center[1] * self.squareSize]
-        print("range pls")
-        print(lPos)
+        #print("range pls")
+        #print(lPos)
         self.map.create_oval(lPos[0] - int((radius / 5) + 0.5) * self.squareSize,
                              lPos[1] - int((radius / 5) + 0.5) * self.squareSize,
                              lPos[0] + int((radius / 5) - 0.5) * self.squareSize,
@@ -358,7 +357,7 @@ class PythonDND:
             return 0
 
     def __entsInAoe(self, pos: [int,int]):
-        print(self.cur.execute(f"select [aoe] from {self.encounter}_actions where [id] = ?;",[self.gameSettings[2]]).fetchone()[0])
+        #print(self.cur.execute(f"select [aoe] from {self.encounter}_actions where [id] = ?;",[self.gameSettings[2]]).fetchone()[0])
         return pos
 
     def __chooseInitiative(self):
@@ -424,16 +423,15 @@ class PythonDND:
         self.map.delete("range")
         self.renderFrame()
 
-
     def __doAction(self):
         self.atkToHit.update()
         self.atkDmg.update()
-        print(self.atkToHit.get(), self.atkDmg.get(), self.atkBonus.get())
+        #print(self.atkToHit.get(), self.atkDmg.get(), self.atkBonus.get())
         # quick guard clause
         if self.gameSettings[4] is None:
             return None
         for i in self.gameSettings[4].split(','):
-            print(i)
+            #print(i)
             if int(self.atkToHit.get()) >= int(self.cur.execute(f"select [ac] from {self.encounter}_entities where [id] = ?;", [i]).fetchone()[0]):
                 self.cur.execute(f"update {self.encounter}_entities set [hp] = ? where [id] = ?", [int(self.cur.execute(f"select [hp] from {self.encounter}_entities where [id] = {i};").fetchone()[0] - int(self.atkDmg.get())), i])
         if self.atkBonus.get() is False:
@@ -447,8 +445,8 @@ class PythonDND:
         self.renderFrame()
 
     def __actionHelper(self, action: (int, str, str, int, int ,str, str, int, None)):
-        print("action helper")
-        print(action)
+        #print("action helper")
+        #print(action)
         aFlag = 'm' if action[5] == 'movement' else 'a'
         self.cur.execute(f"update {self.encounter} set [curr_action] = ?, [flags] = ?;", [action[0],aFlag])
         self.conn.commit()
@@ -480,11 +478,13 @@ class PythonDND:
         self.conn.commit()
         self.renderFrame()
 
-    def __setAtkFlag(self):
+    def __setAtkFlag(self, event=None):
+        print('attacking')
         self.cur.execute(f"update {self.encounter} set [flags] = 'a';")
         self.renderFrame()
 
-    def __setMoveFlag(self):
+    def __setMoveFlag(self, event=None):
+        print('moving')
         ent = self.cur.execute(f"select * from {self.encounter}_entities where [id] = ?;", [self.gameSettings[1]]).fetchone()
         self.cur.execute(f"update {self.encounter} set [flags] = 'm';")
         self.showRange([ent[6], ent[7]], ent[5])
@@ -526,7 +526,13 @@ class PythonDND:
         else:
             self.map.xview_scroll(-scrollVal, "units")
 
-    def __sessSettings(self):
+    def __ensureBound(self):
+        self.window.bind(f"<{self.keybinds['sel_attack']}>", self.__setAtkFlag)
+        self.window.bind(f"<{self.keybinds['sel_move']}>", self.__setMoveFlag)
+        self.window.bind(f"<{self.keybinds['exe_attack']}>", self.__doAction, add="+")
+        self.window.bind(self.keybinds['open_sess_settings'], self.__sessSettings, add="+")
+
+    def __sessSettings(self, event=None):
         try:
             self.settingsWindow.destroy()
         except AttributeError:

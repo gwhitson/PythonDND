@@ -25,6 +25,8 @@ class StartMenu:
         self.load = False
         self.encEntry = None
         self.mpSzEntry = None
+        self.cfgFile = "/res/config.ini"
+        self.keybinds = {}
 
     def startMenu(self):
 
@@ -35,7 +37,8 @@ class StartMenu:
         tk.Button(self.frame, text="quit", command=self.__quitMenu, width=18).grid(row=4, column=0)
 
         self.window.mainloop()
-        return [self.saveFile, self.encounter, os.getcwd() + "/res/"]
+        self.__loadSettings()
+        return [self.saveFile, self.encounter, os.getcwd() + "/res/", self.keybinds]
 
     def __newGame(self):
         for widg in self.frame.winfo_children():
@@ -56,7 +59,7 @@ class StartMenu:
 
         self.__openConnection()
 
-        with open("res/saves/default_db.txt", "r") as f:
+        with open("res/default_db.txt", "r") as f:
             defaultDBSchema = f.readlines()
         for i in defaultDBSchema:
             self.cur.execute(i.replace("\n", ""))
@@ -78,6 +81,7 @@ class StartMenu:
         self.mpSzEntry = tk.Entry(self.window, textvariable=self.mapSize)
         self.mpSzEntry.pack()
         tk.Button(self.window, text="Create", command=self.__createEncounter).pack()
+        tk.Button(self.window, text="Cancel", command=self.__loadEncounter).pack()
 
     def __createEncounter(self):
         self.encounter = self.encounterVar.get()
@@ -106,7 +110,17 @@ class StartMenu:
         tk.Button(frame, text="New Encounter", command=self.__newEncouter).pack(expand=True)
         tk.Button(frame, text="Load Encounter", command=self.__startGame).pack(expand=True)
         tk.Button(frame, text="Entity Manager", command=self.__entMgr).pack(expand=True)
+        tk.Button(frame, text="Cancel", command=self.__quitEncounters).pack(expand=True)
         frame.pack(expand=True)
+
+    def __quitEncounters(self):
+        self.window.destroy()
+        self.window = tk.Tk()
+        self.window.title("Python DND")
+        self.window.geometry("200x200")
+        self.frame = tk.Frame(self.window)
+        self.frame.pack()
+        self.startMenu()
 
     def __loadActions(self):
         self.__openConnection()
@@ -147,7 +161,21 @@ class StartMenu:
             self.__reloadMenu()
 
     def __editSettings(self):
-        print("do this too")
+        with open(os.getcwd() + self.cfgFile) as f:
+            for i in f.readlines():
+                if i[0] != '#':
+                    key = (i[0:i.find('=')])
+                    val = (i[i.find('=') + 1:-1])
+                    self.keybinds[key] = val
+        print("edit these not set")
+
+    def __loadSettings(self):
+        with open(os.getcwd() + self.cfgFile) as f:
+            for i in f.readlines():
+                if i[0] != '#':
+                    key = (i[0:i.find('=')])
+                    val = (i[i.find('=') + 1:-1])
+                    self.keybinds[key] = val
 
     def __openConnection(self):
         self.conn = sqlite3.connect(self.saveFile)
