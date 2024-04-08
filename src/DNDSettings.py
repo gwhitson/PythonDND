@@ -279,3 +279,4 @@ class DNDSettings:
         image = image.resize((int(self.map.cget('width')), int(self.map.cget('height'))))
         self.image = ImageTk.PhotoImage(image)
         self.map.create_image(0,0, anchor=tk.NW, image=self.image)
+        self.renderFrame()
