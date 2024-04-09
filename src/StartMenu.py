@@ -4,6 +4,7 @@ import sqlite3
 import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog
+from PIL import ImageTk, Image
 
 
 class StartMenu:
@@ -15,9 +16,8 @@ class StartMenu:
         self.mapSize = tk.StringVar(value="")
         self.encounter = ""
         self.encounterVar = tk.StringVar(value="")
-        self.saveFile = ""
         self.frame = tk.Frame(self.window)
-        self.frame.pack()
+        self.saveFile = ""
         self.encounters = None
         self.selected = None
         self.conn = None
@@ -27,14 +27,30 @@ class StartMenu:
         self.mpSzEntry = None
         self.cfgFile = "/res/config.ini"
         self.keybinds = {}
+        self.images = {}
+        self.buttons = {}
+        self.images['menu'] = ImageTk.PhotoImage(Image.open("res/icons/start_menu.png"))
+        self.images['logo'] = ImageTk.PhotoImage(Image.open("res/icons/logo.png"))
+        self.images['new_c'] = ImageTk.PhotoImage(Image.open("res/icons/new_c.png"))
+        self.images['load_c'] = ImageTk.PhotoImage(Image.open("res/icons/load_c.png"))
+        self.images['settings'] = ImageTk.PhotoImage(Image.open("res/icons/settings.png"))
+        self.images['quit'] = ImageTk.PhotoImage(Image.open("res/icons/quit.png"))
+        self.window.canvas = tk.Canvas(self.window, width=200, height=200)
+        self.window.canvas.pack(fill="both", expand=True)
+        self.window.canvas.create_image(0, 0, image=self.images['menu'], anchor=tk.NW)
 
     def startMenu(self):
-
-        tk.Label(self.frame, text="Python DND", width=18).grid(row=0, column=0)
-        tk.Button(self.frame, text="new campaign", command=self.__newGame, width=18).grid(row=1, column=0)
-        tk.Button(self.frame, text="load campaign", command=self.__loadGame, width=18).grid(row=2, column=0)
-        tk.Button(self.frame, text="settings", command=self.__editSettings, width=18).grid(row=3, column=0)
-        tk.Button(self.frame, text="quit", command=self.__quitMenu, width=18).grid(row=4, column=0)
+        #tk.Label(self.frame, text="Python DND", width=18).grid(row=0, column=0)
+        #self.buttons['label'] = tk.Label(self.frame, image=self.images['logo'])
+        self.buttons['new_c'] = tk.Button(self.window, image=self.images['new_c'], command=self.__newGame, borderwidth=0, highlightthickness=0)
+        self.buttons['load_c'] = tk.Button(self.window, image=self.images['load_c'], command=self.__loadGame, borderwidth=0, highlightthickness=0)
+        self.buttons['settings'] = tk.Button(self.window, image=self.images['settings'], command=self.__editSettings, borderwidth=0, highlightthickness=0)
+        self.buttons['quit'] = tk.Button(self.window, image=self.images['quit'], command=self.__quitMenu, borderwidth=0, highlightthickness=0)
+        self.window.canvas.create_image(10, 0, anchor=tk.NW, image=self.images['logo'])
+        self.window.canvas.create_window(8, 40, anchor=tk.NW, window=self.buttons['new_c'])
+        self.window.canvas.create_window(8, 80, anchor=tk.NW, window=self.buttons['load_c'])
+        self.window.canvas.create_window(8, 120, anchor=tk.NW, window=self.buttons['settings'])
+        self.window.canvas.create_window(8, 160, anchor=tk.NW, window=self.buttons['quit'])
 
         self.window.mainloop()
         self.__loadSettings()
