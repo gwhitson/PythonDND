@@ -196,37 +196,31 @@ class PythonDND:
         tk.Button(self.control, image=self.images['quit'], command=self.__quitGame).place(x=8, y=5)
         tk.Button(self.control, image=self.images['sess_settings'], command=self.__sessSettings).place(x=8, y=40)
         if self.gameSettings[3] == "noncombat":
-            #print(self.gameSettings[5])
             tk.Button(self.control, image=self.images['start_combat'], command=self.startCombat).place(x=8, y=75)
         else:
             dmg = tk.IntVar()
             toHit = tk.IntVar()
             self.atkBonus = tk.BooleanVar()
-            actionFrame = tk.Frame(self.control)
             curTurn = self.cur.execute(f"select [name] from {self.encounter}_entities where [id] = ?;", [self.gameSettings[1]]).fetchone()[0]
-            tk.Label(actionFrame, text=f"Current Turn: {curTurn}").grid(row=0, column=0)
+            #tk.Label(actionFrame, text=f"Current Turn: {curTurn}").grid(row=0, column=0)
+            # include later when targettingisfixed fixed
             #tk.Button(actionFrame, text="Choose Action", command=self.doChooseAction).grid(row=1, column=0)
-            tk.Button(actionFrame, text="Move", command=self.__setMoveFlag).grid(row=1, column=0)
-            tk.Button(actionFrame, text="Attack", command=self.__setAtkFlag).grid(row=1, column=1)
-            if self.gameSettings[6] == 'a':
-                tk.Button(actionFrame, text="Clear Targets", command=self.__clearTargets).grid(row=2, column=0)
-                tk.Label(actionFrame, text="ATK Roll:").grid(row=3, column=0)
-                self.atkToHit = tk.Entry(actionFrame, textvariable=toHit, width=3)
-                self.atkToHit.grid(row=3, column=1)
-                tk.Label(actionFrame, text="DMG Roll:").grid(row=4, column=0)
-                self.atkDmg = tk.Entry(actionFrame, textvariable=dmg, width=3)
-                self.atkDmg.grid(row=4, column=1)
-                tk.Label(actionFrame, text="DMG Roll:").grid(row=5, column=0)
-                atkBonus = tk.Checkbutton(actionFrame, variable=self.atkBonus, width=1)
-                atkBonus.grid(row=5, column=1)
-                tk.Button(actionFrame, text="Attack!", command=self.__doAction).grid(row=6, column=0)
+            if str(self.gameSettings[6]) == "":
+                tk.Button(self.window, image=self.images['move'], command=self.__setMoveFlag).place(x=8, y=110)
+                tk.Button(self.window, image=self.images['chose_attack'], command=self.__setAtkFlag).place(x=108,y=110)
+            elif self.gameSettings[6] == 'a':
+                tk.Button(self.window, text="Clear Targets", command=self.__clearTargets)
+                tk.Label(self.window, text="ATK Roll  :")
+                self.atkToHit = tk.Entry(self.window, textvariable=toHit, width=3)
+                tk.Label(self.window, text="DMG Roll  :")
+                self.atkDmg = tk.Entry(self.window, textvariable=dmg, width=3)
+                tk.Label(self.window, text="Bonus Act :")
+                atkBonus = tk.Checkbutton(self.window, variable=self.atkBonus, width=1)
+                tk.Button(self.window, text="Attack!", command=self.__doAction)
 
-            turnFrame = tk.Frame(self.control, borderwidth=2)
-            tk.Button(turnFrame, text="Prev", command=self.__prevTurn).grid(row=0, column=0)
-            tk.Button(turnFrame, text="Next", command=self.__nextTurn).grid(row=0, column=1)
-            actionFrame.pack()
-            turnFrame.pack()
-            tk.Button(self.control, text="End Combat", command=self.endCombat).pack()
+            tk.Button(self.window, text="Prev", command=self.__prevTurn)
+            tk.Button(self.window, text="Next", command=self.__nextTurn)
+            tk.Button(self.control, text="End Combat", command=self.endCombat)
 
     def renderFrame(self):
         #print("rendering frame")
@@ -454,7 +448,7 @@ class PythonDND:
         #print("action helper")
         #print(action)
         aFlag = 'm' if action[5] == 'movement' else 'a'
-        self.cur.execute(f"update {self.encounter} set [curr_action] = ?, [flags] = ?;", [action[0],aFlag])
+        self.cur.execute(f"update {self.encounter} set [curr_action] = ?, [flags] = , [targetted] = ''?;", [action[0],aFlag])
         self.conn.commit()
         #self.showRange([self.curr_ent[6], self.curr_ent[7]], "#ff7878", action)
 
@@ -467,7 +461,7 @@ class PythonDND:
         else:
             next = init[init.index(curr) + 1]
 
-        self.cur.execute(f"update {self.encounter} set [curr_ent] = ?, [flags] = '';", [next])
+        self.cur.execute(f"update {self.encounter} set [curr_ent] = ?, [flags] = '', [targetted] = '';", [next])
         self.conn.commit()
         self.renderFrame()
 
@@ -553,9 +547,13 @@ class PythonDND:
         self.images['end_combat'] = ImageTk.PhotoImage(Image.open("res/icons/end_combat.png"))
         self.images['sess_settings'] = ImageTk.PhotoImage(Image.open("res/icons/sess_settings.png"))
         self.images['quit'] = ImageTk.PhotoImage(Image.open("res/icons/quit.png"))
+        self.images['move'] = ImageTk.PhotoImage(Image.open("res/icons/move.png"))
+        self.images['chose_attack'] = ImageTk.PhotoImage(Image.open("res/icons/chose_attack.png"))
+        self.images['attack'] = ImageTk.PhotoImage(Image.open("res/icons/attack.png"))
 
     def __clearControlFrame(self):
-        None
+        for i in self.control.winfo_children():
+            i.destroy()
 
     def __quitGame(self):
         #self.cur.execute("update game set [flags] = '', [mode] = 'noncombat';")
