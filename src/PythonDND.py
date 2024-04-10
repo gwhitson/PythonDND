@@ -48,7 +48,8 @@ class PythonDND:
         #print(self.squareSize)
 
         self.control = tk.Frame(self.window,
-                                height=self.window.winfo_screenheight())
+                                height=self.window.winfo_screenheight(),
+                                width=200)
 
         self.mapFrame = tk.Frame(self.window,
                                  width=(self.mapDimension[0] * self.squareSize),
@@ -77,6 +78,10 @@ class PythonDND:
             hbar.pack(side=tk.BOTTOM, fill=tk.X)
             self.map.config(xscrollcommand=hbar.set)
 
+        tempImage = Image.open(self.gameSettings[8])
+        self.backgroundImage = ImageTk.PhotoImage(tempImage.resize((int(self.map.cget('width')), int(self.map.cget('height')))))
+        #self.backgroundImage = ImageTk.PhotoImage(Image.open(self.gameSettings[8]))
+
         self.map.bind('<Button-1>', self.leftClick, add="+")
         self.map.bind('<Button-4>', self.__scrollUp, add="+")
         self.map.bind('<Button-5>', self.__scrollDown, add="+")
@@ -99,6 +104,7 @@ class PythonDND:
     # Render Functions
     def renderMapFrame(self):
         self.map.delete("map")
+        self.map.create_image(0,0, anchor=tk.NW, image=self.backgroundImage)
         outline_width = self.squareSize / 12
         w = self.mapDimension[0] * self.squareSize
         h = self.mapDimension[1] * self.squareSize
@@ -530,7 +536,7 @@ class PythonDND:
         self.window.bind(f"<{self.keybinds['sel_attack']}>", self.__setAtkFlag)
         self.window.bind(f"<{self.keybinds['sel_move']}>", self.__setMoveFlag)
         self.window.bind(f"<{self.keybinds['exe_attack']}>", self.__doAction, add="+")
-        self.window.bind(self.keybinds['open_sess_settings'], self.__sessSettings, add="+")
+        self.window.bind(f"<{self.keybinds['open_sess_settings']}>", self.__sessSettings, add="+")
 
     def __sessSettings(self, event=None):
         try:
