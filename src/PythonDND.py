@@ -99,6 +99,7 @@ class PythonDND:
 
         # Declare settings window
         self.settingsWindow = DNDSettings.DNDSettings(self.save, self.window, self.squareSize, self.encounter, self.map)
+        self.__setStyling()
         self.renderFrame()
         self.window.mainloop()
 
@@ -193,6 +194,9 @@ class PythonDND:
 
     def renderControlFrame(self):
         self.__clearControlFrame()
+        style = self.style
+        bottom = int(self.window.winfo_screenheight())
+        #print(bottom)
         tk.Button(self.control, image=self.images['quit'], command=self.__quitGame).place(x=8, y=5)
         tk.Button(self.control, image=self.images['sess_settings'], command=self.__sessSettings).place(x=8, y=40)
         if self.gameSettings[3] == "noncombat":
@@ -207,22 +211,25 @@ class PythonDND:
             #tk.Button(actionFrame, text="Choose Action", command=self.doChooseAction).grid(row=1, column=0)
             self.gameSettings = self.cur.execute("select * from " + self.encounter + ";").fetchone()
             if str(self.gameSettings[6]) == "":
-                print(self.gameSettings[6])
+                #print(self.gameSettings[6])
                 tk.Button(self.control, image=self.images['move'], command=self.__setMoveFlag).place(x=8, y=110)
-                tk.Button(self.control, image=self.images['chose_attack'], command=self.__setAtkFlag).place(x=108,y=110)
+                tk.Button(self.control, image=self.images['choose_target'], command=self.__setAtkFlag).place(x=103,y=110)
             elif self.gameSettings[6] == 'a':
-                tk.Button(self.control, text="Clear Targets", command=self.__clearTargets)
-                tk.Label(self.control, text="ATK Roll  :")
-                self.atkToHit = tk.Entry(self.control, textvariable=toHit, width=3)
-                tk.Label(self.control, text="DMG Roll  :")
-                self.atkDmg = tk.Entry(self.control, textvariable=dmg, width=3)
-                tk.Label(self.control, text="Bonus Act :")
-                atkBonus = tk.Checkbutton(self.control, variable=self.atkBonus, width=1)
-                tk.Button(self.control, text="Attack!", command=self.__doAction)
+                tk.Button(self.control, image=self.images['wide_move'], command=self.__setMoveFlag).place(x=8, y=110)
+                tk.Button(self.control, image=self.images['clear_targets'], command=self.__clearTargets).place(x=8, y=160)
+                tk.Label(self.control, image=self.images['atk_roll']).place(x=9, y=200)
+                self.atkToHit = tk.Entry(self.control, textvariable=toHit, width=3).place(x=140, y=202)
+                tk.Label(self.control, image=self.images['dmg_roll']).place(x=9, y=225)
+                self.atkDmg = tk.Entry(self.control, textvariable=dmg, width=3).place(x=140, y=227)
+                tk.Label(self.control, image=self.images['bonus_act']).place(x=9, y=250)
+                atkBonus = ttk.Checkbutton(self.control, variable=self.atkBonus, width=1).place(x=145, y=254)
+                tk.Button(self.control, image=self.images['attack'], command=self.__doAction).place(x=8, y=285)
+            elif self.gameSettings[6] == 'm':
+                tk.Button(self.control, image=self.images['attack'], command=self.__setAtkFlag).place(x=8,y=110)
 
-            tk.Button(self.control, text="Prev", command=self.__prevTurn)
-            tk.Button(self.control, text="Next", command=self.__nextTurn)
-            tk.Button(self.control, text="End Combat", command=self.endCombat)
+            tk.Button(self.control, image=self.images['prev_turn'], command=self.__prevTurn).place(x=8, y=(bottom - 90))
+            tk.Button(self.control, image=self.images['next_turn'], command=self.__nextTurn).place(x=103, y=(bottom - 90))
+            tk.Button(self.control, image=self.images['end_combat'], command=self.endCombat).place(x=8, y=(bottom - 50))
 
     def renderFrame(self):
         #print("rendering frame")
@@ -550,12 +557,31 @@ class PythonDND:
         self.images['sess_settings'] = ImageTk.PhotoImage(Image.open("res/icons/sess_settings.png"))
         self.images['quit'] = ImageTk.PhotoImage(Image.open("res/icons/quit.png"))
         self.images['move'] = ImageTk.PhotoImage(Image.open("res/icons/move.png"))
-        self.images['chose_attack'] = ImageTk.PhotoImage(Image.open("res/icons/chose_attack.png"))
+        self.images['choose_target'] = ImageTk.PhotoImage(Image.open("res/icons/choose_target.png"))
         self.images['attack'] = ImageTk.PhotoImage(Image.open("res/icons/attack.png"))
+        self.images['next_turn'] = ImageTk.PhotoImage(Image.open("res/icons/next_turn.png"))
+        self.images['prev_turn'] = ImageTk.PhotoImage(Image.open("res/icons/prev_turn.png"))
+        self.images['clear_targets'] = ImageTk.PhotoImage(Image.open("res/icons/clear_targets.png"))
+        self.images['atk_roll'] = ImageTk.PhotoImage(Image.open("res/icons/atk_roll.png"))
+        self.images['dmg_roll'] = ImageTk.PhotoImage(Image.open("res/icons/dmg_roll.png"))
+        self.images['bonus_act'] = ImageTk.PhotoImage(Image.open("res/icons/bonus_act.png"))
+        self.images['wide_move'] = ImageTk.PhotoImage(Image.open("res/icons/wide_move.png"))
+
+    def __setStyling(self):
+        self.style = ttk.Style(self.control)
+        self.style.theme_use("default")
+        self.style.theme_settings("default", {
+            "TCheckbutton": {
+                "configure": {"padding": "0",
+                              "background": "#6d6d6d",
+                              "foreground": "white",
+                              }
+            }
+        })
 
     def __clearControlFrame(self):
         for i in self.control.winfo_children():
-            print(i)
+            #print(i)
             i.destroy()
 
     def __quitGame(self):
