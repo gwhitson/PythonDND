@@ -21,6 +21,7 @@ class PythonDND:
         self.window = tk.Tk()
         self.window.title("Dungeons and Dragons")
         self.window.attributes("-fullscreen", True)
+        self.images = {}
 
         # Sqlite init
         self.conn = sqlite3.connect(self.save)
@@ -45,14 +46,8 @@ class PythonDND:
 
         self.__setInit()
 
-        #print(self.squareSize)
-
-        self.control = tk.Frame(self.window,
-                                height=self.window.winfo_screenheight(),
-                                width=200)
-
         self.mapFrame = tk.Frame(self.window,
-                                 width=(self.mapDimension[0] * self.squareSize),
+                                 width=int(self.window.winfo_screenwidth()) - 200,
                                  height=(self.mapDimension[1] * self.squareSize))
 
         if (self.mapDimension[0] <= self.mapDimension[1]):
@@ -80,14 +75,20 @@ class PythonDND:
 
         tempImage = Image.open(self.gameSettings[8])
         self.backgroundImage = ImageTk.PhotoImage(tempImage.resize((int(self.map.cget('width')), int(self.map.cget('height')))))
-        #self.backgroundImage = ImageTk.PhotoImage(Image.open(self.gameSettings[8]))
+        self.map.create_image(0, 0, anchor=tk.NW, image=self.backgroundImage)
+
+        self.__createImages()
+        self.control = tk.Canvas(self.window,
+                                 height=self.window.winfo_screenheight(),
+                                 width=200)
+        self.control.create_image(0, 0, anchor=tk.NW, image=self.images['control_panel'])
 
         self.map.bind('<Button-1>', self.leftClick, add="+")
         self.map.bind('<Button-4>', self.__scrollUp, add="+")
         self.map.bind('<Button-5>', self.__scrollDown, add="+")
         self.map.bind('<MouseWheel>', self.__windowsScroll, add="+")
 
-        self.control.pack(side=tk.LEFT, fill=tk.BOTH, anchor='ne')
+        self.control.pack(side=tk.LEFT, fill=tk.BOTH, anchor=tk.NW)
         self.map.pack(side=tk.RIGHT, anchor='w')
         self.mapFrame.pack(side=tk.RIGHT, anchor='w')
         self.initLB = None
@@ -104,7 +105,6 @@ class PythonDND:
     # Render Functions
     def renderMapFrame(self):
         self.map.delete("map")
-        self.map.create_image(0,0, anchor=tk.NW, image=self.backgroundImage)
         outline_width = self.squareSize / 12
         w = self.mapDimension[0] * self.squareSize
         h = self.mapDimension[1] * self.squareSize
@@ -192,12 +192,12 @@ class PythonDND:
                                              tags="map")
 
     def renderControlFrame(self):
-        tk.Button(self.control, text="Quit", command=self.__quitGame).pack()
-        tk.Button(self.control, text="Session Settings", command=self.__sessSettings).pack()
-        #tk.Button(self.control, text="Add Entity", command=self.addEntity).pack()
+        self.__clearControlFrame()
+        tk.Button(self.control, image=self.images['quit'], command=self.__quitGame).place(x=8, y=5)
+        tk.Button(self.control, image=self.images['sess_settings'], command=self.__sessSettings).place(x=8, y=40)
         if self.gameSettings[3] == "noncombat":
             #print(self.gameSettings[5])
-            tk.Button(self.control, text="Start Combat", command=self.startCombat).pack()
+            tk.Button(self.control, image=self.images['start_combat'], command=self.startCombat).place(x=8, y=75)
         else:
             dmg = tk.IntVar()
             toHit = tk.IntVar()
@@ -467,7 +467,7 @@ class PythonDND:
         else:
             next = init[init.index(curr) + 1]
 
-        self.cur.execute(f"update {self.encounter} set [curr_ent] = ?;", [next])
+        self.cur.execute(f"update {self.encounter} set [curr_ent] = ?, [flags] = '';", [next])
         self.conn.commit()
         self.renderFrame()
 
@@ -546,6 +546,16 @@ class PythonDND:
         self.settingsWindow.setRenderFunc(self.renderFrame)
         self.settingsWindow.prompt()
         self.renderFrame()
+
+    def __createImages(self):
+        self.images['control_panel'] = ImageTk.PhotoImage(Image.open("res/icons/control_panel.png"))
+        self.images['start_combat'] = ImageTk.PhotoImage(Image.open("res/icons/start_combat.png"))
+        self.images['end_combat'] = ImageTk.PhotoImage(Image.open("res/icons/end_combat.png"))
+        self.images['sess_settings'] = ImageTk.PhotoImage(Image.open("res/icons/sess_settings.png"))
+        self.images['quit'] = ImageTk.PhotoImage(Image.open("res/icons/quit.png"))
+
+    def __clearControlFrame(self):
+        None
 
     def __quitGame(self):
         #self.cur.execute("update game set [flags] = '', [mode] = 'noncombat';")
