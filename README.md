@@ -34,7 +34,9 @@ If an encounter has already been defined, you can select it from the list and lo
 
 After selecting the 'New Encounter' option, you will be presented with the menu above. 
 'Encounter Name' should be restricted to alpha-numeric characters.
+
 'Map Size' should be two integers, representing the number of squares on the X axis and Y axis respectively, separated by the letter 'x'. (This will be adjusted in the future to have an 'X' entry box and a 'Y' entry box)
+
 'Background' is a drop down menu showing all .png files in the 'res/maps/' directory. You can upload .png's to be used by adding them to this directory. This will be scaled to the current pixel size of the 'map' 
 element within the main application. Because of this the image may be distorted.
 
