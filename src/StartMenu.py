@@ -32,16 +32,17 @@ class StartMenu:
         self.tkother = {}
         self.__loadSettings()
         self.__loadImages()
+        self.__setStyling()
         self.window.canvas = tk.Canvas(self.window, width=200, height=200)
         self.window.canvas.pack(fill="both", expand=True)
         self.window.canvas.create_image(0, 0, image=self.images['menu'], anchor=tk.NW)
 
     def startMenu(self):
         self.__clearCanvas()
-        self.buttons['new_c'] = tk.Button(self.window, image=self.images['new_c'], command=self.__newGame, borderwidth=0, highlightthickness=0)
-        self.buttons['load_c'] = tk.Button(self.window, image=self.images['load_c'], command=self.__loadGame, borderwidth=0, highlightthickness=0)
-        self.buttons['settings'] = tk.Button(self.window, image=self.images['settings'], command=self.__editSettings, borderwidth=0, highlightthickness=0)
-        self.buttons['quit'] = tk.Button(self.window, image=self.images['quit'], command=self.__quitMenu, borderwidth=0, highlightthickness=0)
+        self.buttons['new_c'] = ttk.Button(self.window, image=self.images['new_c'], command=self.__newGame)
+        self.buttons['load_c'] = ttk.Button(self.window, image=self.images['load_c'], command=self.__loadGame)
+        self.buttons['settings'] = ttk.Button(self.window, image=self.images['settings'], command=self.__editSettings)
+        self.buttons['quit'] = ttk.Button(self.window, image=self.images['quit'], command=self.__quitMenu)
         self.window.canvas.create_image(10, 15, anchor=tk.NW, image=self.images['logo'], tags='start')
         self.window.canvas.create_window(8, 70, anchor=tk.NW, window=self.buttons['new_c'], tags='start')
         self.window.canvas.create_window(8, 100, anchor=tk.NW, window=self.buttons['load_c'], tags='start')
@@ -53,10 +54,10 @@ class StartMenu:
 
     def __newGame(self):
         self.__clearCanvas()
-        self.tkother['save_label'] = tk.Label(self.window, image=self.images['name_c'])
-        self.tkother['save_entry'] = tk.Entry(self.window, textvariable=self.saveName, width=22)
-        self.buttons['enter_but'] = tk.Button(self.window, image=self.images['enter'], command=self.__createGame)
-        self.buttons['cancel'] = tk.Button(self.window, image=self.images['cancel'], command=self.__reloadMenu)
+        self.tkother['save_label'] = ttk.Label(self.window, image=self.images['name_c'])
+        self.tkother['save_entry'] = ttk.Entry(self.window, textvariable=self.saveName, width=22)
+        self.buttons['enter_but'] = ttk.Button(self.window, image=self.images['enter'], command=self.__createGame)
+        self.buttons['cancel'] = ttk.Button(self.window, image=self.images['cancel'], command=self.__reloadMenu)
         self.window.canvas.create_image(10, 15, anchor=tk.NW, image=self.images['logo'], tags='campaign')
         self.window.canvas.create_window(8, 70, anchor=tk.NW, window=self.tkother['save_label'], tags='campaign')
         self.window.canvas.create_window(8, 100, anchor=tk.NW, window=self.tkother['save_entry'], tags='campaign')
@@ -87,16 +88,16 @@ class StartMenu:
         self.__clearCanvas()
         self.__openConnection()
         self.encounters = None
-        self.tkother['enc_title'] = tk.Label(self.window, image=self.images['enc_name'])
-        self.encEntry = tk.Entry(self.window, textvariable=self.encounterVar, width=22)
-        self.tkother['map_size'] = tk.Label(self.window, image=self.images['map_size'])
-        self.mpSzEntry = tk.Entry(self.window, textvariable=self.mapSize, width=7)
-        self.buttons['enc_create'] = tk.Button(self.window, image=self.images['slim_create'], command=self.__createEncounter)
-        self.buttons['can_enc'] = tk.Button(self.window, image=self.images['slim_back'], command=self.__quitEncounters)
+        self.tkother['enc_title'] = ttk.Label(self.window, image=self.images['enc_name'])
+        self.encEntry = ttk.Entry(self.window, textvariable=self.encounterVar, width=22)
+        self.tkother['map_size'] = ttk.Label(self.window, image=self.images['map_size'])
+        self.mpSzEntry = ttk.Entry(self.window, textvariable=self.mapSize, width=7)
+        self.buttons['enc_create'] = ttk.Button(self.window, image=self.images['slim_create'], command=self.__createEncounter)
+        self.buttons['can_enc'] = ttk.Button(self.window, image=self.images['slim_back'], command=self.__quitEncounters)
         self.backgroundEntry = ttk.Combobox(self.window)
         self.backgroundEntry['values'] = os.listdir('res/maps/')
-        self.tkother['background'] = tk.Label(self.window, image=self.images['background_label'])
-        self.buttons['can_enc'] = tk.Button(self.window, image=self.images['slim_back'], command=self.__quitEncounters)
+        self.tkother['background'] = ttk.Label(self.window, image=self.images['background_label'])
+        self.buttons['can_enc'] = ttk.Button(self.window, image=self.images['slim_back'], command=self.__quitEncounters)
 
         self.window.canvas.create_window(8, 10, anchor=tk.NW, window=self.tkother['enc_title'], tags='encounter')
         self.window.canvas.create_window(8, 35, anchor=tk.NW, window=self.encEntry, tags='encounter')
@@ -122,10 +123,10 @@ class StartMenu:
 
     def __loadEncounter(self):
         self.__clearCanvas()
-        self.buttons['new_c'] = tk.Button(self.window, image=self.images['new_c'], command=self.__newGame, borderwidth=0, highlightthickness=0)
-        self.buttons['load_c'] = tk.Button(self.window, image=self.images['load_c'], command=self.__loadGame, borderwidth=0, highlightthickness=0)
-        self.buttons['settings'] = tk.Button(self.window, image=self.images['settings'], command=self.__editSettings, borderwidth=0, highlightthickness=0)
-        self.buttons['quit'] = tk.Button(self.window, image=self.images['quit'], command=self.__quitMenu, borderwidth=0, highlightthickness=0)
+        self.buttons['new_c'] = ttk.Button(self.window, image=self.images['new_c'], command=self.__newGame)
+        self.buttons['load_c'] = ttk.Button(self.window, image=self.images['load_c'], command=self.__loadGame)
+        self.buttons['settings'] = ttk.Button(self.window, image=self.images['settings'], command=self.__editSettings)
+        self.buttons['quit'] = ttk.Button(self.window, image=self.images['quit'], command=self.__quitMenu)
         #self.window.canvas.create_image(10, 15, anchor=tk.NW, image=self.images['logo'], tags='start')
         self.__openConnection()
         self.frame = tk.Frame(self.window)
@@ -137,10 +138,10 @@ class StartMenu:
                 self.encounters.insert(tk.END, i[0])
         self.encounters.selection_set(0)
         self.window.canvas.create_window(10, 10, anchor=tk.NW, window=self.frame, tags='encounter')
-        self.buttons['n_enc'] = tk.Button(self.window, image=self.images['new_enc'], command=self.__newEncouter)
-        self.buttons['l_enc'] = tk.Button(self.window, image=self.images['load_enc'], command=self.__startGame)
-        self.buttons['ent_mgr'] = tk.Button(self.window, image=self.images['ent_mgr'], command=self.__entMgr)
-        self.buttons['can_enc'] = tk.Button(self.window, image=self.images['cancel'], command=self.__quitEncounters)
+        self.buttons['n_enc'] = ttk.Button(self.window, image=self.images['new_enc'], command=self.__newEncouter)
+        self.buttons['l_enc'] = ttk.Button(self.window, image=self.images['load_enc'], command=self.__startGame)
+        self.buttons['ent_mgr'] = ttk.Button(self.window, image=self.images['ent_mgr'], command=self.__entMgr)
+        self.buttons['can_enc'] = ttk.Button(self.window, image=self.images['cancel'], command=self.__quitEncounters)
         self.window.canvas.create_window(8, 70, anchor=tk.NW, window=self.buttons['n_enc'], tags='start')
         self.window.canvas.create_window(8, 100, anchor=tk.NW, window=self.buttons['l_enc'], tags='start')
         self.window.canvas.create_window(8, 130, anchor=tk.NW, window=self.buttons['ent_mgr'], tags='start')
@@ -196,16 +197,16 @@ class StartMenu:
             sel_m.set(cont[2][cont[2].find('=') + 1:-1])
             exe_a.set(cont[3][cont[3].find('=') + 1:-1])
             o_sett.set(cont[4][cont[4].find('=') + 1:-1])
-        self.tkother['sel_a_l'] = tk.Label(self.window, image=self.images['sel_a'])
-        self.tkother['sel_m_l'] = tk.Label(self.window, image=self.images['sel_m'])
-        self.tkother['exe_a_l'] = tk.Label(self.window, image=self.images['exe_a'])
-        self.tkother['o_sett_l'] = tk.Label(self.window, image=self.images['o_sett'])
-        self.tkother['sel_a'] = tk.Entry(self.window, textvariable=sel_a, width=5)
-        self.tkother['sel_m'] = tk.Entry(self.window, textvariable=sel_m,width=5)
-        self.tkother['exe_a'] = tk.Entry(self.window, textvariable=exe_a, width=5)
-        self.tkother['o_sett'] = tk.Entry(self.window, textvariable=o_sett, width=5)
-        self.buttons['sett_submit'] = tk.Button(self.window, image=self.images['submit'], command=self.__submitSettings)
-        self.buttons['back'] = tk.Button(self.window, image=self.images['back'], command= self.startMenu)
+        self.tkother['sel_a_l'] = ttk.Label(self.window, image=self.images['sel_a'])
+        self.tkother['sel_m_l'] = ttk.Label(self.window, image=self.images['sel_m'])
+        self.tkother['exe_a_l'] = ttk.Label(self.window, image=self.images['exe_a'])
+        self.tkother['o_sett_l'] = ttk.Label(self.window, image=self.images['o_sett'])
+        self.tkother['sel_a'] = ttk.Entry(self.window, textvariable=sel_a, width=5)
+        self.tkother['sel_m'] = ttk.Entry(self.window, textvariable=sel_m,width=5)
+        self.tkother['exe_a'] = ttk.Entry(self.window, textvariable=exe_a, width=5)
+        self.tkother['o_sett'] = ttk.Entry(self.window, textvariable=o_sett, width=5)
+        self.buttons['sett_submit'] = ttk.Button(self.window, image=self.images['submit'], command=self.__submitSettings)
+        self.buttons['back'] = ttk.Button(self.window, image=self.images['back'], command= self.startMenu)
         self.window.canvas.create_window(8, 10, anchor=tk.NW, window=self.tkother['sel_a_l'], tags='settings')
         self.window.canvas.create_window(8, 30, anchor=tk.NW, window=self.tkother['sel_m_l'], tags='settings')
         self.window.canvas.create_window(8, 50, anchor=tk.NW, window=self.tkother['exe_a_l'], tags='settings')
@@ -268,17 +269,19 @@ class StartMenu:
         self.__entMgr()
 
     def __updateEntInDB(self, name: str, role: str, hp: str, ac: str, moveSpeed: str, sprite: str):
+        #print(name, role, hp, ac, moveSpeed, sprite)
         if self.selected[0] is None:
             self.cur.execute("insert into allEntities ([name], [role]) values (?, ?);",[name, role])
             self.cur.execute("insert into " + role + " ([id], [hp], [ac], [move_spd], [sprite]) values (?,?,?,?,?);",[self.cur.execute("select [id] from allEntities where [name] = ?;",[name]).fetchone()[0], hp, ac, moveSpeed, sprite])
         else:
-            print(role)
-            print(self.selected)
+            #print(role)
+            #print(self.selected)
             if role == self.cur.execute("select [role] from allEntities where [id] = ?;", [self.selected[0]]).fetchone()[0]:
                 self.cur.execute("update allEntities set [name] = ? where id = ?", [name, self.selected[0]])
                 self.cur.execute("update " + role + " set [hp] = ?, [ac] = ?, [move_spd] = ?, [sprite] = ? where [id] = ?;", [hp, ac, moveSpeed, sprite, self.selected[0]])
             else:
                 tempname = self.cur.execute("select [name] from allEntities where [id] = ?;", [self.selected[0]]).fetchone()[0]
+                #print(tempname)
                 self.cur.execute("delete from " + self.cur.execute("select [role] from allEntities where [id] = ?;", [self.selected[0]]).fetchone()[0] + " where id = ?;", [self.cur.execute("select [id] from allEntities where [name] = ?;", [tempname]).fetchone()[0]])
                 self.cur.execute("update allEntities set [name] = ?, [role] = ? where id = ?", [name, role, self.selected[0]])
                 self.cur.execute("insert into " + role + " ([id], [hp], [ac], [move_spd], [sprite]) values (?,?,?,?,?);",[self.cur.execute("select [id] from allEntities where [name] = ?;",[name]).fetchone()[0], hp, ac, moveSpeed, sprite])
@@ -294,42 +297,47 @@ class StartMenu:
             entName = None
         else:
             self.selected = (self.cur.execute("select * from " + role + " where [id] = ?;",[dropIn[0]]).fetchone())
-            entName = self.cur.execute("select [name] from allEntities where [id] = ?;", [dropIn[0]]).fetchone()
-        vName, vRole, vhp, vac, vms, vsp = tk.StringVar(value=entName),tk.StringVar(value=role),tk.StringVar(value=self.selected[1]),tk.StringVar(value=self.selected[2]),tk.StringVar(value=self.selected[3]),tk.StringVar(value=self.selected[4])
-        self.tkother['ename_l'] = tk.Label(self.window, image=self.images['ename'])
-        self.tkother['erole_l'] = tk.Label(self.window, image=self.images['erole'])
-        self.tkother['ehp_l'] = tk.Label(self.window, image=self.images['ehp'])
-        self.tkother['eac_l'] = tk.Label(self.window, image=self.images['eac'])
-        self.tkother['espeed_l'] = tk.Label(self.window, image=self.images['espeed'])
-        self.tkother['esprite_l'] = tk.Label(self.window, image=self.images['esprite'])
-        self.tkother['ename'] = tk.Entry(self.window, textvariable=vName, width=12)
-        self.tkother['erole'] = ttk.Combobox(self.window, width=11)
+            entName = self.cur.execute("select [name] from allEntities where [id] = ?;", [dropIn[0]]).fetchone()[0]
+        self.tkother['vName'] = tk.StringVar(value=entName)
+        self.tkother['vRole'] = tk.StringVar(value=role)
+        self.tkother['vhp'] = tk.StringVar(value=self.selected[1])
+        self.tkother['vac'] = tk.StringVar(value=self.selected[2])
+        self.tkother['vms'] = tk.StringVar(value=self.selected[3])
+        self.tkother['vsp'] = tk.StringVar(value=self.selected[4])
+        self.tkother['ename_l'] = ttk.Label(self.window, image=self.images['ename'])
+        self.tkother['erole_l'] = ttk.Label(self.window, image=self.images['erole'])
+        self.tkother['ehp_l'] = ttk.Label(self.window, image=self.images['ehp'])
+        self.tkother['eac_l'] = ttk.Label(self.window, image=self.images['eac'])
+        self.tkother['espeed_l'] = ttk.Label(self.window, image=self.images['espeed'])
+        self.tkother['esprite_l'] = ttk.Label(self.window, image=self.images['esprite'])
+        self.tkother['ename'] = ttk.Entry(self.window, textvariable=self.tkother['vName'], width=12)
+        self.tkother['erole'] = ttk.Combobox(self.window, width=10)
         self.tkother['erole']['values'] = ("players", "enemies")
         if role == "enemies":
             self.tkother['erole'].current(1)
         else:
             self.tkother['erole'].current(0)
-        self.tkother['ehp'] = tk.Entry(self.window, textvariable=vhp, width=12)
-        self.tkother['eac'] = tk.Entry(self.window, textvariable=vac, width=12)
-        self.tkother['espeed'] = tk.Entry(self.window, textvariable=vms, width=12)
-        self.tkother['esprite'] = ttk.Combobox(self.window, width=11)
+        self.tkother['ehp'] = ttk.Entry(self.window, textvariable=self.tkother['vhp'], width=12)
+        self.tkother['eac'] = ttk.Entry(self.window, textvariable=self.tkother['vac'], width=12)
+        self.tkother['espeed'] = ttk.Entry(self.window, textvariable=self.tkother['vms'], width=12)
+        self.tkother['esprite'] = ttk.Combobox(self.window, width=10)
         self.tkother['esprite']['values'] = os.listdir('res/sprites/')
         self.tkother['esprite'].current(0)
 
-        self.buttons['esubmit'] = tk.Button(self.window, image=self.images['submit'], command= lambda: self.__updateEntInDB(name.get(), erole.get(), hp.get(), ac.get(), moveSpeed.get(), sprite.get()))
-        self.buttons['back'] = tk.Button(self.window, image=self.images['back'], command= self.__entMgr)
+        self.buttons['esubmit'] = ttk.Button(self.window, image=self.images['submit'], command= lambda: self.__updateEntInDB(self.tkother['vName'].get(),self.tkother['erole'].get(),self.tkother['vhp'].get(),self.tkother['vac'].get(),self.tkother['vms'].get(),self.tkother['esprite'].get()))
+        self.buttons['back'] = ttk.Button(self.window, image=self.images['back'], command= self.__entMgr)
         self.window.canvas.create_window(8, 10, anchor=tk.NW, window=self.tkother['ename_l'], tags='entities')
         self.window.canvas.create_window(8, 30, anchor=tk.NW, window=self.tkother['erole_l'], tags='entities')
         self.window.canvas.create_window(8, 50, anchor=tk.NW, window=self.tkother['ehp_l'], tags='entities')
         self.window.canvas.create_window(8, 70, anchor=tk.NW, window=self.tkother['eac_l'], tags='entities')
         self.window.canvas.create_window(8, 90, anchor=tk.NW, window=self.tkother['espeed_l'], tags='entities')
         self.window.canvas.create_window(8, 110, anchor=tk.NW, window=self.tkother['esprite_l'], tags='entities')
-        self.window.canvas.create_window(85, 10, anchor=tk.NW, window=self.tkother['ename'], tags='entities')
-        self.window.canvas.create_window(85, 30, anchor=tk.NW, window=self.tkother['erole'], tags='entities')
-        self.window.canvas.create_window(85, 50, anchor=tk.NW, window=self.tkother['ehp'], tags='entities')
-        self.window.canvas.create_window(85, 70, anchor=tk.NW, window=self.tkother['eac'], tags='entities')
-        self.window.canvas.create_window(85, 90, anchor=tk.NW, window=self.tkother['espeed'], tags='entities')
-        self.window.canvas.create_window(85, 110, anchor=tk.NW, window=self.tkother['esprite'], tags='entities')
+        self.window.canvas.create_window(85, 11, anchor=tk.NW, window=self.tkother['ename'], tags='entities')
+        self.window.canvas.create_window(85, 31, anchor=tk.NW, window=self.tkother['erole'], tags='entities')
+        self.window.canvas.create_window(85, 51, anchor=tk.NW, window=self.tkother['ehp'], tags='entities')
+        self.window.canvas.create_window(85, 71, anchor=tk.NW, window=self.tkother['eac'], tags='entities')
+        self.window.canvas.create_window(85, 91, anchor=tk.NW, window=self.tkother['espeed'], tags='entities')
+        self.window.canvas.create_window(85, 111, anchor=tk.NW, window=self.tkother['esprite'], tags='entities')
         self.window.canvas.create_window(8, 135, anchor=tk.NW, window=self.buttons['esubmit'], tags='entities')
         self.window.canvas.create_window(8, 165, anchor=tk.NW, window=self.buttons['back'], tags='entities')
 
@@ -342,9 +350,9 @@ class StartMenu:
         except tk.TclError:
             None
         role = self.cur.execute("select [role] from allEntities where [id] = ?;", [drop.get()[0]]).fetchone()[0]
-        self.buttons['edit_ent'] = tk.Button(self.window, image=self.images['edit_ent'], command=lambda: self.__editEnt(drop.get(), self.cur.execute("select [role] from allEntities where [id] = ?;", [drop.get()[0]]).fetchone()[0]))
-        self.buttons['new_ent'] = tk.Button(self.window, image=self.images['new_ent'], command=lambda: self.__editEnt("New", ""))
-        self.buttons['back'] = tk.Button(self.window, image=self.images['back'], command=self.__loadEncounter)
+        self.buttons['edit_ent'] = ttk.Button(self.window, image=self.images['edit_ent'], command=lambda: self.__editEnt(drop.get(), self.cur.execute("select [role] from allEntities where [id] = ?;", [drop.get()[0]]).fetchone()[0]))
+        self.buttons['new_ent'] = ttk.Button(self.window, image=self.images['new_ent'], command=lambda: self.__editEnt("New", ""))
+        self.buttons['back'] = ttk.Button(self.window, image=self.images['back'], command=self.__loadEncounter)
         self.window.canvas.create_window(8, 10, anchor=tk.NW, window=self.tkother['drop'], tags='entities')
         self.window.canvas.create_window(8, 35, anchor=tk.NW, window=self.buttons['edit_ent'], tags='entities')
         self.window.canvas.create_window(8, 70, anchor=tk.NW, window=self.buttons['new_ent'], tags='entities')
@@ -391,6 +399,43 @@ class StartMenu:
         self.window.canvas.delete('campaign')
         self.window.canvas.delete('encounter')
         self.window.canvas.delete('settings')
+
+    def __setStyling(self):
+        self.style = ttk.Style(self.window)
+        self.style.theme_use("default")
+        self.style.theme_settings("default", {
+            "TCheckbutton": {
+                "configure": {"padding": "0",
+                              "background": "#6d6d6d",
+                              "foreground": "white",
+                              }
+            },
+            "TEntry": {
+                "configure": {"padding": "0",
+                              "fieldbackground": "lightgray",
+                              "foreground": "black",
+                              }
+            },
+            "TButton": {
+                "configure": {"padding": "0",
+                              "bordercolor": "#6d6d6d",
+                              "relief": "0",
+                              "background": "#6d6d6d",
+                              "borderwidth": "0"
+                              }
+            },
+            "TLabel": {
+                "configure": {"padding": "0",
+                              "bordercolor": "#6d6d6d",
+                              }
+            },
+            "TCombobox": {
+                "configure": {"padding": "0",
+                              "fieldbackground": "lightgray",
+                              "foreground": "black",
+                              }
+            },
+        })
 
     def __quitMenu(self):
         exit(0)

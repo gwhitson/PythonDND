@@ -33,9 +33,9 @@ class PythonDND:
         self.gameSettings = self.cur.execute("select * from " + self.encounter + ";").fetchone()
         spl = self.gameSettings[5].split('x')
         self.mapDimension = [int(spl[0]), int(spl[1])]
-        self.atkToHit = None
-        self.atkDmg = None
-        self.atkBonus = None
+        self.atkDmg = tk.IntVar()
+        self.atkToHit = tk.IntVar()
+        self.atkBonus = tk.BooleanVar()
         self.sprites = {}
 
         if self.mapDimension[0] <= self.mapDimension[1]:
@@ -46,9 +46,9 @@ class PythonDND:
 
         self.__setInit()
 
-        self.mapFrame = tk.Frame(self.window,
-                                 width=int(self.window.winfo_screenwidth()) - 200,
-                                 height=(self.mapDimension[1] * self.squareSize))
+        self.mapFrame = ttk.Frame(self.window,
+                                  width=int(self.window.winfo_screenwidth()) - 200,
+                                  height=(self.mapDimension[1] * self.squareSize))
 
         if (self.mapDimension[0] <= self.mapDimension[1]):
             #print("x greater than y", self.squareSize)
@@ -84,6 +84,7 @@ class PythonDND:
         self.control.create_image(0, 0, anchor=tk.NW, image=self.images['control_panel'])
 
         self.map.bind('<Button-1>', self.leftClick, add="+")
+        self.control.bind('<Button-1>', self.printPix, add="+")
         self.map.bind('<Button-4>', self.__scrollUp, add="+")
         self.map.bind('<Button-5>', self.__scrollDown, add="+")
         self.map.bind('<MouseWheel>', self.__windowsScroll, add="+")
@@ -194,42 +195,43 @@ class PythonDND:
 
     def renderControlFrame(self):
         self.__clearControlFrame()
-        style = self.style
         bottom = int(self.window.winfo_screenheight())
         #print(bottom)
-        tk.Button(self.control, image=self.images['quit'], command=self.__quitGame).place(x=8, y=5)
-        tk.Button(self.control, image=self.images['sess_settings'], command=self.__sessSettings).place(x=8, y=40)
+        self.control.create_image(0, 0, anchor=tk.NW, image=self.images['logo'])
+        ttk.Button(self.control, image=self.images['quit'], command=self.__quitGame).place(x=8, y=(bottom - 50))
+        ttk.Button(self.control, image=self.images['sess_settings'], command=self.__sessSettings).place(x=8, y=(bottom - 90))
         if self.gameSettings[3] == "noncombat":
-            tk.Button(self.control, image=self.images['start_combat'], command=self.startCombat).place(x=8, y=75)
+            ttk.Button(self.control, image=self.images['start_combat'], command=self.startCombat).place(x=8, y=45)
         else:
-            dmg = tk.IntVar()
-            toHit = tk.IntVar()
-            self.atkBonus = tk.BooleanVar()
             curTurn = self.cur.execute(f"select [name] from {self.encounter}_entities where [id] = ?;", [self.gameSettings[1]]).fetchone()[0]
             #tk.Label(actionFrame, text=f"Current Turn: {curTurn}").grid(row=0, column=0)
             # include later when targettingisfixed fixed
             #tk.Button(actionFrame, text="Choose Action", command=self.doChooseAction).grid(row=1, column=0)
-            self.gameSettings = self.cur.execute("select * from " + self.encounter + ";").fetchone()
+            #self.gameSettings = self.cur.execute("select * from " + self.encounter + ";").fetchone()
             if str(self.gameSettings[6]) == "":
                 #print(self.gameSettings[6])
-                tk.Button(self.control, image=self.images['move'], command=self.__setMoveFlag).place(x=8, y=110)
-                tk.Button(self.control, image=self.images['choose_target'], command=self.__setAtkFlag).place(x=103,y=110)
+                ttk.Button(self.control, image=self.images['move'], command=self.__setMoveFlag).place(x=8, y=200)
+                ttk.Button(self.control, image=self.images['choose_target'], command=self.__setAtkFlag).place(x=103,y=200)
             elif self.gameSettings[6] == 'a':
-                tk.Button(self.control, image=self.images['wide_move'], command=self.__setMoveFlag).place(x=8, y=110)
-                tk.Button(self.control, image=self.images['clear_targets'], command=self.__clearTargets).place(x=8, y=160)
-                tk.Label(self.control, image=self.images['atk_roll']).place(x=9, y=200)
-                self.atkToHit = tk.Entry(self.control, textvariable=toHit, width=3).place(x=140, y=202)
-                tk.Label(self.control, image=self.images['dmg_roll']).place(x=9, y=225)
-                self.atkDmg = tk.Entry(self.control, textvariable=dmg, width=3).place(x=140, y=227)
-                tk.Label(self.control, image=self.images['bonus_act']).place(x=9, y=250)
-                atkBonus = ttk.Checkbutton(self.control, variable=self.atkBonus, width=1).place(x=145, y=254)
-                tk.Button(self.control, image=self.images['attack'], command=self.__doAction).place(x=8, y=285)
+                ttk.Button(self.control, image=self.images['wide_move'], command=self.__setMoveFlag).place(x=8, y=200)
+                ttk.Button(self.control, image=self.images['clear_targets'], command=self.__clearTargets).place(x=8, y=230)
+                ttk.Label(self.control, image=self.images['atk_roll']).place(x=9, y=270)
+                toHit = ttk.Entry(self.control, textvariable=self.atkToHit, width=3).place(x=140, y=273)
+                ttk.Label(self.control, image=self.images['dmg_roll']).place(x=9, y=295)
+                dmg = ttk.Entry(self.control, textvariable=self.atkDmg, width=3).place(x=140, y=298)
+                ttk.Label(self.control, image=self.images['bonus_act']).place(x=9, y=320)
+                atkBonus = ttk.Checkbutton(self.control, variable=self.atkBonus, width=1).place(x=145, y=324)
+                ttk.Button(self.control, image=self.images['attack'], command=self.__doAction).place(x=8, y=355)
             elif self.gameSettings[6] == 'm':
-                tk.Button(self.control, image=self.images['attack'], command=self.__setAtkFlag).place(x=8,y=110)
+                ttk.Button(self.control, image=self.images['attack'], command=self.__setAtkFlag).place(x=8,y=200)
 
-            tk.Button(self.control, image=self.images['prev_turn'], command=self.__prevTurn).place(x=8, y=(bottom - 90))
-            tk.Button(self.control, image=self.images['next_turn'], command=self.__nextTurn).place(x=103, y=(bottom - 90))
-            tk.Button(self.control, image=self.images['end_combat'], command=self.endCombat).place(x=8, y=(bottom - 50))
+            curr = self.cur.execute(f"select [name],[hp] from {self.encounter}_entities where [id] = {self.gameSettings[1]};").fetchone()
+            self.control.create_image(8, 80, anchor=tk.NW, image=self.images['current_ent'], tags='control')
+            self.control.create_text(100, 86, anchor=tk.NW, text=curr[0], tags='control')
+            self.control.create_text(100, 106, anchor=tk.NW, text=str(curr[1]), tags='control')
+            ttk.Button(self.control, image=self.images['prev_turn'], command=self.__prevTurn).place(x=8, y=135)
+            ttk.Button(self.control, image=self.images['next_turn'], command=self.__nextTurn).place(x=103, y=135)
+            ttk.Button(self.control, image=self.images['end_combat'], command=self.endCombat).place(x=8, y=45)
 
     def renderFrame(self):
         #print("rendering frame")
@@ -241,9 +243,12 @@ class PythonDND:
         self.renderMapFrame()
         self.__ensureBound()
 
+    def printPix(self, event):
+        print(event)
+
     # Game State Interactions
     def leftClick(self, event):
-        self.gameSettings = self.cur.execute("select * from " + self.encounter + ";").fetchone()
+        #self.gameSettings = self.cur.execute("select * from " + self.encounter + ";").fetchone()
         self.curr_ent = self.cur.execute(f"select * from {self.encounter}_entities where [id] = ?", [self.gameSettings[1]]).fetchone()
         click_x = int((self.map.canvasx(event.x)) / self.squareSize + 1)
         click_y = int((self.map.canvasy(event.y)) / self.squareSize + 1)
@@ -294,21 +299,28 @@ class PythonDND:
             else:
                 #print('prompt move')
                 if clickedEnt is not None:
-                    self.moveEnt(click_x, click_y, clickedEnt[0])
+                    self.cur.execute(f"update {self.encounter} set [curr_ent] = '{clickedEnt[0]}';")
+                    self.gameSettings = self.cur.execute("select * from " + self.encounter + ";").fetchone()
+                    self.__setMoveFlag()
+                    #self.moveEnt(click_x, click_y, clickedEnt[0])
         else:
             #print('invalid game mode')
             self.__quitGame()
         self.renderFrame()
 
     def startCombat(self):
-        if self.gameSettings[0] is None or self.gameSettings[1] is None:
-            self.__chooseInitiative()
-        else:
-            self.cur.execute("update " + self.encounter + " set [mode] = 'combat';")
-            self.renderFrame()
+        self.__chooseInitiative()
+        self.cur.execute("update " + self.encounter + " set [mode] = 'combat';")
+        self.renderFrame()
+#        print(self.gameSettings)
+#        if self.gameSettings[0] is None or self.gameSettings[1] is None:
+#            self.__chooseInitiative()
+#        else:
+#            self.cur.execute("update " + self.encounter + " set [mode] = 'combat';")
+#            self.renderFrame()
 
     def endCombat(self):
-        self.cur.execute("update " + self.encounter + " set [mode] = 'noncombat';")
+        self.cur.execute("update " + self.encounter + " set [mode] = 'noncombat', [targetted] = '';")
         self.renderFrame()
 
     def showRange(self, center: [int, int], radius: int):
@@ -343,7 +355,7 @@ class PythonDND:
     # Actions
     def moveEnt(self, x, y, entID):
         self.curr_ent = self.cur.execute("select * from " + self.encounter + "_entities where [id] = ?;", [entID]).fetchone()
-        self.showRange([x, y], "#87d987", self.cur.execute(f"select * from {self.encounter}_actions where [name] = 'Move' and id = ?;", [self.curr_ent[0]]).fetchone())
+        self.showRange([x, y], self.cur.execute(f"select * from {self.encounter}_actions where [name] = 'Move' and id = ?;", [self.curr_ent[0]]).fetchone()[0])
         self.cur.execute("update " + self.encounter + " set [flags] = ?, [curr_ent] = ?;", ['m', entID])
 
     def doChooseAction(self):
@@ -370,6 +382,7 @@ class PythonDND:
         return pos
 
     def __chooseInitiative(self):
+        print('choose init')
         for i in self.control.winfo_children():
             i.destroy()
         iniFrame = tk.Frame(self.control)
@@ -379,14 +392,14 @@ class PythonDND:
         for i in self.cur.execute("select [id] from " + self.encounter + "_entities where id > -1;").fetchall():
             self.initLB.insert(tk.END, str(i[0]) + ' - ' +self.cur.execute("select [name] from " + self.encounter + "_entities where [id] = ?;",[i[0]]).fetchone()[0])
 
-        tk.Button(butFrame, text="▲", command=self.__iniMoveUp).grid(row=0, column=0)
-        tk.Button(butFrame, text="▼", command=self.__iniMoveDown).grid(row=1, column=0)
+        ttk.Button(butFrame, text="▲", command=self.__iniMoveUp).grid(row=0, column=0)
+        ttk.Button(butFrame, text="▼", command=self.__iniMoveDown).grid(row=1, column=0)
 
         self.initLB.grid(row=0, column=0)
         butFrame.grid(row=0,column=1)
-        tk.Button(iniFrame, text="Submit", command=self.__startCombat).grid(row=8,column=0, columnspan=2)
+        ttk.Button(iniFrame, text="Submit", command=self.__startCombat).grid(row=8,column=0, columnspan=2)
         iniFrame.pack()
-        tk.Button(self.control, text="Quit", command=self.__quitGame).pack()
+        ttk.Button(self.control, text="Quit", command=self.__quitGame).pack()
 
     def __iniMoveUp(self):
         #print(self.initLB.curselection())
@@ -433,20 +446,22 @@ class PythonDND:
         self.renderFrame()
 
     def __doAction(self):
-        self.atkToHit.update()
-        self.atkDmg.update()
+        #self.atkToHit.update()
+        #self.atkDmg.update()
         #print(self.atkToHit.get(), self.atkDmg.get(), self.atkBonus.get())
         # quick guard clause
         if self.gameSettings[4] is None:
             return None
+        print(self.gameSettings[4].split(','))
         for i in self.gameSettings[4].split(','):
-            #print(i)
-            if int(self.atkToHit.get()) >= int(self.cur.execute(f"select [ac] from {self.encounter}_entities where [id] = ?;", [i]).fetchone()[0]):
+            if str(i) == '':
+                None
+            elif int(self.atkToHit.get()) >= int(self.cur.execute(f"select [ac] from {self.encounter}_entities where [id] = ?;", [i]).fetchone()[0]):
                 self.cur.execute(f"update {self.encounter}_entities set [hp] = ? where [id] = ?", [int(self.cur.execute(f"select [hp] from {self.encounter}_entities where [id] = {i};").fetchone()[0] - int(self.atkDmg.get())), i])
         if self.atkBonus.get() is False:
             self.__nextTurn()
-        self.atkToHit.setvar(value=0)
-        self.atkDmg.setvar(value=0)
+        self.atkToHit.set(value=0)
+        self.atkDmg.set(value=0)
         self.atkBonus.set(value=False)
         self.cur.execute(f"update {self.encounter} set [flags] = ?;", [''])
         self.conn.commit()
@@ -488,6 +503,7 @@ class PythonDND:
         self.renderFrame()
 
     def __setAtkFlag(self, event=None):
+        self.map.delete('range')
         print(self.gameSettings)
         self.cur.execute(f"update {self.encounter} set [flags] = 'a', [targetted] = '';")
         self.renderFrame()
@@ -566,6 +582,8 @@ class PythonDND:
         self.images['dmg_roll'] = ImageTk.PhotoImage(Image.open("res/icons/dmg_roll.png"))
         self.images['bonus_act'] = ImageTk.PhotoImage(Image.open("res/icons/bonus_act.png"))
         self.images['wide_move'] = ImageTk.PhotoImage(Image.open("res/icons/wide_move.png"))
+        self.images['logo'] = ImageTk.PhotoImage(Image.open("res/icons/logo.png"))
+        self.images['current_ent'] = ImageTk.PhotoImage(Image.open("res/icons/current_ent.png"))
 
     def __setStyling(self):
         self.style = ttk.Style(self.control)
@@ -576,13 +594,46 @@ class PythonDND:
                               "background": "#6d6d6d",
                               "foreground": "white",
                               }
-            }
+            },
+            "TEntry": {
+                "configure": {"padding": "0",
+                              "fieldbackground": "lightgray",
+                              "foreground": "black",
+                              }
+            },
+            "TButton": {
+                "configure": {"padding": "0",
+                              "bordercolor": "#6d6d6d",
+                              "relief": "0",
+                              "background": "#6d6d6d",
+                              "borderwidth": "0"
+                              }
+            },
+            "TLabel": {
+                "configure": {"padding": "0",
+                              "bordercolor": "#6d6d6d",
+                              "background": "black",
+                              }
+            },
+            "TFrame": {
+                "configure": {"padding": "0",
+                              "bordercolor": "#6d6d6d",
+                              "background": "black",
+                              }
+            },
+            "TCanvas": {
+                "configure": {"padding": "0",
+                              "bordercolor": "#6d6d6d",
+                              "background": "black",
+                              }
+            },
         })
 
     def __clearControlFrame(self):
         for i in self.control.winfo_children():
             #print(i)
             i.destroy()
+        self.control.delete('control')
 
     def __quitGame(self):
         #self.cur.execute("update game set [flags] = '', [mode] = 'noncombat';")
