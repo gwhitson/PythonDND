@@ -30,7 +30,7 @@ After either loading or creating a campaign, you will enter the following screen
 If an encounter has already been defined, you can select it from the list and load the encounter. Otherwise you can create an encounter.
 
 # Creating Encounters
-![alt text](https://github.com/gwhitson/PythonDND/blob/main/res/readme/encounter_select.png?raw=true)
+![alt text](https://github.com/gwhitson/PythonDND/blob/main/res/readme/encounter_create.png?raw=true)
 
 After selecting the 'New Encounter' option, you will be presented with the menu above. 
 
