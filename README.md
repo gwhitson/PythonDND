@@ -42,3 +42,8 @@ After selecting the 'New Encounter' option, you will be presented with the menu 
 element within the main application. Because of this the image may be distorted.
 
 Creating an encounter will send you back to the Encounter selection screen
+
+# In the Game
+![alt text](https://github.com/gwhitson/PythonDND/blob/main/res/readme/map.png?raw=true)
+
+Once loading an encounter, you will be at the avove screen.
