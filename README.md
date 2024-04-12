@@ -4,6 +4,8 @@
 
 TODO:
 UI Formatting/Cleaning
+change start menu entity manager into campaign manager where you can edit entities as well as encounters
+  at least delete them...
 
 An interactive map for hosting DND sessions.
 
@@ -18,7 +20,7 @@ encounter specific entitiy.
 
 The main menu screen allows you to create, or load campaigns, alter settings, and quit the game. The settings menu is where you can adjust keybinds. Special keys
 may require a specific syntax in order to not break. If a keybind is invalid, it will load the default keybind in its place. Campaigns are stored as sqlite .db files.
-They are under the res/saves/ directory and can be accessed directly through sqlite. This can be dangerous and create breaking bugs in your campaign file.
+They are under the 'res/saves/' directory and can be accessed directly through sqlite. This can be dangerous and create breaking bugs in your campaign file.
 Details on the campaign file and its implementation will be added under devloper notes.
 
 # Encounters and Campaign management
@@ -30,4 +32,10 @@ If an encounter has already been defined, you can select it from the list and lo
 # Creating Encounters
 ![alt text](https://github.com/gwhitson/PythonDND/blob/main/res/readme/encounter_select.png?raw=true)
 
-After selecting the 'New Encounter' option, you will be presented with the menu above.
+After selecting the 'New Encounter' option, you will be presented with the menu above. 
+'Encounter Name' should be restricted to alpha-numeric characters.
+'Map Size' should be two integers, representing the number of squares on the X axis and Y axis respectively, separated by the letter 'x'. (This will be adjusted in the future to have an 'X' entry box and a 'Y' entry box)
+'Background' is a drop down menu showing all .png files in the 'res/maps/' directory. You can upload .png's to be used by adding them to this directory. This will be scaled to the current pixel size of the 'map' 
+element within the main application. Because of this the image may be distorted.
+
+Creating an encounter will send you back to the Encounter selection screen
