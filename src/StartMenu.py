@@ -89,12 +89,11 @@ class StartMenu:
         self.__openConnection()
         self.encounters = None
         self.tkother['enc_title'] = ttk.Label(self.window, image=self.images['enc_name'])
-        self.encEntry = ttk.Entry(self.window, textvariable=self.encounterVar, width=22)
+        self.encEntry = ttk.Entry(self.window, textvariable=self.encounterVar, width=20)
         self.tkother['map_size'] = ttk.Label(self.window, image=self.images['map_size'])
-        self.mpSzEntry = ttk.Entry(self.window, textvariable=self.mapSize, width=7)
-        self.buttons['enc_create'] = ttk.Button(self.window, image=self.images['slim_create'], command=self.__createEncounter)
-        self.buttons['can_enc'] = ttk.Button(self.window, image=self.images['slim_back'], command=self.__quitEncounters)
-        self.backgroundEntry = ttk.Combobox(self.window)
+        self.mpSzEntry = ttk.Entry(self.window, textvariable=self.mapSize, width=6)
+        self.buttons['enc_create'] = ttk.Button(self.window, image=self.images['create'], command=self.__createEncounter)
+        self.backgroundEntry = ttk.Combobox(self.window, width=18)
         self.backgroundEntry['values'] = os.listdir('res/maps/')
         self.tkother['background'] = ttk.Label(self.window, image=self.images['background_label'])
         self.buttons['can_enc'] = ttk.Button(self.window, image=self.images['slim_back'], command=self.__quitEncounters)
@@ -426,7 +425,8 @@ class StartMenu:
             },
             "TLabel": {
                 "configure": {"padding": "0",
-                              "bordercolor": "#6d6d6d",
+                              "background": "#6d6d6d",
+                              "borderwidth": "0"
                               }
             },
             "TCombobox": {
