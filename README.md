@@ -33,6 +33,7 @@ If an encounter has already been defined, you can select it from the list and lo
 ![alt text](https://github.com/gwhitson/PythonDND/blob/main/res/readme/encounter_select.png?raw=true)
 
 After selecting the 'New Encounter' option, you will be presented with the menu above. 
+
 'Encounter Name' should be restricted to alpha-numeric characters.
 
 'Map Size' should be two integers, representing the number of squares on the X axis and Y axis respectively, separated by the letter 'x'. (This will be adjusted in the future to have an 'X' entry box and a 'Y' entry box)
