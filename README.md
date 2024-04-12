@@ -1,6 +1,7 @@
 # PythonDND
 
 ![alt text](https://github.com/gwhitson/PythonDND/blob/main/res/icons/logo.png?raw=true)
+
 --WORK IN PROGRESS--
 An interactive map for hosting DND sessions.
 
