@@ -1,11 +1,16 @@
+TODO:
+
+UI Formatting/Cleaning
+
+change start menu entity manager into campaign manager where you can edit entities as well as encounters
+  at least delete them...
+
+fix initiative selection
+
+
 # PythonDND
 
 ![alt text](https://github.com/gwhitson/PythonDND/blob/main/res/icons/logo.png?raw=true)
-
-TODO:
-UI Formatting/Cleaning
-change start menu entity manager into campaign manager where you can edit entities as well as encounters
-  at least delete them...
 
 An interactive map for hosting DND sessions. Approaching its beta release.
 
@@ -47,3 +52,11 @@ Creating an encounter will send you back to the Encounter selection screen
 ![alt text](https://github.com/gwhitson/PythonDND/blob/main/res/readme/map.png?raw=true)
 
 Once loading an encounter, you will be at the avove screen.
+
+'Session Settings' and the 'Quit' option will be in the menu no matter the game state. Otherwise, the menu has two base states depending on whether or not combat has started.
+![alt text](https://github.com/gwhitson/PythonDND/blob/main/res/readme/prep_comb.png?raw=true)
+
+Before starting combat, you can click any entities on the map to prompt them to move within their movement speed.
+Once starting combat, you will be prompted to select your initiative ordering. Once submitted the game will enter combat mode.
+
+
