@@ -7,7 +7,7 @@ UI Formatting/Cleaning
 change start menu entity manager into campaign manager where you can edit entities as well as encounters
   at least delete them...
 
-An interactive map for hosting DND sessions.
+An interactive map for hosting DND sessions. Approaching its beta release.
 
 It will be up to the DM to find/create maps to use within the app, it is currently set to start at your monitors native resolution.
 
