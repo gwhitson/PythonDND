@@ -309,15 +309,12 @@ class PythonDND:
         self.renderFrame()
 
     def startCombat(self):
-        self.__chooseInitiative()
-        self.cur.execute("update " + self.encounter + " set [mode] = 'combat';")
-        self.renderFrame()
-#        print(self.gameSettings)
-#        if self.gameSettings[0] is None or self.gameSettings[1] is None:
-#            self.__chooseInitiative()
-#        else:
-#            self.cur.execute("update " + self.encounter + " set [mode] = 'combat';")
-#            self.renderFrame()
+        print(self.gameSettings)
+        if self.gameSettings[0] is None or self.gameSettings[1] is None:
+            self.__chooseInitiative()
+        else:
+            self.cur.execute("update " + self.encounter + " set [mode] = 'combat';")
+            self.renderFrame()
 
     def endCombat(self):
         self.cur.execute("update " + self.encounter + " set [mode] = 'noncombat', [targetted] = '';")
@@ -382,24 +379,22 @@ class PythonDND:
         return pos
 
     def __chooseInitiative(self):
-        print('choose init')
-        for i in self.control.winfo_children():
-            i.destroy()
-        iniFrame = tk.Frame(self.control)
-        butFrame = tk.Frame(iniFrame)
-        self.initLB = tk.Listbox(iniFrame)
+        self.__clearControlFrame()
+        #iniFrame = ttk.Frame(self.control)
+        #butFrame = ttk.Frame(iniFrame)
+        #self.initLB = ttk.Listbox(iniFrame)
+        self.initLB = tk.Listbox(self.control, bg='lightgray', fg='black', borderwidth='0')
 
         for i in self.cur.execute("select [id] from " + self.encounter + "_entities where id > -1;").fetchall():
-            self.initLB.insert(tk.END, str(i[0]) + ' - ' +self.cur.execute("select [name] from " + self.encounter + "_entities where [id] = ?;",[i[0]]).fetchone()[0])
+            self.initLB.insert(tk.END, str(i[0]) + ' - ' + self.cur.execute("select [name] from " + self.encounter + "_entities where [id] = ?;",[i[0]]).fetchone()[0])
 
-        ttk.Button(butFrame, text="▲", command=self.__iniMoveUp).grid(row=0, column=0)
-        ttk.Button(butFrame, text="▼", command=self.__iniMoveDown).grid(row=1, column=0)
+        ttk.Button(self.control, image=self.images['up_arr'], command=self.__iniMoveUp).place(x=170, y=74)
+        ttk.Button(self.control, image=self.images['dn_arr'], command=self.__iniMoveDown).place(x=170, y=101)
 
-        self.initLB.grid(row=0, column=0)
-        butFrame.grid(row=0,column=1)
-        ttk.Button(iniFrame, text="Submit", command=self.__startCombat).grid(row=8,column=0, columnspan=2)
-        iniFrame.pack()
-        ttk.Button(self.control, text="Quit", command=self.__quitGame).pack()
+        self.initLB.place(x=8, y=55)
+        #ttk.Button(iniFrame, text="Submit", command=self.__startCombat).place(x=8, y=330)
+        ttk.Button(self.control, image=self.images['submit'], command=self.__startCombat).place(x=8, y=245)
+        ttk.Button(self.control, image=self.images['quit'], command=self.__quitGame).place(x=8, y=(self.window.winfo_height() - 50))
 
     def __iniMoveUp(self):
         #print(self.initLB.curselection())
@@ -583,7 +578,10 @@ class PythonDND:
         self.images['bonus_act'] = ImageTk.PhotoImage(Image.open("res/icons/bonus_act.png"))
         self.images['wide_move'] = ImageTk.PhotoImage(Image.open("res/icons/wide_move.png"))
         self.images['logo'] = ImageTk.PhotoImage(Image.open("res/icons/logo.png"))
+        self.images['submit'] = ImageTk.PhotoImage(Image.open("res/icons/submit.png"))
         self.images['current_ent'] = ImageTk.PhotoImage(Image.open("res/icons/current_ent.png"))
+        self.images['up_arr'] = ImageTk.PhotoImage(Image.open("res/icons/up_arr.png"))
+        self.images['dn_arr'] = ImageTk.PhotoImage(Image.open("res/icons/dn_arr.png"))
 
     def __setStyling(self):
         self.style = ttk.Style(self.control)
