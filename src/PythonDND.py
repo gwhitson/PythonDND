@@ -77,7 +77,7 @@ class PythonDND:
         self.backgroundImage = ImageTk.PhotoImage(tempImage.resize((int(self.map.cget('width')), int(self.map.cget('height')))))
         self.map.create_image(0, 0, anchor=tk.NW, image=self.backgroundImage)
 
-        self.__createImages()
+        self.__loadImages()
         self.control = tk.Canvas(self.window,
                                  height=self.window.winfo_screenheight(),
                                  width=200)
@@ -203,7 +203,6 @@ class PythonDND:
         if self.gameSettings[3] == "noncombat":
             ttk.Button(self.control, image=self.images['start_combat'], command=self.startCombat).place(x=8, y=45)
         else:
-            curTurn = self.cur.execute(f"select [name] from {self.encounter}_entities where [id] = ?;", [self.gameSettings[1]]).fetchone()[0]
             #tk.Label(actionFrame, text=f"Current Turn: {curTurn}").grid(row=0, column=0)
             # include later when targettingisfixed fixed
             #tk.Button(actionFrame, text="Choose Action", command=self.doChooseAction).grid(row=1, column=0)
@@ -561,7 +560,7 @@ class PythonDND:
         self.settingsWindow.prompt()
         self.renderFrame()
 
-    def __createImages(self):
+    def __loadImages(self):
         self.images['control_panel'] = ImageTk.PhotoImage(Image.open("res/icons/control_panel.png"))
         self.images['start_combat'] = ImageTk.PhotoImage(Image.open("res/icons/start_combat.png"))
         self.images['end_combat'] = ImageTk.PhotoImage(Image.open("res/icons/end_combat.png"))

@@ -16,20 +16,25 @@ class DNDSettings:
         self.encounter = encounter
         self.map = map
         self.image = None
+        self.images = {}
+        self.tkother = {}
+        self.settingsCanvas = None
+        self.__loadImages()
 
     def prompt(self):
-        try:
-            self.settingsWindow.destroy()
-        except AttributeError:
-            None
+        self.__clearCanvas()
         self.conn.commit()
         self.settingsWindow = tk.Toplevel(self.window)
+        self.settingsWindow.geometry("200x200")
         self.settingsWindow.title("Session Settings")
-        tk.Button(self.settingsWindow, text="Entity Manager", command=self.__entMgr).pack()
-        tk.Button(self.settingsWindow, text="Action Manager", command=self.__actMgr).pack()
-        tk.Button(self.settingsWindow, text="Initiative Manager", command=self.__iniMgr).pack()
-        tk.Button(self.settingsWindow, text="Set Background", command=self.__bckMgr).pack()
-        tk.Button(self.settingsWindow, text="Exit", command=self.__exitSettings).pack()
+        self.settingsCanvas = tk.Canvas(self.settingsWindow, width=200, height=200)
+        self.settingsCanvas.pack(fill=tk.BOTH)
+        self.settingsCanvas.create_image(0, 0, anchor=tk.NW, image=self.images['background'])
+        tk.Button(self.settingsCanvas, text="Entity Manager", command=self.__entMgr).pack()
+        #tk.Button(self.settingsCanvas, text="Action Manager", command=self.__actMgr).pack()
+        #tk.Button(self.settingsCanvas, text="Initiative Manager", command=self.__iniMgr).pack()
+        tk.Button(self.settingsCanvas, text="Set Background", command=self.__bckMgr).pack()
+        tk.Button(self.settingsCanvas, text="Exit", command=self.__exitSettings).pack()
         self.renderFrame()
 
     def __exitSettings(self):
@@ -211,10 +216,10 @@ class DNDSettings:
             rem = tk.Button(butFrame, text=">", command=lambda:__remAct(lb1, lb2))
             rem.grid(row=1, column=0)
 
-        tk.Button(frame, text="Submit", command= self.__updateEntInDB).grid(row=9, column=1)
-        tk.Button(frame, text="Back", command= self.__entMgr).grid(row=9, column=0)
+        tk.Button(frame, text="Submit", command=self.__updateEntInDB).grid(row=9, column=1)
+        tk.Button(frame, text="Back", command=self.__entMgr).grid(row=9, column=0)
         #tk.Button(frame, text="Action Manager", command=self.__actMgr).grid(row=10, column=0, columnspan=2)
-        tk.Button(frame, text="Exit", command= self.__exitSettings).grid(row=11, column=0, columnspan=2)
+        tk.Button(frame, text="Exit", command=self.__exitSettings).grid(row=11, column=0, columnspan=2)
 
     def __actMgr(self):
         self.renderFrame()
@@ -231,9 +236,7 @@ class DNDSettings:
         actFrame.pack()
 
     def __entMgr(self):
-        self.renderFrame()
-        for i in self.settingsWindow.winfo_children():
-            i.destroy()
+        self.__clearCanvas()
 
         entFrame = tk.Frame(self.settingsWindow)
         drop = ttk.Combobox(entFrame)
@@ -253,8 +256,7 @@ class DNDSettings:
         init = self.cur.execute(f"select [initiative] from {self.encounter};").fetchone()[0]
         print(init)
         self.renderFrame()
-        for i in self.settingsWindow.winfo_children():
-            i.destroy()
+        self.__clearCanvas()
         iniFrame = tk.Frame(self.settingsWindow)
         butFrame = tk.Frame(iniFrame)
         self.lb = tk.Listbox(iniFrame)
@@ -266,17 +268,43 @@ class DNDSettings:
         tk.Button(butFrame, text="▼", command=self.__iniMoveDown).grid(row=1, column=0)
 
         self.lb.grid(row=0, column=0)
-        butFrame.grid(row=0,column=1)
-        tk.Button(iniFrame, text="Submit", command=self.__udpateInitInDB).grid(row=8,column=0, columnspan=2)
+        butFrame.grid(row=0, column=1)
+        tk.Button(iniFrame, text="Submit", command=self.__udpateInitInDB).grid(row=8, column=0, columnspan=2)
         tk.Button(iniFrame, text="Back", command=self.prompt).grid(row=9, column=0, columnspan=2)
         iniFrame.pack()
 
     def __bckMgr(self):
+        self.__clearCanvas()
         imagefile = tk.filedialog.askopenfile(mode='r',
-                                          initialdir=(os.getcwd() + "/res/maps/"),
-                                          filetypes=(("png files", "*.png"), ("all files", "*.*")))
+                                              initialdir=(os.getcwd() + "/res/maps/"),
+                                              filetypes=(("png files", "*.png"), ("all files", "*.*")))
         image = Image.open(imagefile.name)
         image = image.resize((int(self.map.cget('width')), int(self.map.cget('height'))))
         self.image = ImageTk.PhotoImage(image)
-        self.map.create_image(0,0, anchor=tk.NW, image=self.image)
+        self.map.create_image(0, 0, anchor=tk.NW, image=self.image)
         self.renderFrame()
+
+    def __clearCanvas(self):
+        try:
+            self.settingsCanvas.delete("prompt")
+            self.settingsCanvas.delete("background")
+            self.settingsCanvas.delete("initiative")
+            self.settingsCanvas.delete("entities")
+        except AttributeError:
+            None
+
+    def __loadImages(self):
+        self.images['background'] = ImageTk.PhotoImage(Image.open("res/icons/control_panel.png"))
+        self.images['ent_mgr'] = ImageTk.PhotoImage(Image.open("res/icons/ent_mgr.png"))
+        self.images['back'] = ImageTk.PhotoImage(Image.open("res/icons/back.png"))
+        self.images['new_ent'] = ImageTk.PhotoImage(Image.open("res/icons/new_ent.png"))
+        self.images['edit_ent'] = ImageTk.PhotoImage(Image.open("res/icons/edit_ent.png"))
+        self.images['eac'] = ImageTk.PhotoImage(Image.open("res/icons/eac.png"))
+        self.images['ehp'] = ImageTk.PhotoImage(Image.open("res/icons/ehp.png"))
+        self.images['ename'] = ImageTk.PhotoImage(Image.open("res/icons/ename.png"))
+        self.images['espeed'] = ImageTk.PhotoImage(Image.open("res/icons/espeed.png"))
+        self.images['esprite'] = ImageTk.PhotoImage(Image.open("res/icons/esprite.png"))
+        self.images['erole'] = ImageTk.PhotoImage(Image.open("res/icons/erole.png"))
+        self.images['submit'] = ImageTk.PhotoImage(Image.open("res/icons/submit.png"))
+        self.images['up_arr'] = ImageTk.PhotoImage(Image.open("res/icons/up_arr.png"))
+        self.images['dn_arr'] = ImageTk.PhotoImage(Image.open("res/icons/dn_arr.png"))
