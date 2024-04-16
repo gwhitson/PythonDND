@@ -84,7 +84,6 @@ class PythonDND:
         self.control.create_image(0, 0, anchor=tk.NW, image=self.images['control_panel'])
 
         self.map.bind('<Button-1>', self.leftClick, add="+")
-        self.control.bind('<Button-1>', self.printPix, add="+")
         self.map.bind('<Button-4>', self.__scrollUp, add="+")
         self.map.bind('<Button-5>', self.__scrollDown, add="+")
         self.map.bind('<MouseWheel>', self.__windowsScroll, add="+")
@@ -241,9 +240,6 @@ class PythonDND:
         self.renderControlFrame()
         self.renderMapFrame()
         self.__ensureBound()
-
-    def printPix(self, event):
-        print(event)
 
     # Game State Interactions
     def leftClick(self, event):
@@ -557,7 +553,7 @@ class PythonDND:
         except AttributeError:
             None
         self.settingsWindow.setRenderFunc(self.renderFrame)
-        self.settingsWindow.prompt()
+        self.settingsWindow.newPrompt()
         self.renderFrame()
 
     def __loadImages(self):
@@ -622,6 +618,12 @@ class PythonDND:
                 "configure": {"padding": "0",
                               "bordercolor": "#6d6d6d",
                               "background": "black",
+                              }
+            },
+            "TCombobox": {
+                "configure": {"padding": "0",
+                              "fieldbackground": "lightgray",
+                              "foreground": "black",
                               }
             },
         })
