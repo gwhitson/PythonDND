@@ -59,4 +59,17 @@ Once loading an encounter, you will be at the avove screen.
 Before starting combat, you can click any entities on the map to prompt them to move within their movement speed.
 Once starting combat, you will be prompted to select your initiative ordering. Once submitted the game will enter combat mode.
 
+With the game in combat mode, you will be presented with new items in the menu. This will show the current entity to act as well as their health, along with buttons for 
+moving to the next and previous turns (next and prev turn buttons may be moved to session settings menu as it will ideally not be needed often).
+Below that will be the options to move and attack.
 
+Selecting the 'Move' option displays the movement speed as a shaded circle around the entity displaying where they are able to move. Any click within the shaded region will
+move the current entity to the center of that square, even if it was just barely able to reach. If you have issues with this, the DM is in control and this has been made with the understanding that 
+the DM should be able to do things at their own discretion.
+
+In order to accommodate the wide variety of attacks and target ranges, attacks are not currently bound to any specific shape or distance of range (ex: cone, 30 ft)
+and rather you will simply select the entities that would be targetted by the attack, enter the roll to hit, damage roll, and check the box if the action grants you a bonus action before clicking 'Attack'.
+Clicking the 'Attack' button will apply check the roll to hit against the AC of the targets, and if it is greater than or equal to the AC, subtracts the damage roll from the targets HP.
+If the bonus action box was checked, the action is processed and the turn repeats.
+
+Once an entities health drops to or below 0, they are no longer drawn on the map and when next/prev turn encounters them in the initiative ordering, they are skipped.
